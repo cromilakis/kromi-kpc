@@ -1,6 +1,486 @@
 {
-  "home": {
-    "title": "kromi-dpc",
-    "cta": "Comenzar"
+  "common": {
+    "appName": "DPC",
+    "appFullName": "Data Protection Compliance",
+    "tagline": "Protección Certificada",
+    "skipToContent": "Saltar al contenido principal",
+    "opensInNewWindow": "(se abre en una ventana nueva)"
+  },
+  "landing": {
+    "nav": {
+      "domains": "Dominios",
+      "cycle": "Ciclo de servicio",
+      "model": "Modelo",
+      "certification": "Certificación"
+    },
+    "hero": {
+      "lawBadge": "Ley 21.719",
+      "lawNotice": "vigente desde el 1 de diciembre de 2026",
+      "title": "Protección de datos personales, certificada",
+      "subtitle": "En DPC acompañamos a las empresas en todo el proceso: diagnóstico, propuesta y validación.",
+      "quoteLabel": "Dos formas de cotizar",
+      "ctaSelfAssessment": "Autoevaluación en línea",
+      "ctaSeparator": "o",
+      "ctaWhatsApp": "Cotización asistida"
+    },
+    "stakes": {
+      "title": "Lo que está en juego",
+      "note": "Fiscalización de la Agencia desde el 1 de diciembre de 2026",
+      "clpSuffix": "CLP",
+      "items": {
+        "minor": {
+          "severity": "Infracción leve",
+          "utm": "100 – 5.000 UTM",
+          "clp": "≈ $7M – $340M"
+        },
+        "serious": {
+          "severity": "Infracción grave",
+          "utm": "5.001 – 10.000 UTM",
+          "clp": "≈ $340M – $680M"
+        },
+        "severe": {
+          "severity": "Infracción gravísima",
+          "utm": "10.001 – 20.000 UTM",
+          "clp": "hasta ≈ $1.360M"
+        }
+      }
+    },
+    "domains": {
+      "eyebrow": "Arquitectura del marco de trabajo",
+      "title": "Un estándar completo de protección de datos.",
+      "description": "Ocho dominios se alinean directamente con cada principio de la Ley 21.719, y seis dominios complementarios cubren las obligaciones operativas restantes.",
+      "principlesLabel": "Principios",
+      "principlesNote": "Art. 3 · Ley 21.719",
+      "complementaryLabel": "Dominios complementarios",
+      "complementaryNote": "Obligaciones operativas",
+      "items": {
+        "lic": {
+          "name": "Licitud y Lealtad",
+          "description": "Toda operación se apoya en una base legal válida (consentimiento, contrato, obligación legal, interés legítimo) y se trata al titular de forma leal. Cruce con Ley 19.496 (SERNAC)."
+        },
+        "fin": {
+          "name": "Finalidad",
+          "description": "Los datos se recolectan para fines determinados, explícitos y legítimos, y no se reutilizan para fines incompatibles. Incluye conservación limitada y borrado al cumplirse la finalidad."
+        },
+        "pro": {
+          "name": "Proporcionalidad",
+          "description": "Solo se tratan los datos estrictamente necesarios para la finalidad declarada (minimización). Se evita la recolección preventiva o excesiva."
+        },
+        "cal": {
+          "name": "Calidad",
+          "description": "Los datos se mantienen exactos, completos y actualizados, con mecanismos de corrección y depuración a lo largo de su ciclo de vida."
+        },
+        "res": {
+          "name": "Responsabilidad",
+          "description": "La organización puede demostrar su cumplimiento: gobernanza, DPD, Modelo de Prevención de Infracciones (MPI) y evidencia trazable. Cruce con ISO 27001."
+        },
+        "seg": {
+          "name": "Seguridad",
+          "description": "Medidas técnicas y organizativas adecuadas al riesgo: cifrado, control de accesos y bitácoras. Cruce con Ley 21.459 (Delitos Informáticos) y exigencias CMF."
+        },
+        "tra": {
+          "name": "Transparencia e Información",
+          "description": "El deber de información del Art. 14 ter: política de tratamiento pública, con fecha y versión, e información clara al titular sobre el uso de sus datos."
+        },
+        "con": {
+          "name": "Confidencialidad",
+          "description": "Deber de secreto de quienes acceden a los datos, que se mantiene incluso terminada la relación. Acuerdos de confidencialidad y capacitación."
+        },
+        "inv": {
+          "name": "Inventario y RAT",
+          "description": "Levantamiento del inventario de datos y del Registro de Actividades de Tratamiento (RAT): qué se trata, con qué finalidad y base, con quién se comparte y por cuánto tiempo. Mapeo de flujos."
+        },
+        "der": {
+          "name": "Derechos de los Titulares",
+          "description": "Canal y procedimiento para ejercer los derechos de acceso, rectificación, supresión, oposición y portabilidad, con plazos auditables (30 días)."
+        },
+        "sen": {
+          "name": "Datos Sensibles y Grupos Especiales",
+          "description": "Protección reforzada para datos sensibles y de NNA. Cruce estricto con Ley 20.584 (Salud), biometría laboral y datos económico-financieros."
+        },
+        "ter": {
+          "name": "Encargados y Transferencias",
+          "description": "Evaluación de encargados del tratamiento, contratos de encargo (DPA) y transferencias internacionales con garantías de adecuación."
+        },
+        "inc": {
+          "name": "Incidentes y Brechas",
+          "description": "Detección, contención y notificación de brechas a la Agencia dentro de 72 horas y a los titulares cuando corresponda. Alineación con la Ley 21.663 (ANCI)."
+        },
+        "eia": {
+          "name": "Evaluación de Impacto y Decisiones Automatizadas",
+          "description": "Evaluación de Impacto (EIPD) para tratamientos de alto riesgo, y salvaguardas para decisiones automatizadas y perfilamiento: supervisión humana y explicabilidad."
+        }
+      }
+    },
+    "agencies": {
+      "label": "Diseñado sobre el ecosistema regulatorio chileno",
+      "items": {
+        "apdp": "APDP",
+        "anci": "ANCI",
+        "sernac": "SERNAC",
+        "cmf": "CMF",
+        "dt": "Dirección del Trabajo",
+        "subtel": "SUBTEL"
+      }
+    },
+    "cycle": {
+      "eyebrow": "Ciclo de aseguramiento continuo",
+      "title": "Del diagnóstico a la renovación.",
+      "phases": {
+        "diagnosis": {
+          "number": "Fase 1",
+          "name": "Diagnóstico",
+          "description": "Evaluación inicial de controles base y sectoriales, y mapeo de brechas normativas cruzadas."
+        },
+        "proposal": {
+          "number": "Fase 2",
+          "name": "Propuesta",
+          "description": "Soluciones parametrizadas por rubro y acompañamiento metodológico en la implementación."
+        },
+        "certification": {
+          "number": "Fase 3",
+          "name": "Certificación",
+          "description": "Auditoría sobre las evidencias, validación de controles y emisión del Certificado Privado DPC."
+        },
+        "revalidation": {
+          "number": "Fase 4",
+          "name": "Revalidación",
+          "description": "Auditoría de seguimiento periódica frente a cambios normativos o nuevas directrices."
+        }
+      }
+    },
+    "deliverable": {
+      "eyebrow": "El entregable",
+      "title": "Documentación lista para una fiscalización.",
+      "description": "Al cerrar el proceso, la organización recibe un expediente de cumplimiento completo junto con la certificación: el detalle documentado de cómo trata los datos personales, control por control, que da cuenta del cuidado de cada exigencia de la ley.",
+      "bullets": {
+        "backup": {
+          "title": "Respaldo ante fiscalización",
+          "text": "evidencia admisible y ordenada, disponible de inmediato."
+        },
+        "traceability": {
+          "title": "Trazabilidad total",
+          "text": "cada control respaldado, versionado y fechado."
+        },
+        "detail": {
+          "title": "Detalle del tratamiento",
+          "text": "el mapa completo de los datos personales de la organización."
+        }
+      },
+      "dossier": {
+        "title": "Expediente de cumplimiento",
+        "badge": "Certificado",
+        "docs": {
+          "rat": "Registro de Actividades de Tratamiento (RAT)",
+          "policies": "Políticas y avisos de privacidad vigentes",
+          "arcop": "Procedimiento de derechos ARCOP",
+          "incidents": "Plan de respuesta ante incidentes",
+          "inventory": "Inventario y mapeo de flujos de datos",
+          "evidence": "Evidencias por control, versionadas",
+          "certificate": "Certificado privado DPC con hash de verificación"
+        },
+        "certTitle": "Certificación privada DPC",
+        "certNote": "Verificable en línea"
+      }
+    },
+    "trust": {
+      "dogfooding": {
+        "title": "Nuestros procesos, bajo la misma rigurosidad",
+        "text": "La información de nuestros propios clientes se resguarda bajo los mismos 14 dominios que rigen nuestro estándar, asegurando la calidad del proceso y de los resultados."
+      },
+      "confidentiality": {
+        "title": "Confidencialidad por diseño",
+        "text": "Accedemos solo a la evidencia necesaria para evaluar. Los datos de la organización permanecen bajo su control, con acuerdo de confidencialidad y contrato de encargo."
+      }
+    },
+    "support": {
+      "eyebrow": "Acompañamiento",
+      "title": "Un consultor asignado en cada fase.",
+      "description": "La metodología da rigor; el consultor da criterio. Combinamos una plataforma estructurada con acompañamiento humano real.",
+      "items": {
+        "assigned": {
+          "title": "Consultor asignado",
+          "text": "Una persona responsable del proceso completo, que conoce el rubro y el contexto de cada organización de principio a fin."
+        },
+        "advisory": {
+          "title": "Asesoría personalizada",
+          "text": "Interpretación de cómo la Ley 21.719 y sus normas complementarias aplican específicamente a cada operación."
+        },
+        "implementation": {
+          "title": "Acompañamiento en la implementación",
+          "text": "Guía experta para aplicar cada control en la práctica, más allá de la entrega de documentos."
+        },
+        "followUp": {
+          "title": "Seguimiento posterior",
+          "text": "Monitoreo de cambios normativos, revisiones periódicas y revalidación de la certificación para sostener el estándar."
+        }
+      }
+    },
+    "model": {
+      "eyebrow": "Modelo de servicio",
+      "title": "Un acompañamiento que perdura.",
+      "description": "El servicio se estructura en dos etapas: la certificación inicial que lleva a la organización al estándar, y una suscripción que lo mantiene vigente en el tiempo.",
+      "initial": {
+        "chip": "01 · Certificación inicial",
+        "title": "Ruta al estándar",
+        "text": "Llevamos a la organización hasta el estándar: diagnóstico, cierre de brechas y la certificación privada DPC. El alcance del trabajo se ajusta a la complejidad de cada organización."
+      },
+      "recurring": {
+        "chip": "02 · Revalidación periódica",
+        "title": "Aseguramiento continuo",
+        "text": "Acompañamos a la organización para sostener el estándar en el tiempo: monitoreo de cambios normativos, revisiones periódicas, soporte ante incidentes y la <b>renovación de la certificación</b>.",
+        "note": "Suscripción renovable, con la periodicidad que mejor se adapte."
+      }
+    },
+    "pricing": {
+      "eyebrow": "La inversión",
+      "title": "El valor, a la medida de cada organización.",
+      "description": "Cada organización parte de un valor base accesible y acorde a su tamaño. Ese valor puede ajustarse tras el diagnóstico según la complejidad real de sus tratamientos y la presencia de datos sensibles.",
+      "from": "Desde",
+      "vat": "+ IVA",
+      "baseNote": "valor base referencial",
+      "tiers": {
+        "micro": {
+          "name": "Microempresa",
+          "price": "5 UF"
+        },
+        "small": {
+          "name": "Pequeña empresa",
+          "price": "15 UF"
+        },
+        "enterprise": {
+          "name": "Enterprise",
+          "price": "Bajo cotización",
+          "note": "según el alcance del diagnóstico"
+        }
+      },
+      "disclaimer": "Los valores base son referenciales y acordes al tamaño de cada organización. El precio final se confirma tras el diagnóstico, según la complejidad de los tratamientos.",
+      "ctaSelfAssessment": "Autoevaluación en línea",
+      "ctaWhatsApp": "Cotizar certificación"
+    },
+    "whatsapp": {
+      "infoMessage": "Hola, quiero información sobre la certificación de protección de datos",
+      "quoteMessage": "Hola, quiero cotizar la certificación de protección de datos para mi organización"
+    },
+    "footer": {
+      "brandName": "Data Protection Compliance",
+      "brandDescription": "Estándar privado de cumplimiento estructurado para la Ley N° 21.719 y su ecosistema regulatorio en Chile.",
+      "columns": {
+        "framework": {
+          "title": "Marco de trabajo",
+          "links": {
+            "domains": "Los 14 dominios",
+            "taxonomy": "Taxonomía de controles",
+            "risks": "Catálogo de riesgos",
+            "verticals": "Verticales sectoriales"
+          }
+        },
+        "platform": {
+          "title": "Plataforma",
+          "links": {
+            "consultantPanel": "Panel del consultor",
+            "complexityScore": "Complexity Score",
+            "evidence": "Repositorio de evidencias",
+            "certification": "Certificación DPC"
+          }
+        },
+        "legal": {
+          "title": "Marco legal",
+          "links": {
+            "law21719": "Ley 21.719",
+            "law21663": "Ley 21.663",
+            "law19496": "Ley 19.496",
+            "laborCode": "Código del Trabajo"
+          }
+        }
+      },
+      "legalLine": "© 2026 DPC · Marco de trabajo. No emite certificaciones gubernamentales oficiales ni suplanta las potestades de la Agencia de Protección de Datos Personales."
+    }
+  },
+  "login": {
+    "title": "Ingreso del equipo",
+    "subtitle": "Herramienta interna de evaluación y certificación DPC.",
+    "userLabel": "Usuario",
+    "userPlaceholder": "usuario",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "••••••",
+    "submit": "Ingresar",
+    "backToSite": "← Volver al sitio",
+    "placeholderNote": "Acceso exclusivo del equipo consultor."
+  },
+  "selfAssessment": {
+    "meta": {
+      "title": "Autoevaluación en línea — DPC",
+      "description": "Estimación gratuita del tramo y la orientación de valor de la certificación de protección de datos (Ley 21.719). Sin compromiso."
+    },
+    "topbar": {
+      "backToSite": "← Volver al sitio"
+    },
+    "header": {
+      "eyebrow": "Autoevaluación en línea",
+      "title": "Estimación del valor de la certificación.",
+      "intro": "Con algunas preguntas se obtiene una orientación inmediata del valor. Es gratis y sin compromiso; la cotización final se confirma al conversar con el equipo."
+    },
+    "stepper": {
+      "label": "Progreso de la autoevaluación",
+      "stepOf": "Paso {current} de {total}",
+      "steps": {
+        "size": "Tamaño",
+        "sector": "Rubro",
+        "factors": "Factores",
+        "result": "Resultado"
+      }
+    },
+    "steps": {
+      "size": {
+        "legend": "Tamaño de la organización",
+        "hint": "Tramos según la clasificación chilena (Ley 20.416).",
+        "options": {
+          "micro": { "label": "Microempresa", "sub": "Hasta 9 personas" },
+          "small": { "label": "Pequeña empresa", "sub": "10 a 49 personas" },
+          "enterprise": { "label": "Mediana o grande", "sub": "50 o más personas" }
+        }
+      },
+      "sector": {
+        "legend": "Rubro de la organización",
+        "hint": "El rubro determina las leyes complementarias que aplican junto a la Ley 21.719.",
+        "options": {
+          "retail": { "label": "Retail / e-commerce", "laws": "Ley 19.496 (SERNAC) · Ley 21.719" },
+          "fintech": { "label": "Fintech / Financiero", "laws": "Circulares CMF · Ley 21.663 · Ley 21.719" },
+          "salud": { "label": "Salud", "laws": "Ley 20.584 · Ley 21.719" },
+          "b2b": { "label": "Servicios B2B", "laws": "Código del Trabajo · Ley 21.719" },
+          "telco": { "label": "Telecomunicaciones", "laws": "Normas SUBTEL · Ley 21.663 · Ley 21.719" },
+          "startup": { "label": "Startup tecnológica", "laws": "Ley 21.719 · Ley 21.459" },
+          "estado": { "label": "Proveedor del Estado", "laws": "Ley 21.663 (ANCI) · Ley 21.719" }
+        }
+      },
+      "factors": {
+        "legend": "Factores del tratamiento de datos",
+        "hint": "Estos factores pueden ajustar el valor final sobre la base referencial.",
+        "yes": "Sí",
+        "no": "No",
+        "questions": {
+          "sensitive_data": "¿La organización trata datos sensibles? (salud, biométricos, financieros)",
+          "international_transfers": "¿Transfiere datos al extranjero o usa proveedores cloud fuera de Chile?",
+          "automated_decisions": "¿Usa decisiones automatizadas o perfilamiento? (scoring, IA)",
+          "multi_site": "¿Opera en más de una sede o sucursal?",
+          "critical_providers": "¿Proveedores o encargados externos tratan datos por cuenta de la organización?"
+        }
+      }
+    },
+    "nav": {
+      "back": "Volver",
+      "next": "Continuar",
+      "seeResult": "Ver resultado",
+      "restart": "Volver a empezar"
+    },
+    "result": {
+      "eyebrow": "Estimación referencial",
+      "tierNames": {
+        "micro": "Microempresa",
+        "small": "Pequeña empresa",
+        "enterprise": "Enterprise"
+      },
+      "prices": {
+        "micro": "Desde 5 UF + IVA",
+        "small": "Desde 15 UF + IVA",
+        "enterprise": "Bajo cotización"
+      },
+      "notes": {
+        "enterprise": "Por su tamaño, la certificación se cotiza a la medida según el alcance del diagnóstico.",
+        "withFactors": "El caso incluye factores que pueden ajustar el valor final sobre la base:",
+        "base": "El caso se ajusta al valor base referencial."
+      },
+      "factors": {
+        "sensitive_data": "Datos sensibles",
+        "regulated_sector": "Rubro regulado",
+        "international_transfers": "Transferencias internacionales",
+        "automated_decisions": "Decisiones automatizadas / IA",
+        "multi_site": "Multi-sede",
+        "critical_providers": "Proveedores críticos"
+      },
+      "disclaimer": "Los valores son referenciales; el precio final se confirma al conversar con el equipo.",
+      "ctaWhatsApp": "Confirmar cotización con el equipo",
+      "whatsappMessage": "Hola, hice la autoevaluación y quiero cotizar la certificación"
+    },
+    "risk": {
+      "title": "El riesgo de no contar con certificación",
+      "exampleLead": "Por ejemplo:",
+      "examples": {
+        "whatsapp": "Si la empresa recibe documentos de sus clientes a través de WhatsApp de ejecutivos.",
+        "excel": "O la información de los clientes se mantiene en un archivo Excel en un equipo de la empresa."
+      },
+      "fine": "Ambos casos representan una vulnerabilidad, ya que estos dispositivos pueden extraviarse, ser intervenidos o robados, exponiendo los datos de la empresa. Y esa exposición arriesga a la organización a una multa que parte en los <b>7 millones de pesos</b>.",
+      "more": "Tal como el ejemplo anterior, existen muchas otras situaciones que pueden representar un riesgo para la organización."
+    },
+    "value": {
+      "title": "El valor de certificarse",
+      "items": {
+        "protection": {
+          "title": "Protección económica",
+          "text": "El costo de la certificación es una fracción de lo que representa una sola multa por incumplimiento."
+        },
+        "compliance": {
+          "title": "Cumplimiento demostrable",
+          "text": "Evidencia estructurada y auditable, lista para responder ante una fiscalización de la Agencia."
+        },
+        "prestige": {
+          "title": "Prestigio y confianza",
+          "text": "Ser certificado comunica seriedad a clientes, socios y proveedores, y diferencia frente a la competencia."
+        }
+      }
+    },
+    "lead": {
+      "title": "Contacto con el equipo",
+      "intro": "Dejando un correo o un teléfono, el equipo confirma la cotización. Es opcional: también se puede escribir directo por WhatsApp.",
+      "nameLabel": "Nombre",
+      "emailLabel": "Correo electrónico",
+      "phoneLabel": "Teléfono",
+      "optional": "Opcional",
+      "contactHint": "Se necesita al menos un correo o un teléfono.",
+      "submit": "Enviar datos",
+      "sending": "Enviando…",
+      "successTitle": "Autoevaluación recibida.",
+      "successText": "El equipo se contactará a la brevedad para confirmar la cotización.",
+      "errorValidation": "Se necesita al menos un correo válido o un teléfono.",
+      "errorUnavailableTitle": "No fue posible guardar los datos en este momento.",
+      "errorUnavailableText": "La estimación sigue disponible y la cotización puede continuar directo por WhatsApp.",
+      "whatsappCta": "Abrir WhatsApp →",
+      "privacyNote": "Los datos se usan solo para responder esta cotización."
+    }
+  },
+  "verify": {
+    "meta": {
+      "title": "Verificación de certificado — DPC",
+      "description": "Verificación pública de certificados privados DPC por código."
+    },
+    "topbar": {
+      "backToSite": "← Volver al sitio"
+    },
+    "eyebrow": "Verificación pública",
+    "title": "Verificación de certificado DPC",
+    "codeLabel": "Código consultado",
+    "valid": {
+      "title": "Certificado encontrado",
+      "companyLabel": "Organización",
+      "statusLabel": "Estado",
+      "issuedLabel": "Fecha de emisión",
+      "validUntilLabel": "Vigente hasta",
+      "note": "Certificado privado emitido bajo el Marco de trabajo DPC. No constituye una certificación gubernamental ni suplanta las potestades de la Agencia de Protección de Datos Personales."
+    },
+    "statuses": {
+      "active": "Vigente",
+      "expired": "Expirado",
+      "revoked": "Revocado",
+      "unknown": "Estado desconocido"
+    },
+    "notFound": {
+      "title": "Certificado no encontrado",
+      "text": "El código consultado no corresponde a un certificado DPC emitido. El código debe estar completo y bien escrito."
+    },
+    "unavailable": {
+      "title": "Servicio no disponible",
+      "text": "No es posible verificar certificados en este momento. Se puede intentar nuevamente en unos minutos."
+    }
   }
 }
