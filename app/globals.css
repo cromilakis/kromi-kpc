@@ -87,6 +87,18 @@
   --section-gap: 96px;
   --card-padding: 16px;
   --element-gap: 8px;
+
+  /* Animación del dot de urgencia del hero (prototipo: @keyframes dpcBlink) */
+  --animate-dpc-blink: dpc-blink 1.1s ease-in-out infinite;
+  @keyframes dpc-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.2;
+    }
+  }
 }
 
 /*
@@ -131,8 +143,11 @@ body {
   background: var(--color-slate);
 }
 
-/* Focus visible accesible (Input Focus del Style Reference). */
+/* Focus visible accesible (Input Focus del Style Reference).
+   El outline transparente es invisible en condiciones normales pero se pinta
+   en forced-colors/High Contrast, donde el box-shadow desaparece. */
 :focus-visible {
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus-blue) 40%, transparent);
 }
