@@ -398,7 +398,24 @@ export async function materializeDiagnosis(
     }
     const assessmentId = session.assessment_id;
 
-    const answersParsed = diagnosisAnswersSchema.safeParse(session.answers);
+    // El default de la columna es '{}' (sesión recién creada, sin autosave
+    // aún): se completa a la forma vacía canónica antes de validar, para que
+    // materializar una sesión "sin editar" no falle — un caso real ahora que
+    // una empresa puede solo marcar controles No aplica y aplicar. Solo se
+    // rellenan las llaves ausentes; si `rat`/`compliance` traen datos, se
+    // validan tal cual (materializar basura sí debe fallar).
+    const rawAnswers = (session.answers ?? {}) as Record<string, unknown>;
+    const coerced = {
+      rat: Array.isArray(rawAnswers.rat) ? rawAnswers.rat : [],
+      compliance:
+        rawAnswers.compliance && typeof rawAnswers.compliance === "object"
+          ? rawAnswers.compliance
+          : {},
+      ...(rawAnswers.applicability && typeof rawAnswers.applicability === "object"
+        ? { applicability: rawAnswers.applicability }
+        : {}),
+    };
+    const answersParsed = diagnosisAnswersSchema.safeParse(coerced);
     if (!answersParsed.success) {
       console.error(
         `[interview] answers de la sesión ${session.id} no calzan con el esquema:`,
