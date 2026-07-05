@@ -18,7 +18,7 @@
         "draft": "Borrador",
         "in_progress": "En curso",
         "submitted": "Enviado",
-        "reviewed": "Revisado"
+        "reviewed": "Aplicado"
       },
       "autosave": {
         "saving": "Guardando…",
@@ -28,9 +28,9 @@
       "actions": {
         "shareLink": "Generar enlace de autodiagnóstico",
         "generatingLink": "Generando…",
-        "materialize": "Materializar / revisar",
-        "materializing": "Materializando…",
-        "materialized": "Diagnóstico materializado: el RAT y el checklist quedaron actualizados."
+        "materialize": "Aplicar diagnóstico",
+        "materializing": "Aplicando…",
+        "materialized": "Se generó el RAT y se actualizó el checklist DPC."
       },
       "shareLink": {
         "title": "Enlace de autodiagnóstico generado",
