@@ -145,7 +145,10 @@
           "contactEmailLabel": "Correo del contacto (opcional)",
           "contactEmailPlaceholder": "nombre@empresa.cl",
           "contactPhoneLabel": "Teléfono del contacto (opcional)",
-          "contactPhonePlaceholder": "+56 9 1234 5678"
+          "contactPhonePlaceholder": "1234 5678",
+          "contactPhonePrefixLabel": "Prefijo del teléfono",
+          "contactPhonePrefixOther": "Otro",
+          "contactPhoneCustomPrefixLabel": "Código de país"
         },
         "classification": {
           "sectorLegend": "Rubro corporativo",

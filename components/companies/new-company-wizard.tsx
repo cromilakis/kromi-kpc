@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/app/shell";
-import { Button, Card, cn, Field, InfoTooltip, Input } from "@/components/ui";
+import { Button, Card, cn, Field, InfoTooltip, Input, Select } from "@/components/ui";
 import {
   createCompany,
   type CompanyActionError,
 } from "@/lib/actions/companies";
-import { formatRut } from "@/lib/companies/rut";
+import { formatRut, isValidRut } from "@/lib/companies/rut";
 import {
   classificationSchema,
   COMPLEXITY_FACTORS,
@@ -106,7 +106,11 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
   const [rut, setRut] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
+  // Teléfono compuesto: prefijo (+56 9 por defecto u «Otro» con código de país
+  // propio) + número local. Se ensambla en `contactPhone` (derivado abajo).
+  const [phonePrefix, setPhonePrefix] = useState<"cl" | "other">("cl");
+  const [customPrefix, setCustomPrefix] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   // Por defecto "Otro / General" (caso base: solo Ley 21.719), si está en el catálogo.
   const [sectorCode, setSectorCode] = useState<string | null>(() =>
     sectors.some((sector) => sector.code === "otro") ? "otro" : null,
@@ -136,6 +140,13 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
 
   const selectedSector = sectors.find((sector) => sector.code === sectorCode);
   const selectedFactors = COMPLEXITY_FACTORS.filter((factor) => factors[factor]);
+  // Prefijo efectivo: +56 9, o «+<código>» propio; si «Otro» sin código, se omite.
+  const phonePrefixValue =
+    phonePrefix === "cl" ? "+56 9" : customPrefix ? `+${customPrefix}` : "";
+  const contactPhone =
+    phoneNumber.trim() === ""
+      ? ""
+      : `${phonePrefixValue} ${phoneNumber.trim()}`.trim();
 
   /** Valida el paso actual con el contrato Zod correspondiente. */
   function validateCurrentStep(): boolean {
@@ -188,6 +199,18 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
     setFieldErrors({});
     setServerError(null);
     setStepIndex((index) => Math.max(0, index - 1));
+  }
+
+  /** Validación + auto-formato del RUT al salir del campo (feedback inmediato). */
+  function handleRutBlur() {
+    const value = rut.trim();
+    if (value === "") return;
+    if (isValidRut(value)) {
+      setRut(formatRut(value));
+      setFieldErrors((previous) => ({ ...previous, rut: undefined }));
+    } else {
+      setFieldErrors((previous) => ({ ...previous, rut: true }));
+    }
   }
 
   function submit() {
@@ -312,6 +335,7 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                     name="rut"
                     value={rut}
                     onChange={(event) => setRut(event.target.value)}
+                    onBlur={handleRutBlur}
                     placeholder={t("identification.rutPlaceholder")}
                     aria-invalid={fieldErrors.rut ? true : undefined}
                     aria-describedby={describedBy(
@@ -376,20 +400,63 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                   htmlFor="company-contact-phone"
                   error={fieldError("contactPhone")}
                 >
-                  <Input
-                    id="company-contact-phone"
-                    type="tel"
-                    name="contactPhone"
-                    value={contactPhone}
-                    onChange={(event) => setContactPhone(event.target.value)}
-                    placeholder={t("identification.contactPhonePlaceholder")}
-                    aria-invalid={fieldErrors.contactPhone ? true : undefined}
-                    aria-describedby={describedBy(
-                      "contactPhone",
-                      "company-contact-phone",
-                    )}
-                    autoComplete="tel"
-                  />
+                  <div className="flex gap-8">
+                    <Select
+                      aria-label={t("identification.contactPhonePrefixLabel")}
+                      value={phonePrefix}
+                      onChange={(event) =>
+                        setPhonePrefix(
+                          event.target.value === "other" ? "other" : "cl",
+                        )
+                      }
+                      className="w-[104px] shrink-0"
+                    >
+                      <option value="cl">+56 9</option>
+                      <option value="other">
+                        {t("identification.contactPhonePrefixOther")}
+                      </option>
+                    </Select>
+                    {phonePrefix === "other" ? (
+                      <div className="relative shrink-0">
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-[12px] top-1/2 -translate-y-1/2 text-body-sm text-carbon"
+                        >
+                          +
+                        </span>
+                        <Input
+                          aria-label={t("identification.contactPhoneCustomPrefixLabel")}
+                          value={customPrefix}
+                          onChange={(event) =>
+                            setCustomPrefix(
+                              event.target.value.replace(/\D/g, "").slice(0, 3),
+                            )
+                          }
+                          inputMode="numeric"
+                          placeholder="44"
+                          className="w-[80px] pl-[22px]"
+                        />
+                      </div>
+                    ) : null}
+                    <Input
+                      id="company-contact-phone"
+                      type="tel"
+                      name="contactPhone"
+                      value={phoneNumber}
+                      onChange={(event) =>
+                        setPhoneNumber(event.target.value.replace(/[^\d\s]/g, ""))
+                      }
+                      placeholder={t("identification.contactPhonePlaceholder")}
+                      inputMode="tel"
+                      className="flex-1"
+                      aria-invalid={fieldErrors.contactPhone ? true : undefined}
+                      aria-describedby={describedBy(
+                        "contactPhone",
+                        "company-contact-phone",
+                      )}
+                      autoComplete="tel"
+                    />
+                  </div>
                 </Field>
               </div>
               </fieldset>
