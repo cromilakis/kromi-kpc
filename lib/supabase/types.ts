@@ -618,6 +618,64 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount_clp: number | null
+          company_id: string
+          created_at: string
+          id: string
+          proposal_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_clp?: number | null
+          company_id: string
+          created_at?: string
+          id?: string
+          proposal_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_clp?: number | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          proposal_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       processing_activities: {
         Row: {
           area: string
@@ -729,6 +787,60 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      proposals: {
+        Row: {
+          accepted_at: string | null
+          amount_clp: number
+          company_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          plan: string
+          status: Database["public"]["Enums"]["proposal_status"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          amount_clp: number
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          plan: string
+          status?: Database["public"]["Enums"]["proposal_status"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          amount_clp?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          plan?: string
+          status?: Database["public"]["Enums"]["proposal_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       remediation_items: {
         Row: {
@@ -1102,6 +1214,8 @@ export type Database = {
       evidence_status: "validated" | "partial" | "missing" | "rejected"
       interview_mode: "assisted" | "self"
       interview_status: "draft" | "in_progress" | "submitted" | "reviewed"
+      payment_status: "pending" | "paid" | "failed"
+      proposal_status: "draft" | "sent" | "accepted" | "paid" | "expired"
       remediation_status: "pending" | "in_progress" | "done"
       risk_classification: "transversal" | "sectorial"
       share_kind: "diagnosis" | "certificate" | "document"
@@ -1256,6 +1370,8 @@ export const Constants = {
       evidence_status: ["validated", "partial", "missing", "rejected"],
       interview_mode: ["assisted", "self"],
       interview_status: ["draft", "in_progress", "submitted", "reviewed"],
+      payment_status: ["pending", "paid", "failed"],
+      proposal_status: ["draft", "sent", "accepted", "paid", "expired"],
       remediation_status: ["pending", "in_progress", "done"],
       risk_classification: ["transversal", "sectorial"],
       share_kind: ["diagnosis", "certificate", "document"],
