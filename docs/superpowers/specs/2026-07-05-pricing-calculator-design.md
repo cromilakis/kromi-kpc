@@ -155,3 +155,97 @@ cerrar cada banda.
    mensual, no % del one-time).
 3. ¿La tarjeta solo muestra el rango sugerido, o permite que el consultor lo
    ajuste y lo guarde como cotización de la empresa?
+
+---
+
+# Anexo — Portal self-service de re-certificación (cliente-facing) + asistente IA
+
+**Estado:** exploración (épica propia; requiere su propio brainstorm antes de plan)
+
+**Por qué vive junto al pricing:** la mantención/recertificación anual es el
+ingreso **recurrente** del modelo de precios de arriba. Este portal es el
+mecanismo que la vuelve escalable: convierte la renovación de trabajo manual del
+consultor en un flujo self-service asistido por IA. Sin él, la recurrencia no
+escala; con él, el tramo Esencial es rentable de verdad.
+
+## Objetivo
+
+Un sitio interno donde las **empresas cliente** entran periódicamente a
+**auto-diagnosticarse y re-evaluarse**, con un **asistente de IA que las guía en
+la re-certificación** cuando su certificado se acerca al vencimiento.
+
+## Lo que ya existe (ladrillos reutilizables)
+
+- Autodiagnóstico sin cuenta (link por token).
+- Entrevista dinámica por aplicabilidad (se acota sola según el perfil).
+- Autocompletado con LLM desde transcripción (determinista, con procedencia).
+- Ciclos de evaluación + vencimiento de certificado (`active/expired/revoked`,
+  con `expires_at`).
+
+El portal es, en gran parte, recomponer estas piezas + cadencia + notificaciones.
+
+## Lo nuevo real (el trabajo de verdad)
+
+1. **Cuentas de empresa + RLS por empresa.** Cambio arquitectónico mayor: hoy el
+   modelo es *consultor autenticado + anónimo por token*. Un portal recurrente
+   exige auth de cliente y aislamiento estricto por empresa (cada cliente ve solo
+   lo suyo). Constraint especial: es una plataforma de *protección de datos* — el
+   propio portal debe ser ejemplar en seguridad. **Decisión temprana bloqueante:
+   el modelo de cuentas/RLS.**
+2. **Cadencia de re-evaluación.** Schedule/cron que, al acercarse `expires_at`,
+   dispara la re-evaluación y notifica al cliente. Engancha directo con el
+   vencimiento ya modelado.
+3. **Asistente de IA post-certificación (cliente-facing).** Reutiliza la
+   extracción LLM + entrevista dinámica, pero ahora guiando al cliente: "cambió
+   algo desde tu última certificación", "estas 3 actividades del RAT hay que
+   revisar", etc.
+
+## Punto crítico: sin consultor, ¿quién es el gate?
+
+Toda la garantía de determinismo actual descansa en **"la IA propone, el
+consultor dispone"**. Si el cliente se auto-recertifica solo, ese gate humano
+desaparece. Reglas de diseño:
+
+- **Tiering por complejidad** (mismo eje que el pricing y el Complexity Score):
+  - **Bajo** → re-certificación self-service asistida por IA (producto masivo,
+    rentable).
+  - **Alto/crítico** (clínica, supermercado) → la re-cert **siempre pasa por
+    revisión del consultor** antes de emitir. La IA prepara, el humano firma.
+- **El asistente NUNCA emite el certificado.** Genera el borrador de
+  re-evaluación y marca deltas/riesgos; la emisión mantiene su control humano y/o
+  las reglas duras de elegibilidad ya existentes (umbral 80%, dominios críticos
+  sin `non_compliant`).
+- El determinismo cliente-facing debe ser **más estricto**, no menos: sin
+  consultor que filtre, lo ambiguo va a "sin asignar" y se le pide al cliente que
+  lo complete a mano — nunca se asume.
+
+## Encaje de negocio
+
+Es el motor de recurrencia del modelo de precios: la mantención anual deja de ser
+trabajo manual y se vuelve self-service escalable. La IA post-cert baja el costo
+de servir la renovación casi a cero en la base del mercado (tramo Esencial).
+
+## Riesgos / constraints
+
+- **Integridad de la certificación**: un cliente no debería poder
+  "auto-aprobarse" en tramos de riesgo → gate humano tiered (arriba).
+- **Seguridad del portal**: datos personales de múltiples empresas bajo un mismo
+  techo → RLS por empresa impecable, auditoría, y el portal como caso ejemplar.
+- **Responsabilidad/legal**: qué garantiza una re-cert self-service vs. una
+  revisada por consultor (afecta el valor y el precio de cada tramo).
+
+## Veredicto
+
+Coherente, deseable y muy apoyado por lo ya construido, **pero es una épica
+propia** (cuentas de cliente + RLS + cadencia + asistente cliente-facing), no un
+ajuste. Merece su propio brainstorm → spec dedicado. Las dos decisiones que hay
+que tomar temprano: **(1) el modelo de auth/RLS de cuentas de empresa** y **(2)
+el gate humano por tramo** para la emisión de certificados.
+
+## Relación con el resto
+
+- El **tramo** (bajo/medio/alto/crítico) que ya calcula el Complexity Score
+  decide TANTO el precio (cuerpo de este spec) COMO el nivel de autonomía en la
+  re-certificación (este anexo). Un solo eje gobierna ambos.
+- Depende de: `certificates` (`expires_at`), entrevista dinámica
+  (`companies.factors`, aplicabilidad) y el módulo LLM (`lib/llm/*`).
