@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -209,6 +209,7 @@ export type Database = {
           contact: Json
           created_at: string
           employees_count: number | null
+          factors: string[]
           id: string
           name: string
           notes: string | null
@@ -223,6 +224,7 @@ export type Database = {
           contact?: Json
           created_at?: string
           employees_count?: number | null
+          factors?: string[]
           id?: string
           name: string
           notes?: string | null
@@ -237,6 +239,7 @@ export type Database = {
           contact?: Json
           created_at?: string
           employees_count?: number | null
+          factors?: string[]
           id?: string
           name?: string
           notes?: string | null
@@ -306,6 +309,7 @@ export type Database = {
       }
       controls: {
         Row: {
+          applies_when: Json | null
           code: string
           created_at: string
           detail: string | null
@@ -324,6 +328,7 @@ export type Database = {
           verification_criteria: string[]
         }
         Insert: {
+          applies_when?: Json | null
           code: string
           created_at?: string
           detail?: string | null
@@ -342,6 +347,7 @@ export type Database = {
           verification_criteria?: string[]
         }
         Update: {
+          applies_when?: Json | null
           code?: string
           created_at?: string
           detail?: string | null
@@ -468,6 +474,7 @@ export type Database = {
       }
       interview_sessions: {
         Row: {
+          ai_extraction: Json | null
           answers: Json
           assessment_id: string | null
           company_id: string
@@ -479,9 +486,11 @@ export type Database = {
           started_at: string
           status: Database["public"]["Enums"]["interview_status"]
           submitted_at: string | null
+          transcript: string | null
           updated_at: string
         }
         Insert: {
+          ai_extraction?: Json | null
           answers?: Json
           assessment_id?: string | null
           company_id: string
@@ -493,9 +502,11 @@ export type Database = {
           started_at?: string
           status?: Database["public"]["Enums"]["interview_status"]
           submitted_at?: string | null
+          transcript?: string | null
           updated_at?: string
         }
         Update: {
+          ai_extraction?: Json | null
           answers?: Json
           assessment_id?: string | null
           company_id?: string
@@ -507,6 +518,7 @@ export type Database = {
           started_at?: string
           status?: Database["public"]["Enums"]["interview_status"]
           submitted_at?: string | null
+          transcript?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -762,6 +774,45 @@ export type Database = {
         }
         Relationships: []
       }
+      self_assessments: {
+        Row: {
+          answers: Json
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          estimated_tier: string | null
+          id: string
+          risk_factors: string[]
+          sector_code: string | null
+          size_tier: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Insert: {
+          answers?: Json
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          estimated_tier?: string | null
+          id?: string
+          risk_factors?: string[]
+          sector_code?: string | null
+          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Update: {
+          answers?: Json
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          estimated_tier?: string | null
+          id?: string
+          risk_factors?: string[]
+          sector_code?: string | null
+          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Relationships: []
+      }
       share_links: {
         Row: {
           company_id: string
@@ -812,45 +863,6 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
-      }
-      self_assessments: {
-        Row: {
-          answers: Json
-          contact_email: string | null
-          contact_name: string | null
-          contact_phone: string | null
-          created_at: string
-          estimated_tier: string | null
-          id: string
-          risk_factors: string[]
-          sector_code: string | null
-          size_tier: Database["public"]["Enums"]["company_size_tier"] | null
-        }
-        Insert: {
-          answers?: Json
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          estimated_tier?: string | null
-          id?: string
-          risk_factors?: string[]
-          sector_code?: string | null
-          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
-        }
-        Update: {
-          answers?: Json
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          estimated_tier?: string | null
-          id?: string
-          risk_factors?: string[]
-          sector_code?: string | null
-          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
-        }
-        Relationships: []
       }
       solution_catalog: {
         Row: {
@@ -937,7 +949,12 @@ export type Database = {
         | "certificacion"
         | "revalidacion"
       company_size_tier: "micro" | "small" | "enterprise"
-      control_result: "pending" | "compliant" | "partial" | "non_compliant"
+      control_result:
+        | "pending"
+        | "compliant"
+        | "partial"
+        | "non_compliant"
+        | "not_applicable"
       domain_kind: "principle" | "complementary"
       evidence_status: "validated" | "partial" | "missing" | "rejected"
       interview_mode: "assisted" | "self"
@@ -1085,7 +1102,13 @@ export const Constants = {
         "revalidacion",
       ],
       company_size_tier: ["micro", "small", "enterprise"],
-      control_result: ["pending", "compliant", "partial", "non_compliant"],
+      control_result: [
+        "pending",
+        "compliant",
+        "partial",
+        "non_compliant",
+        "not_applicable",
+      ],
       domain_kind: ["principle", "complementary"],
       evidence_status: ["validated", "partial", "missing", "rejected"],
       interview_mode: ["assisted", "self"],

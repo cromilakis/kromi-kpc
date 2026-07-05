@@ -16,6 +16,7 @@ begin;
 -- 1. SECTORS — 7 rubros con multiplicador sectorial (prototipo RUBROS)
 -- ----------------------------------------------------------------------------
 insert into public.sectors (code, name, complexity_multiplier, laws, sort) values
+  ('otro',    'Otro / General',        1.00, array['Ley 21.719'], 0),
   ('retail',  'Retail / e-commerce',   1.20, array['Ley 19.496 (SERNAC)', 'Ley 21.719'], 1),
   ('fintech', 'Fintech / Financiero',  1.80, array['Circulares CMF', 'Ley 21.663', 'Ley 21.719'], 2),
   ('salud',   'Salud',                 1.70, array['Ley 20.584', 'Ley 21.719', 'DPC-SEN reforzado'], 3),
@@ -490,6 +491,25 @@ on conflict (code) do update set
   laws = excluded.laws,
   sector_scope = excluded.sector_scope,
   sort = excluded.sort;
+
+-- Reglas de aplicabilidad por dominio/control (ver
+-- supabase/migrations/20260705141000_control_applicability.sql). Se repiten
+-- aquí para que un reset del catálogo (seed) las conserve. Ante duda se deja
+-- null = siempre aplica.
+update public.controls c set applies_when = '{"factors_any":["sensitive_data"]}'::jsonb
+  from public.domains d where c.domain_id = d.id and d.code = 'DPC-SEN';
+
+update public.controls c set applies_when = '{"factors_any":["automated_decisions"]}'::jsonb
+  from public.domains d where c.domain_id = d.id and d.code = 'DPC-EIA';
+
+-- DPC-TER mezcla transferencias internacionales y encargados del tratamiento:
+--   DPC-TER-001 "Contratos con encargados del tratamiento" -> critical_providers
+--   DPC-TER-002 "Transferencias internacionales con garantías de adecuación" -> international_transfers
+update public.controls c set applies_when = '{"factors_any":["critical_providers"]}'::jsonb
+  where c.code = 'DPC-TER-001';
+
+update public.controls c set applies_when = '{"factors_any":["international_transfers"]}'::jsonb
+  where c.code = 'DPC-TER-002';
 
 -- ----------------------------------------------------------------------------
 -- 4. RISK_CATALOG — riesgos del RFC §8 / prototipo RISKS

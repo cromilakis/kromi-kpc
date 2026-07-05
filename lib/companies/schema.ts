@@ -73,7 +73,6 @@ export const classificationSchema = z.object({
     .max(40)
     .regex(/^[a-z0-9_-]+$/),
   sizeTier: z.enum(SIZE_TIERS),
-  employeesCount: z.number().int().min(0).max(1_000_000),
 });
 
 /** Paso 3 — Factores de complejidad (checkboxes RFC §14.3). */

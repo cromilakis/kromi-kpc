@@ -13,8 +13,12 @@ import {
 import type { DiagnosisAnswers } from "@/lib/interview/answers-schema";
 import { normalizeAnswers } from "@/lib/interview/normalize-answers";
 import type { ComplianceQuestion } from "@/lib/interview/questions";
+import type { RatActivity } from "@/lib/interview/rat-schema";
+import type { ExtractionResult } from "@/lib/llm/extract-diagnosis";
 import { ComplianceForm } from "./compliance-form";
+import { ExtractionReview } from "./extraction-review";
 import { RatForm } from "./rat-form";
+import { TranscriptImport } from "./transcript-import";
 
 /**
  * Orquestador cliente del diagnóstico (/app/companies/[id]/diagnosis):
@@ -38,12 +42,14 @@ export function DiagnosisManager({
   sessionStatus: initialSessionStatus,
   questions,
   initialAnswers,
+  companyFactors,
 }: {
   companyId: string;
   sessionId: string | null;
   sessionStatus: SessionStatus | null;
   questions: ComplianceQuestion[];
   initialAnswers: unknown;
+  companyFactors: string[];
 }) {
   const t = useTranslations("app.diagnosis");
   const tErrors = useTranslations("app.diagnosis.errors");
@@ -67,6 +73,27 @@ export function DiagnosisManager({
 
   const [materializeState, setMaterializeState] = useState<MaterializeState>("idle");
   const [materializeError, setMaterializeError] = useState<InterviewActionError | null>(null);
+
+  // Sugerencias del LLM pendientes de revisión (Tarea 6): el LLM nunca
+  // escribe directo sobre `answers` — solo al aceptar una sugerencia en
+  // `ExtractionReview` esta pasa a `updateAnswers` y entra al borrador.
+  const [extraction, setExtraction] = useState<ExtractionResult | null>(null);
+
+  function handleAcceptRat(activity: RatActivity) {
+    updateAnswers((current) => ({ ...current, rat: [...current.rat, activity] }));
+  }
+
+  function handleAcceptCompliance(
+    controlCode: string,
+    index: number,
+    answer: "yes" | "partial" | "no",
+  ) {
+    updateAnswers((current) => {
+      const next = [...(current.compliance[controlCode] ?? [])];
+      next[index] = answer;
+      return { ...current, compliance: { ...current.compliance, [controlCode]: next } };
+    });
+  }
 
   // Autosave con debounce: se omite en el primer render (esos `answers` ya
   // son los que trajo el server) y cuando todavía no existe sesión. El
@@ -105,6 +132,21 @@ export function DiagnosisManager({
   function updateAnswers(updater: (current: DiagnosisAnswers) => DiagnosisAnswers) {
     setAnswers(updater);
     setSaveState("saving");
+  }
+
+  /** Override de aplicabilidad (Tarea 4): `include=true` fuerza incluir un
+   * control en la entrevista, `include=false` lo marca "No aplica" a mano,
+   * `include=undefined` borra el override (vuelve al cálculo por factores). */
+  function handleSetApplicability(controlCode: string, include: boolean | undefined) {
+    updateAnswers((current) => {
+      const applicability = { ...(current.applicability ?? {}) };
+      if (include === undefined) {
+        delete applicability[controlCode];
+      } else {
+        applicability[controlCode] = include;
+      }
+      return { ...current, applicability };
+    });
   }
 
   function handleStart() {
@@ -205,6 +247,9 @@ export function DiagnosisManager({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-8">
+          {sessionId ? (
+            <TranscriptImport sessionId={sessionId} onExtracted={setExtraction} />
+          ) : null}
           <Button variant="secondary" onClick={handleShareLink} disabled={shareState === "loading"}>
             {shareState === "loading" ? t("actions.generatingLink") : t("actions.shareLink")}
           </Button>
@@ -216,6 +261,15 @@ export function DiagnosisManager({
           </Button>
         </div>
       </Card>
+
+      {extraction ? (
+        <ExtractionReview
+          extraction={extraction}
+          onAcceptRat={handleAcceptRat}
+          onAcceptCompliance={handleAcceptCompliance}
+          onClose={() => setExtraction(null)}
+        />
+      ) : null}
 
       {shareError ? (
         <p role="alert" className="text-caption leading-caption text-danger-red">
@@ -266,6 +320,7 @@ export function DiagnosisManager({
         <RatForm
           activities={answers.rat}
           onChange={(rat) => updateAnswers((current) => ({ ...current, rat }))}
+          companyFactors={companyFactors}
         />
       </section>
 
@@ -286,6 +341,9 @@ export function DiagnosisManager({
               return { ...current, compliance: { ...current.compliance, [controlCode]: next } };
             })
           }
+          companyFactors={companyFactors}
+          applicabilityOverrides={answers.applicability ?? {}}
+          onSetApplicability={handleSetApplicability}
         />
       </section>
     </div>

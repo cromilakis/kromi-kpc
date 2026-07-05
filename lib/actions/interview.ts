@@ -5,6 +5,11 @@ import { z } from "zod";
 import { diagnosisAnswersSchema } from "@/lib/interview/answers-schema";
 import { generateShareToken, hashShareToken } from "@/lib/share/token";
 import { selectControlUpdates } from "@/lib/interview/select-control-updates";
+import { selectNotApplicable } from "@/lib/interview/select-not-applicable";
+import type { AppliesWhen } from "@/lib/interview/applicability";
+import type { ControlLike } from "@/lib/interview/questions";
+import { extractDiagnosis, type ExtractionResult } from "@/lib/llm/extract-diagnosis";
+import { LlmError } from "@/lib/llm/deepseek";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/lib/supabase/types";
 
@@ -50,8 +55,17 @@ export type MaterializeDiagnosisResult =
   | { ok: true }
   | { ok: false; error: InterviewActionError };
 
+export type ExtractFromTranscriptResult =
+  | { ok: true; extraction: ExtractionResult }
+  | { ok: false; error: InterviewActionError | "llm_disabled" | "llm_failed" };
+
 const companyIdSchema = z.object({ companyId: z.uuid() });
 const sessionIdSchema = z.object({ sessionId: z.uuid() });
+
+const extractFromTranscriptSchema = z.object({
+  sessionId: z.uuid(),
+  transcript: z.string().min(1).max(50000),
+});
 
 const createShareLinkSchema = z.object({
   sessionId: z.uuid(),
@@ -396,7 +410,24 @@ export async function materializeDiagnosis(
     }
     const assessmentId = session.assessment_id;
 
-    const answersParsed = diagnosisAnswersSchema.safeParse(session.answers);
+    // El default de la columna es '{}' (sesión recién creada, sin autosave
+    // aún): se completa a la forma vacía canónica antes de validar, para que
+    // materializar una sesión "sin editar" no falle — un caso real ahora que
+    // una empresa puede solo marcar controles No aplica y aplicar. Solo se
+    // rellenan las llaves ausentes; si `rat`/`compliance` traen datos, se
+    // validan tal cual (materializar basura sí debe fallar).
+    const rawAnswers = (session.answers ?? {}) as Record<string, unknown>;
+    const coerced = {
+      rat: Array.isArray(rawAnswers.rat) ? rawAnswers.rat : [],
+      compliance:
+        rawAnswers.compliance && typeof rawAnswers.compliance === "object"
+          ? rawAnswers.compliance
+          : {},
+      ...(rawAnswers.applicability && typeof rawAnswers.applicability === "object"
+        ? { applicability: rawAnswers.applicability }
+        : {}),
+    };
+    const answersParsed = diagnosisAnswersSchema.safeParse(coerced);
     if (!answersParsed.success) {
       console.error(
         `[interview] answers de la sesión ${session.id} no calzan con el esquema:`,
@@ -498,6 +529,88 @@ export async function materializeDiagnosis(
       }
     }
 
+    // 2b. Controles fuera de alcance por aplicabilidad → assessment_controls
+    // 'not_applicable'. Se calcula con los factores de la empresa × el
+    // `applies_when` del catálogo del sector (mismo `.or(...)` que
+    // createCompany en lib/actions/companies.ts), con el override del
+    // consultor `answers.applicability` (Tarea 4).
+    const { data: company, error: companyReadError } = await supabase
+      .from("companies")
+      .select("factors, sectors ( code )")
+      .eq("id", session.company_id)
+      .maybeSingle();
+    if (companyReadError || !company) {
+      console.error(
+        "[interview] lectura de empresa para aplicabilidad falló:",
+        companyReadError?.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+    const sectorCode = company.sectors?.code ?? null;
+
+    const { data: sectorControls, error: sectorControlsError } = await supabase
+      .from("controls")
+      .select("id, code, applies_when")
+      .or(
+        sectorCode
+          ? `sector_scope.is.null,sector_scope.cs.{${sectorCode}}`
+          : "sector_scope.is.null",
+      );
+    if (sectorControlsError) {
+      console.error(
+        "[interview] lectura del catálogo de controles del sector falló:",
+        sectorControlsError.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+
+    const naCodes = selectNotApplicable(
+      (sectorControls ?? []).map((c) => ({
+        code: c.code,
+        appliesWhen: c.applies_when as AppliesWhen,
+      })),
+      company.factors,
+      answers.applicability ?? {},
+    );
+
+    // Precedencia: un control con respuesta de cumplimiento real evaluada en
+    // esta materialización (controlCodes, ya filtrado de "pending" arriba)
+    // NUNCA se marca "not_applicable" aunque el override/regla diga que no
+    // aplica — la evidencia de cumplimiento concreta prima sobre el cálculo
+    // de aplicabilidad (evita pisar un estado evaluado con 'not_applicable').
+    const evaluatedCodes = new Set(controlCodes);
+    const naCodesFiltered = naCodes.filter((code) => !evaluatedCodes.has(code));
+
+    if (naCodesFiltered.length > 0) {
+      const naCodeToId = new Map(
+        (sectorControls ?? [])
+          .filter((c) => naCodesFiltered.includes(c.code))
+          .map((c) => [c.code, c.id]),
+      );
+      const now = new Date().toISOString();
+      const naUpsertRows: TablesInsert<"assessment_controls">[] = naCodesFiltered
+        .filter((code) => naCodeToId.has(code))
+        .map((code) => ({
+          assessment_id: assessmentId,
+          control_id: naCodeToId.get(code)!,
+          status: "not_applicable",
+          evaluated_at: now,
+        }));
+
+      if (naUpsertRows.length > 0) {
+        const { error: naUpsertError } = await supabase
+          .from("assessment_controls")
+          .upsert(naUpsertRows, { onConflict: "assessment_id,control_id" });
+        if (naUpsertError) {
+          console.error(
+            "[interview] upsert de assessment_controls (not_applicable) falló:",
+            naUpsertError.message,
+          );
+          return { ok: false, error: "unavailable" };
+        }
+      }
+    }
+
     // 3. Sesión → reviewed.
     const reviewedAt = new Date().toISOString();
     const { error: reviewError } = await supabase
@@ -522,6 +635,7 @@ export async function materializeDiagnosis(
         assessment_id: assessmentId,
         rat_count: answers.rat.length,
         compliance_controls: controlCodes.length,
+        not_applicable: naCodesFiltered.length,
       },
     });
 
@@ -531,6 +645,164 @@ export async function materializeDiagnosis(
     return { ok: true };
   } catch (cause) {
     console.error("[interview] materializeDiagnosis no disponible:", cause);
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+/**
+ * Extrae sugerencias de RAT + cumplimiento desde una transcripción de
+ * reunión (LLM determinista, temp 0 + JSON mode + evidencia obligatoria por
+ * campo — ver `lib/llm/extract-diagnosis.ts`). Persiste `transcript` +
+ * `ai_extraction` en la sesión para trazabilidad/auditoría, pero **nunca**
+ * toca `answers`: la fusión al borrador es un acto explícito y humano del
+ * consultor tras revisar cada sugerencia en la UI (Tarea 6), que pasa por el
+ * mismo `saveDiagnosisDraft` de siempre.
+ */
+export async function extractDiagnosisFromTranscript(
+  sessionId: string,
+  transcript: string,
+): Promise<ExtractFromTranscriptResult> {
+  const parsed = extractFromTranscriptSchema.safeParse({
+    sessionId,
+    transcript,
+  });
+  if (!parsed.success) return { ok: false, error: "validation" };
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "unauthorized" };
+
+    const { data: session, error: sessionError } = await supabase
+      .from("interview_sessions")
+      .select("id, company_id, answers")
+      .eq("id", parsed.data.sessionId)
+      .maybeSingle();
+    if (sessionError) {
+      console.error(
+        "[interview] lectura de sesión para extracción falló:",
+        sessionError.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+    if (!session) return { ok: false, error: "not_found" };
+
+    const { data: company, error: companyError } = await supabase
+      .from("companies")
+      .select("factors, sectors ( code )")
+      .eq("id", session.company_id)
+      .maybeSingle();
+    if (companyError || !company) {
+      console.error(
+        "[interview] lectura de empresa para extracción falló:",
+        companyError?.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+    const sectorCode = company.sectors?.code ?? null;
+
+    const { data: sectorControls, error: controlsError } = await supabase
+      .from("controls")
+      .select("id, code, name, domain_id, verification_criteria, applies_when")
+      .or(
+        sectorCode
+          ? `sector_scope.is.null,sector_scope.cs.{${sectorCode}}`
+          : "sector_scope.is.null",
+      );
+    if (controlsError) {
+      console.error(
+        "[interview] lectura del catálogo de controles para extracción falló:",
+        controlsError.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+
+    // Ajuste (aplicabilidad): el LLM solo debe ver controles APLICABLES a
+    // esta empresa — p. ej. una empresa sin transferencias internacionales
+    // no debe recibir preguntas de cumplimiento de ese dominio en la
+    // extracción. Se reutiliza `selectNotApplicable` (mismo cálculo que
+    // `materializeDiagnosis` más arriba): factores de la empresa ×
+    // `applies_when` del catálogo del sector, con el override del
+    // consultor `answers.applicability` cuando existe. Parseo tolerante de
+    // `answers` (sesión recién creada puede no tener autosave aún, o su
+    // forma puede no calzar 100% con el schema — no debe bloquear la
+    // extracción, solo se usa para el override opcional).
+    const rawAnswers = (session.answers ?? {}) as Record<string, unknown>;
+    const overrides =
+      rawAnswers.applicability && typeof rawAnswers.applicability === "object"
+        ? (rawAnswers.applicability as Record<string, boolean>)
+        : {};
+    const naCodes = new Set(
+      selectNotApplicable(
+        (sectorControls ?? []).map((c) => ({
+          code: c.code,
+          appliesWhen: c.applies_when as AppliesWhen,
+        })),
+        company.factors,
+        overrides,
+      ),
+    );
+    const applicableControls = (sectorControls ?? []).filter(
+      (c) => !naCodes.has(c.code),
+    );
+    const controlLikes: ControlLike[] = applicableControls.map((c) => ({
+      code: c.code,
+      name: c.name,
+      domain_id: c.domain_id,
+      verification_criteria: c.verification_criteria,
+      appliesWhen: c.applies_when as AppliesWhen,
+    }));
+
+    let extraction: ExtractionResult;
+    try {
+      extraction = await extractDiagnosis({
+        transcript: parsed.data.transcript,
+        controls: controlLikes,
+      });
+    } catch (cause) {
+      if (cause instanceof LlmError) {
+        return { ok: false, error: cause.code };
+      }
+      throw cause;
+    }
+
+    const { error: updateError } = await supabase
+      .from("interview_sessions")
+      .update({
+        transcript: parsed.data.transcript,
+        ai_extraction: extraction as never,
+      })
+      .eq("id", session.id);
+    if (updateError) {
+      console.error(
+        "[interview] persistencia de transcript+ai_extraction falló:",
+        updateError.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+
+    await insertAuditLog(supabase, {
+      actorId: user.id,
+      action: "interview.transcript_extracted",
+      entity: "interview_sessions",
+      entityId: session.id,
+      detail: {
+        company_id: session.company_id,
+        rat_count: extraction.rat.length,
+        compliance_count: extraction.compliance.length,
+        unassigned_count: extraction.unassigned.length,
+        applicable_controls: controlLikes.length,
+      },
+    });
+
+    return { ok: true, extraction };
+  } catch (cause) {
+    console.error(
+      "[interview] extractDiagnosisFromTranscript no disponible:",
+      cause,
+    );
     return { ok: false, error: "unavailable" };
   }
 }

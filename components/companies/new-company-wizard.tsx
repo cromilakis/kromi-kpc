@@ -3,12 +3,12 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/app/shell";
-import { Button, Card, cn, Field, Input } from "@/components/ui";
+import { Button, Card, cn, Field, InfoTooltip, Input, Select } from "@/components/ui";
 import {
   createCompany,
   type CompanyActionError,
 } from "@/lib/actions/companies";
-import { formatRut } from "@/lib/companies/rut";
+import { formatRut, isValidRut } from "@/lib/companies/rut";
 import {
   classificationSchema,
   COMPLEXITY_FACTORS,
@@ -49,7 +49,7 @@ type IdentificationField =
   | "contactName"
   | "contactEmail"
   | "contactPhone";
-type ErrorField = IdentificationField | "sectorCode" | "sizeTier" | "employeesCount";
+type ErrorField = IdentificationField | "sectorCode" | "sizeTier";
 
 /** Option-card con radio/checkbox sr-only (mismo patrón del autoevaluador). */
 const optionCardClasses =
@@ -64,6 +64,32 @@ const optionSubClasses =
 
 const legendClasses = "text-[13px] font-semibold text-ink";
 const hintClasses = "mt-4 text-caption leading-caption text-carbon";
+
+/**
+ * Mapa ley (string de display del catálogo) → slug de i18n (wizard.lawInfo).
+ * Se separa del texto porque las claves i18n no admiten puntos ("21.719").
+ * Las descripciones son orientativas — validar con abogado antes de exponer.
+ */
+const LAW_SLUG: Record<string, string> = {
+  "Ley 21.719": "l21719",
+  "Ley 19.496 (SERNAC)": "l19496",
+  "Circulares CMF": "cmf",
+  "Ley 21.663": "l21663",
+  "Ley 21.663 (ANCI)": "l21663",
+  "Ley 20.584": "l20584",
+  "Ley 21.459": "l21459",
+  "Código del Trabajo": "codigotrabajo",
+  "Normas SUBTEL": "subtel",
+  "DPC-SEN reforzado": "dpcsen",
+};
+
+/** Ley 21.719 primero (base para todos), luego el resto en su orden. */
+function orderedLaws(laws: string[]): string[] {
+  return [
+    ...laws.filter((law) => law === "Ley 21.719"),
+    ...laws.filter((law) => law !== "Ley 21.719"),
+  ];
+}
 
 /** dt/dd del resumen de confirmación. */
 const summaryTermClasses =
@@ -80,10 +106,16 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
   const [rut, setRut] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [sectorCode, setSectorCode] = useState<string | null>(null);
+  // Teléfono compuesto: prefijo (+56 9 por defecto u «Otro» con código de país
+  // propio) + número local. Se ensambla en `contactPhone` (derivado abajo).
+  const [phonePrefix, setPhonePrefix] = useState<"cl" | "other">("cl");
+  const [customPrefix, setCustomPrefix] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  // Por defecto "Otro / General" (caso base: solo Ley 21.719), si está en el catálogo.
+  const [sectorCode, setSectorCode] = useState<string | null>(() =>
+    sectors.some((sector) => sector.code === "otro") ? "otro" : null,
+  );
   const [sizeTier, setSizeTier] = useState<SizeTier | null>(null);
-  const [employees, setEmployees] = useState("");
   const [factors, setFactors] = useState<Record<ComplexityFactor, boolean>>(
     () =>
       Object.fromEntries(
@@ -108,8 +140,13 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
 
   const selectedSector = sectors.find((sector) => sector.code === sectorCode);
   const selectedFactors = COMPLEXITY_FACTORS.filter((factor) => factors[factor]);
-  const employeesCount =
-    employees.trim() === "" ? Number.NaN : Number(employees.trim());
+  // Prefijo efectivo: +56 9, o «+<código>» propio; si «Otro» sin código, se omite.
+  const phonePrefixValue =
+    phonePrefix === "cl" ? "+56 9" : customPrefix ? `+${customPrefix}` : "";
+  const contactPhone =
+    phoneNumber.trim() === ""
+      ? ""
+      : `${phonePrefixValue} ${phoneNumber.trim()}`.trim();
 
   /** Valida el paso actual con el contrato Zod correspondiente. */
   function validateCurrentStep(): boolean {
@@ -136,7 +173,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
       const parsed = classificationSchema.safeParse({
         sectorCode: sectorCode ?? "",
         sizeTier,
-        employeesCount,
       });
       if (parsed.success) {
         setFieldErrors({});
@@ -165,6 +201,18 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
     setStepIndex((index) => Math.max(0, index - 1));
   }
 
+  /** Validación + auto-formato del RUT al salir del campo (feedback inmediato). */
+  function handleRutBlur() {
+    const value = rut.trim();
+    if (value === "") return;
+    if (isValidRut(value)) {
+      setRut(formatRut(value));
+      setFieldErrors((previous) => ({ ...previous, rut: undefined }));
+    } else {
+      setFieldErrors((previous) => ({ ...previous, rut: true }));
+    }
+  }
+
   function submit() {
     // Revalidación TOTAL antes de enviar (misma que ejecutará la action).
     const parsed = createCompanySchema.safeParse({
@@ -175,7 +223,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
       contactPhone,
       sectorCode: sectorCode ?? "",
       sizeTier,
-      employeesCount,
       factors: selectedFactors,
     });
     if (!parsed.success) {
@@ -281,20 +328,16 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                   label={t("identification.rutLabel")}
                   htmlFor="company-rut"
                   error={fieldError("rut")}
-                  hint={t("identification.rutHint")}
                 >
                   <Input
                     id="company-rut"
                     name="rut"
                     value={rut}
                     onChange={(event) => setRut(event.target.value)}
+                    onBlur={handleRutBlur}
                     placeholder={t("identification.rutPlaceholder")}
                     aria-invalid={fieldErrors.rut ? true : undefined}
-                    aria-describedby={describedBy(
-                      "rut",
-                      "company-rut",
-                      "company-rut-hint",
-                    )}
+                    aria-describedby={describedBy("rut", "company-rut")}
                   />
                 </Field>
               </div>
@@ -352,20 +395,64 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                   htmlFor="company-contact-phone"
                   error={fieldError("contactPhone")}
                 >
-                  <Input
-                    id="company-contact-phone"
-                    type="tel"
-                    name="contactPhone"
-                    value={contactPhone}
-                    onChange={(event) => setContactPhone(event.target.value)}
-                    placeholder={t("identification.contactPhonePlaceholder")}
-                    aria-invalid={fieldErrors.contactPhone ? true : undefined}
-                    aria-describedby={describedBy(
-                      "contactPhone",
-                      "company-contact-phone",
-                    )}
-                    autoComplete="tel"
-                  />
+                  <div className="flex gap-8">
+                    <div className="w-[92px] shrink-0">
+                      <Select
+                        aria-label={t("identification.contactPhonePrefixLabel")}
+                        value={phonePrefix}
+                        onChange={(event) =>
+                          setPhonePrefix(
+                            event.target.value === "other" ? "other" : "cl",
+                          )
+                        }
+                      >
+                        <option value="cl">+56 9</option>
+                        <option value="other">
+                          {t("identification.contactPhonePrefixOther")}
+                        </option>
+                      </Select>
+                    </div>
+                    {phonePrefix === "other" ? (
+                      <div className="relative w-[72px] shrink-0">
+                        <span
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-[12px] top-1/2 z-[1] -translate-y-1/2 text-body-sm text-carbon"
+                        >
+                          +
+                        </span>
+                        <Input
+                          aria-label={t("identification.contactPhoneCustomPrefixLabel")}
+                          value={customPrefix}
+                          onChange={(event) =>
+                            setCustomPrefix(
+                              event.target.value.replace(/\D/g, "").slice(0, 3),
+                            )
+                          }
+                          inputMode="numeric"
+                          placeholder="44"
+                          className="pl-[22px]"
+                        />
+                      </div>
+                    ) : null}
+                    <Input
+                      id="company-contact-phone"
+                      type="tel"
+                      name="contactPhone"
+                      value={phoneNumber}
+                      onChange={(event) =>
+                        setPhoneNumber(event.target.value.replace(/[^\d\s]/g, ""))
+                      }
+                      placeholder={t("identification.contactPhonePlaceholder")}
+                      inputMode="tel"
+                      className="min-w-0 flex-1"
+                      aria-invalid={fieldErrors.contactPhone ? true : undefined}
+                      aria-describedby={describedBy(
+                        "contactPhone",
+                        "company-contact-phone",
+                      )}
+                      autoComplete="tel"
+                    />
+                  </div>
                 </Field>
               </div>
               </fieldset>
@@ -377,8 +464,11 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
         {stepIndex === 1 ? (
           <Card className="p-24">
             <fieldset>
-              <legend className={legendClasses}>
+              <legend className={cn(legendClasses, "flex items-center gap-6")}>
                 {t("classification.sectorLegend")}
+                <InfoTooltip label={t("classification.sectorLegend")}>
+                  {t("help.sector")}
+                </InfoTooltip>
               </legend>
               <p className={hintClasses}>{t("classification.sectorHint")}</p>
               {fieldErrors.sectorCode ? (
@@ -405,19 +495,59 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                 ))}
               </div>
               {selectedSector ? (
-                <div className="mt-16">
-                  <p className="text-caption font-medium text-carbon">
-                    {t("classification.lawsLabel")}
-                  </p>
-                  <ul className="mt-8 flex flex-wrap gap-8">
-                    {selectedSector.laws.map((law) => (
-                      <li
-                        key={law}
-                        className="rounded-full border border-[#dbe7fd] bg-[#eaf1fe] px-12 py-4 text-[11px] font-medium text-ink"
+                <div className="mt-16 rounded-cards bg-ash px-16 pb-4 pt-16">
+                  <div className="flex items-center gap-[10px]">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full bg-ink text-white"
+                    >
+                      <svg
+                        width={15}
+                        height={15}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       >
-                        {law}
-                      </li>
-                    ))}
+                        <path d="M12 3 5 6v5c0 4.4 3 7.4 7 9 4-1.6 7-4.6 7-9V6l-7-3Z" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold text-ink">
+                        {t("classification.lawsLabel")}
+                      </p>
+                      <p className="text-caption leading-caption text-carbon">
+                        {t("classification.lawsDerivedHint")}
+                      </p>
+                    </div>
+                  </div>
+                  <ul className="mt-12 divide-y divide-stone">
+                    {orderedLaws(selectedSector.laws).map((law) => {
+                      const slug = LAW_SLUG[law];
+                      const isBase = slug === "l21719";
+                      return (
+                        <li key={law} className="flex flex-col gap-[5px] py-12">
+                          <span className="flex items-center gap-[6px]">
+                            <span className="inline-flex items-center rounded-tags border border-stone bg-white px-8 py-[3px] text-[12px] font-semibold text-ink">
+                              {law}
+                            </span>
+                            {isBase ? (
+                              <span className="inline-flex items-center rounded-tags bg-ink px-[7px] py-[3px] text-[10px] font-semibold uppercase tracking-[0.3px] text-white">
+                                {t("classification.lawsBaseTag")}
+                              </span>
+                            ) : null}
+                          </span>
+                          {slug && t.has(`lawInfo.${slug}`) ? (
+                            <span className="text-caption leading-caption text-carbon">
+                              {t(`lawInfo.${slug}`)}
+                            </span>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ) : null}
@@ -425,8 +555,11 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
 
             <div className="mt-20 border-t border-ash pt-20">
               <fieldset>
-              <legend className={legendClasses}>
+              <legend className={cn(legendClasses, "flex items-center gap-6")}>
                 {t("classification.sizeLegend")}
+                <InfoTooltip label={t("classification.sizeLegend")}>
+                  {t("help.size")}
+                </InfoTooltip>
               </legend>
               <p className={hintClasses}>{t("classification.sizeHint")}</p>
               {fieldErrors.sizeTier ? (
@@ -457,31 +590,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
               </fieldset>
             </div>
 
-            <div className="mt-20 border-t border-ash pt-20">
-              <Field
-                label={t("classification.employeesLabel")}
-                htmlFor="company-employees"
-                error={fieldError("employeesCount")}
-                className="max-w-[220px]"
-              >
-                <Input
-                  id="company-employees"
-                  type="number"
-                  name="employeesCount"
-                  min={0}
-                  step={1}
-                  inputMode="numeric"
-                  value={employees}
-                  onChange={(event) => setEmployees(event.target.value)}
-                  placeholder={t("classification.employeesPlaceholder")}
-                  aria-invalid={fieldErrors.employeesCount ? true : undefined}
-                  aria-describedby={describedBy(
-                    "employeesCount",
-                    "company-employees",
-                  )}
-                />
-              </Field>
-            </div>
           </Card>
         ) : null}
 
@@ -489,7 +597,12 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
         {stepIndex === 2 ? (
           <Card className="p-24">
             <fieldset>
-              <legend className={legendClasses}>{t("factors.legend")}</legend>
+              <legend className={cn(legendClasses, "flex items-center gap-6")}>
+                {t("factors.legend")}
+                <InfoTooltip label={t("factors.legend")}>
+                  {t("help.factors")}
+                </InfoTooltip>
+              </legend>
               <p className={hintClasses}>{t("factors.hint")}</p>
               <div className="mt-16 grid gap-8 sm:grid-cols-2">
                 {COMPLEXITY_FACTORS.map((factor) => (
@@ -579,16 +692,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                     {sizeTier ? tCompanies(`sizeTiers.${sizeTier}`) : null}
                   </dd>
                 </div>
-                <div>
-                  <dt className={summaryTermClasses}>
-                    {t("classification.employeesLabel")}
-                  </dt>
-                  <dd className={summaryValueClasses}>
-                    {Number.isInteger(employeesCount)
-                      ? t("confirm.employeesValue", { count: employeesCount })
-                      : null}
-                  </dd>
-                </div>
                 {selectedSector ? (
                   <div>
                     <dt className={summaryTermClasses}>
@@ -606,22 +709,20 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
               <h3 className="text-caption font-semibold uppercase tracking-[0.3px] text-carbon">
                 {t("confirm.factors")}
               </h3>
-              {selectedFactors.length > 0 ? (
-                <ul className="mt-8 flex flex-wrap gap-8">
-                  {selectedFactors.map((factor) => (
-                    <li
-                      key={factor}
-                      className="rounded-full bg-ash px-12 py-4 text-[11px] font-medium text-ink"
-                    >
-                      {t(`factors.options.${factor}.label`)}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-8 text-body-sm text-metal">
-                  {t("confirm.noFactors")}
-                </p>
-              )}
+              <p
+                className={cn(
+                  "mt-8",
+                  selectedFactors.length > 0
+                    ? summaryValueClasses
+                    : "text-body-sm leading-body-sm text-carbon",
+                )}
+              >
+                {selectedFactors.length > 0
+                  ? selectedFactors
+                      .map((factor) => t(`factors.options.${factor}.label`))
+                      .join(" · ")
+                  : t("confirm.noFactors")}
+              </p>
             </section>
 
             <p className="mt-16 border-t border-ash pt-12 text-caption leading-caption text-carbon">

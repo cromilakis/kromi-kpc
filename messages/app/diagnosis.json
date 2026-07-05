@@ -18,7 +18,7 @@
         "draft": "Borrador",
         "in_progress": "En curso",
         "submitted": "Enviado",
-        "reviewed": "Revisado"
+        "reviewed": "Aplicado"
       },
       "autosave": {
         "saving": "Guardando…",
@@ -28,9 +28,9 @@
       "actions": {
         "shareLink": "Generar enlace de autodiagnóstico",
         "generatingLink": "Generando…",
-        "materialize": "Materializar / revisar",
-        "materializing": "Materializando…",
-        "materialized": "Diagnóstico materializado: el RAT y el checklist quedaron actualizados."
+        "materialize": "Aplicar diagnóstico",
+        "materializing": "Aplicando…",
+        "materialized": "Se generó el RAT y se actualizó el checklist DPC."
       },
       "shareLink": {
         "title": "Enlace de autodiagnóstico generado",
@@ -38,6 +38,21 @@
         "copy": "Copiar",
         "copied": "Copiado",
         "close": "Cerrar"
+      },
+      "transcript": {
+        "button": "Importar desde transcripción",
+        "buttonUnavailable": "El diagnóstico debe iniciarse antes de importar una transcripción.",
+        "panelTitle": "Importar desde transcripción",
+        "placeholder": "Pegar aquí la transcripción de la reunión…",
+        "privacyNote": "El texto pegado se enviará a DeepSeek (proveedor externo) para su análisis. No incluir información que no deba salir de la organización.",
+        "analyze": "Analizar",
+        "analyzing": "Analizando…",
+        "cancel": "Cancelar",
+        "errors": {
+          "llm_disabled": "Esta función no está configurada todavía. Contactar al equipo.",
+          "llm_failed": "No fue posible analizar la transcripción. Reintentar.",
+          "generic": "Ocurrió un error inesperado. Reintentar."
+        }
       },
       "sections": {
         "rat": {
@@ -58,6 +73,7 @@
         "empty": "Aún no se ha registrado ninguna actividad de tratamiento.",
         "sensitiveBadge": "Datos sensibles",
         "intlBadge": "Transferencia internacional",
+        "exception": "Esta actividad es una excepción: mostrar {field}",
         "fields": {
           "area": "Área / departamento",
           "name": "Nombre de la actividad",
@@ -109,6 +125,38 @@
           "compliant": "Cumple",
           "partial": "Parcial",
           "non_compliant": "No cumple"
+        }
+      },
+      "review": {
+        "title": "Revisión de sugerencias de la transcripción",
+        "ratGroup": "RAT sugerido",
+        "ratEmpty": "No quedan sugerencias de RAT por revisar.",
+        "ratIncomplete": "Faltan campos obligatorios (área, nombre, finalidad o base de licitud): al aceptar, completarlos luego en el RAT.",
+        "complianceGroup": "Cumplimiento sugerido",
+        "complianceEmpty": "No quedan sugerencias de cumplimiento por revisar.",
+        "unassignedGroup": "Información sin asignar",
+        "unassignedHelp": "El sistema no pudo asociar estos fragmentos con certeza a un campo del RAT o a un criterio del checklist. Ubicarlos a mano si corresponde.",
+        "unassignedEmpty": "No hay información sin asignar.",
+        "suggestedFrom": "Sugerido desde la transcripción",
+        "evidenceLabel": "Cita",
+        "accept": "Aceptar",
+        "acceptAll": "Aceptar todo",
+        "discard": "Descartar",
+        "close": "Cerrar",
+        "done": "Se revisaron todas las sugerencias."
+      },
+      "applicability": {
+        "notApplicableGroup": "No aplica ({count})",
+        "includeInInterview": "Incluir en la entrevista",
+        "markNotApplicable": "Marcar No aplica",
+        "reason": "No aplica porque no se declaró: {factors}",
+        "factors": {
+          "sensitive_data": "Datos sensibles",
+          "international_transfers": "Transferencias internacionales",
+          "automated_decisions": "Decisiones automatizadas",
+          "multi_site": "Multi-sede",
+          "critical_providers": "Proveedores/encargados críticos",
+          "low_maturity": "Madurez inicial baja"
         }
       },
       "errors": {
