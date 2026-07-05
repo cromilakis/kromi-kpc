@@ -116,6 +116,31 @@
         "unauthorized": "La sesión expiró. Iniciar sesión nuevamente.",
         "not_found": "El registro ya no existe. Recargar la vista.",
         "unavailable": "No fue posible completar la acción. Reintentar en unos minutos."
+      },
+      "public": {
+        "meta": {
+          "title": "Autodiagnóstico"
+        },
+        "topbar": {
+          "backToSite": "← Volver al sitio"
+        },
+        "eyebrow": "Autodiagnóstico · {company}",
+        "title": "Autodiagnóstico de cumplimiento",
+        "description": "Registro de Actividades de Tratamiento (RAT) y evaluación de cumplimiento por control. Las respuestas se guardan automáticamente; se puede cerrar esta página y continuar más tarde con el mismo enlace.",
+        "submit": {
+          "button": "Enviar",
+          "sending": "Enviando…",
+          "done": "Respuestas enviadas. El equipo revisará el diagnóstico y se pondrá en contacto."
+        },
+        "invalid": {
+          "title": "Enlace no válido o expirado",
+          "text": "Este enlace de autodiagnóstico ya no está disponible. Puede haber expirado, haber sido revocado o el diagnóstico ya fue enviado a revisión. Solicita un enlace nuevo a tu consultor DPC."
+        },
+        "errors": {
+          "validation": "Los datos ingresados no son válidos. Revisar y reintentar.",
+          "invalid_token": "Este enlace ya no es válido. Solicita uno nuevo a tu consultor DPC.",
+          "unavailable": "No fue posible guardar. Reintentar en unos minutos."
+        }
       }
     }
   }

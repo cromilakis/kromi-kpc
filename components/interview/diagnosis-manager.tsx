@@ -11,9 +11,8 @@ import {
   type DiagnosisAnswers,
   type InterviewActionError,
 } from "@/lib/actions/interview";
-import type { CriterionAnswer } from "@/lib/interview/auto-map";
+import { normalizeAnswers } from "@/lib/interview/normalize-answers";
 import type { ComplianceQuestion } from "@/lib/interview/questions";
-import { ratActivitySchema, type RatActivity } from "@/lib/interview/rat-schema";
 import { ComplianceForm } from "./compliance-form";
 import { RatForm } from "./rat-form";
 
@@ -27,35 +26,6 @@ import { RatForm } from "./rat-form";
  * entero en cada guardado, con debounce de 1.2s para no golpear al server en
  * cada tecla.
  */
-
-const CRITERION_ANSWERS: readonly CriterionAnswer[] = ["yes", "partial", "no", "unknown"];
-function isCriterionAnswer(value: unknown): value is CriterionAnswer {
-  return typeof value === "string" && (CRITERION_ANSWERS as readonly string[]).includes(value);
-}
-
-/** Normaliza `interview_sessions.answers` (Json crudo) contra las preguntas
- * vigentes del catálogo: filas RAT inválidas se descartan (validación real ya
- * corrió en el server al guardar); los controles nuevos del catálogo que la
- * sesión aún no cubre se completan en "unknown" en vez de romper la vista. */
-function normalizeAnswers(raw: unknown, questions: ComplianceQuestion[]): DiagnosisAnswers {
-  const obj = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
-  const ratParsed = ratActivitySchema.array().safeParse(obj.rat);
-  const rat: RatActivity[] = ratParsed.success ? ratParsed.data : [];
-
-  const complianceRaw =
-    obj.compliance && typeof obj.compliance === "object"
-      ? (obj.compliance as Record<string, unknown>)
-      : {};
-  const compliance: Record<string, CriterionAnswer[]> = {};
-  for (const question of questions) {
-    const existingRaw = complianceRaw[question.controlCode];
-    const existing = Array.isArray(existingRaw) ? existingRaw : [];
-    compliance[question.controlCode] = question.criteria.map((_, index) =>
-      isCriterionAnswer(existing[index]) ? existing[index] : "unknown",
-    );
-  }
-  return { rat, compliance };
-}
 
 type SessionStatus = "draft" | "in_progress" | "submitted" | "reviewed";
 type SaveState = "idle" | "saving" | "saved" | "error";

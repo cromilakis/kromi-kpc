@@ -895,6 +895,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      diagnosis_questions: {
+        Args: { p_token: string }
+        Returns: {
+          code: string
+          name: string
+          verification_criteria: string[]
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_consultant: { Args: never; Returns: boolean }
       open_diagnosis: {

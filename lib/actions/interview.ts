@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { mapAnswersToControlStatus, type CriterionAnswer } from "@/lib/interview/auto-map";
-import { ratActivitySchema } from "@/lib/interview/rat-schema";
+import { diagnosisAnswersSchema, type DiagnosisAnswers } from "@/lib/interview/answers-schema";
+import { mapAnswersToControlStatus } from "@/lib/interview/auto-map";
 import { generateShareToken, hashShareToken } from "@/lib/share/token";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/lib/supabase/types";
+
+export type { DiagnosisAnswers };
 
 /**
  * Server actions del módulo entrevista/diagnóstico (spec diagnóstico, risk
@@ -52,20 +54,6 @@ export type MaterializeDiagnosisResult =
 
 const companyIdSchema = z.object({ companyId: z.uuid() });
 const sessionIdSchema = z.object({ sessionId: z.uuid() });
-
-const criterionAnswerSchema = z.enum([
-  "yes",
-  "partial",
-  "no",
-  "unknown",
-] as const satisfies readonly CriterionAnswer[]);
-
-/** Forma canónica de `interview_sessions.answers` — ver doc del módulo. */
-const diagnosisAnswersSchema = z.object({
-  rat: z.array(ratActivitySchema),
-  compliance: z.record(z.string(), z.array(criterionAnswerSchema)),
-});
-export type DiagnosisAnswers = z.infer<typeof diagnosisAnswersSchema>;
 
 const createShareLinkSchema = z.object({
   sessionId: z.uuid(),

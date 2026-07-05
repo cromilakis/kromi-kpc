@@ -111,3 +111,25 @@ end; $$;
 
 grant execute on function public.open_diagnosis(text) to anon, authenticated;
 grant execute on function public.save_diagnosis_answers(text, jsonb) to anon, authenticated;
+
+-- Preguntas del modo self por token: el visitante anon no puede leer el
+-- catálogo `controls` directamente (RLS is_consultant()), así que el
+-- cuestionario de cumplimiento se expone SOLO para la sesión objetivo de un
+-- token vigente, en el mismo orden dominio → control del checklist interno.
+create or replace function public.diagnosis_questions(p_token text)
+returns table (code text, name text, verification_criteria text[])
+language sql security definer set search_path = public, extensions as $$
+  select c.code, c.name, c.verification_criteria
+  from public.share_links l
+  join public.interview_sessions s on s.id = l.target_id
+  join public.controls c on true
+  join public.domains d on d.id = c.domain_id
+  where l.kind = 'diagnosis'
+    and l.token_hash = encode(digest(p_token, 'sha256'), 'hex')
+    and l.revoked_at is null and (l.expires_at is null or l.expires_at > now())
+    and s.status in ('draft','in_progress')
+    and cardinality(c.verification_criteria) > 0
+  order by d.sort, c.sort;
+$$;
+
+grant execute on function public.diagnosis_questions(text) to anon, authenticated;
