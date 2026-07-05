@@ -709,22 +709,20 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
               <h3 className="text-caption font-semibold uppercase tracking-[0.3px] text-carbon">
                 {t("confirm.factors")}
               </h3>
-              {selectedFactors.length > 0 ? (
-                <ul className="mt-8 flex flex-wrap gap-8">
-                  {selectedFactors.map((factor) => (
-                    <li
-                      key={factor}
-                      className="rounded-full bg-ash px-12 py-4 text-[11px] font-medium text-ink"
-                    >
-                      {t(`factors.options.${factor}.label`)}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-8 text-body-sm text-metal">
-                  {t("confirm.noFactors")}
-                </p>
-              )}
+              <p
+                className={cn(
+                  "mt-8",
+                  selectedFactors.length > 0
+                    ? summaryValueClasses
+                    : "text-body-sm leading-body-sm text-carbon",
+                )}
+              >
+                {selectedFactors.length > 0
+                  ? selectedFactors
+                      .map((factor) => t(`factors.options.${factor}.label`))
+                      .join(" · ")
+                  : t("confirm.noFactors")}
+              </p>
             </section>
 
             <p className="mt-16 border-t border-ash pt-12 text-caption leading-caption text-carbon">
