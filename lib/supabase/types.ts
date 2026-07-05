@@ -309,6 +309,7 @@ export type Database = {
       }
       controls: {
         Row: {
+          applies_when: Json | null
           code: string
           created_at: string
           detail: string | null
@@ -327,6 +328,7 @@ export type Database = {
           verification_criteria: string[]
         }
         Insert: {
+          applies_when?: Json | null
           code: string
           created_at?: string
           detail?: string | null
@@ -345,6 +347,7 @@ export type Database = {
           verification_criteria?: string[]
         }
         Update: {
+          applies_when?: Json | null
           code?: string
           created_at?: string
           detail?: string | null
@@ -940,7 +943,12 @@ export type Database = {
         | "certificacion"
         | "revalidacion"
       company_size_tier: "micro" | "small" | "enterprise"
-      control_result: "pending" | "compliant" | "partial" | "non_compliant"
+      control_result:
+        | "pending"
+        | "compliant"
+        | "partial"
+        | "non_compliant"
+        | "not_applicable"
       domain_kind: "principle" | "complementary"
       evidence_status: "validated" | "partial" | "missing" | "rejected"
       interview_mode: "assisted" | "self"
@@ -1088,7 +1096,13 @@ export const Constants = {
         "revalidacion",
       ],
       company_size_tier: ["micro", "small", "enterprise"],
-      control_result: ["pending", "compliant", "partial", "non_compliant"],
+      control_result: [
+        "pending",
+        "compliant",
+        "partial",
+        "non_compliant",
+        "not_applicable",
+      ],
       domain_kind: ["principle", "complementary"],
       evidence_status: ["validated", "partial", "missing", "rejected"],
       interview_mode: ["assisted", "self"],

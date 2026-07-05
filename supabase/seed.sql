@@ -492,6 +492,25 @@ on conflict (code) do update set
   sector_scope = excluded.sector_scope,
   sort = excluded.sort;
 
+-- Reglas de aplicabilidad por dominio/control (ver
+-- supabase/migrations/20260705141000_control_applicability.sql). Se repiten
+-- aquí para que un reset del catálogo (seed) las conserve. Ante duda se deja
+-- null = siempre aplica.
+update public.controls c set applies_when = '{"factors_any":["sensitive_data"]}'::jsonb
+  from public.domains d where c.domain_id = d.id and d.code = 'DPC-SEN';
+
+update public.controls c set applies_when = '{"factors_any":["automated_decisions"]}'::jsonb
+  from public.domains d where c.domain_id = d.id and d.code = 'DPC-EIA';
+
+-- DPC-TER mezcla transferencias internacionales y encargados del tratamiento:
+--   DPC-TER-001 "Contratos con encargados del tratamiento" -> critical_providers
+--   DPC-TER-002 "Transferencias internacionales con garantías de adecuación" -> international_transfers
+update public.controls c set applies_when = '{"factors_any":["critical_providers"]}'::jsonb
+  where c.code = 'DPC-TER-001';
+
+update public.controls c set applies_when = '{"factors_any":["international_transfers"]}'::jsonb
+  where c.code = 'DPC-TER-002';
+
 -- ----------------------------------------------------------------------------
 -- 4. RISK_CATALOG — riesgos del RFC §8 / prototipo RISKS
 --    La numeración tiene huecos intencionales: R-003 y R-006 no existen.
