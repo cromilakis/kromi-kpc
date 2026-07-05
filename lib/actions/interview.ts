@@ -5,6 +5,8 @@ import { z } from "zod";
 import { diagnosisAnswersSchema } from "@/lib/interview/answers-schema";
 import { generateShareToken, hashShareToken } from "@/lib/share/token";
 import { selectControlUpdates } from "@/lib/interview/select-control-updates";
+import { selectNotApplicable } from "@/lib/interview/select-not-applicable";
+import type { AppliesWhen } from "@/lib/interview/applicability";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/lib/supabase/types";
 
@@ -498,6 +500,88 @@ export async function materializeDiagnosis(
       }
     }
 
+    // 2b. Controles fuera de alcance por aplicabilidad → assessment_controls
+    // 'not_applicable'. Se calcula con los factores de la empresa × el
+    // `applies_when` del catálogo del sector (mismo `.or(...)` que
+    // createCompany en lib/actions/companies.ts), con el override del
+    // consultor `answers.applicability` (Tarea 4).
+    const { data: company, error: companyReadError } = await supabase
+      .from("companies")
+      .select("factors, sectors ( code )")
+      .eq("id", session.company_id)
+      .maybeSingle();
+    if (companyReadError || !company) {
+      console.error(
+        "[interview] lectura de empresa para aplicabilidad falló:",
+        companyReadError?.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+    const sectorCode = company.sectors?.code ?? null;
+
+    const { data: sectorControls, error: sectorControlsError } = await supabase
+      .from("controls")
+      .select("id, code, applies_when")
+      .or(
+        sectorCode
+          ? `sector_scope.is.null,sector_scope.cs.{${sectorCode}}`
+          : "sector_scope.is.null",
+      );
+    if (sectorControlsError) {
+      console.error(
+        "[interview] lectura del catálogo de controles del sector falló:",
+        sectorControlsError.message,
+      );
+      return { ok: false, error: "unavailable" };
+    }
+
+    const naCodes = selectNotApplicable(
+      (sectorControls ?? []).map((c) => ({
+        code: c.code,
+        appliesWhen: c.applies_when as AppliesWhen,
+      })),
+      company.factors,
+      answers.applicability ?? {},
+    );
+
+    // Precedencia: un control con respuesta de cumplimiento real evaluada en
+    // esta materialización (controlCodes, ya filtrado de "pending" arriba)
+    // NUNCA se marca "not_applicable" aunque el override/regla diga que no
+    // aplica — la evidencia de cumplimiento concreta prima sobre el cálculo
+    // de aplicabilidad (evita pisar un estado evaluado con 'not_applicable').
+    const evaluatedCodes = new Set(controlCodes);
+    const naCodesFiltered = naCodes.filter((code) => !evaluatedCodes.has(code));
+
+    if (naCodesFiltered.length > 0) {
+      const naCodeToId = new Map(
+        (sectorControls ?? [])
+          .filter((c) => naCodesFiltered.includes(c.code))
+          .map((c) => [c.code, c.id]),
+      );
+      const now = new Date().toISOString();
+      const naUpsertRows: TablesInsert<"assessment_controls">[] = naCodesFiltered
+        .filter((code) => naCodeToId.has(code))
+        .map((code) => ({
+          assessment_id: assessmentId,
+          control_id: naCodeToId.get(code)!,
+          status: "not_applicable",
+          evaluated_at: now,
+        }));
+
+      if (naUpsertRows.length > 0) {
+        const { error: naUpsertError } = await supabase
+          .from("assessment_controls")
+          .upsert(naUpsertRows, { onConflict: "assessment_id,control_id" });
+        if (naUpsertError) {
+          console.error(
+            "[interview] upsert de assessment_controls (not_applicable) falló:",
+            naUpsertError.message,
+          );
+          return { ok: false, error: "unavailable" };
+        }
+      }
+    }
+
     // 3. Sesión → reviewed.
     const reviewedAt = new Date().toISOString();
     const { error: reviewError } = await supabase
@@ -522,6 +606,7 @@ export async function materializeDiagnosis(
         assessment_id: assessmentId,
         rat_count: answers.rat.length,
         compliance_controls: controlCodes.length,
+        not_applicable: naCodesFiltered.length,
       },
     });
 
