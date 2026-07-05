@@ -312,6 +312,22 @@
             "rutTaken": "Conflicto de datos al guardar. Recargar la vista.",
             "unavailable": "No fue posible guardar el cambio. Reintentar en unos minutos."
           }
+        },
+        "clientAccess": {
+          "title": "Invitar acceso del cliente",
+          "description": "Envía una invitación por correo para que el contacto de la empresa cree su cuenta y acceda solo a sus datos.",
+          "emailLabel": "Correo del contacto",
+          "emailPlaceholder": "nombre@empresa.cl",
+          "hint": "Se envía un correo de invitación para crear la contraseña.",
+          "submit": "Invitar",
+          "submitting": "Invitando…",
+          "success": "Invitación enviada.",
+          "errors": {
+            "validation": "El correo ingresado no es válido.",
+            "unauthorized": "No tienes permisos para invitar acceso del cliente.",
+            "already_member": "Ese correo ya tiene acceso como cliente de otra empresa (o de esta).",
+            "unavailable": "No fue posible enviar la invitación. Reintentar en unos minutos."
+          }
         }
       }
     }

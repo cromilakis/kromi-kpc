@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { z } from "zod";
+import { CompanyMemberInviteForm } from "@/components/companies/company-member-invite-form";
 import { PhaseForm } from "@/components/companies/phase-form";
 import { PageHeader } from "@/components/app/shell";
 import { Card, ProgressBar, StatusBadge, type StatusBadgeVariant } from "@/components/ui";
@@ -167,7 +168,10 @@ export default async function CompanySummaryPage({
   ]);
 
   const supabase = await createClient();
-  const [companyResult, assessmentResult, risksResult, auditResult] =
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const [companyResult, assessmentResult, risksResult, auditResult, profileResult] =
     await Promise.all([
       supabase
         .from("companies")
@@ -194,6 +198,12 @@ export default async function CompanySummaryPage({
         .or(`entity_id.eq.${id},detail->>company_id.eq.${id}`)
         .order("created_at", { ascending: false })
         .limit(6),
+      // Rol del usuario en sesión (solo el consultor ve "Invitar acceso del
+      // cliente" — la RLS de company_members ya lo exige para el INSERT,
+      // esto es solo para no ofrecer un botón que fallaría en el servidor).
+      user
+        ? supabase.from("profiles").select("role").eq("user_id", user.id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
   if (companyResult.error) {
@@ -219,6 +229,9 @@ export default async function CompanySummaryPage({
       `No fue posible cargar la bitácora: ${auditResult.error.message}`,
     );
   }
+
+  const isConsultant =
+    profileResult.data?.role === "consultant" || profileResult.data?.role === "admin";
 
   const assessment = assessmentResult.data;
   // Los controles "No aplica" (fuera de alcance por aplicabilidad) se excluyen
@@ -575,6 +588,18 @@ export default async function CompanySummaryPage({
             </h2>
             <PhaseForm companyId={company.id} currentPhase={company.phase} />
           </Card>
+
+          {isConsultant ? (
+            <Card>
+              <h2 className="mb-4 text-[13px] font-semibold text-ink">
+                {t("detail.clientAccess.title")}
+              </h2>
+              <p className="mb-12 text-caption leading-caption tracking-caption text-carbon">
+                {t("detail.clientAccess.description")}
+              </p>
+              <CompanyMemberInviteForm companyId={company.id} />
+            </Card>
+          ) : null}
         </div>
       </div>
     </>

@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -124,6 +124,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "assessments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       audit_log: {
@@ -201,6 +208,13 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "certificates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       companies: {
@@ -259,6 +273,51 @@ export type Database = {
           },
         ]
       }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          invited_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_risks: {
         Row: {
           company_id: string
@@ -296,6 +355,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_risks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
             referencedColumns: ["id"]
           },
           {
@@ -457,6 +523,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "evidences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "evidences_control_id_fkey"
             columns: ["control_id"]
             isOneToOne: false
@@ -534,6 +607,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
             referencedColumns: ["id"]
           },
         ]
@@ -614,6 +694,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "processing_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "processing_activities_source_session_id_fkey"
             columns: ["source_session_id"]
             isOneToOne: false
@@ -683,6 +770,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "remediation_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
             referencedColumns: ["id"]
           },
           {
@@ -856,6 +950,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "share_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "share_links_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -904,9 +1005,50 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      company_client_view: {
+        Row: {
+          contact: Json | null
+          created_at: string | null
+          id: string | null
+          name: string | null
+          phase: Database["public"]["Enums"]["company_phase"] | null
+          rut: string | null
+          sector_id: string | null
+          size_tier: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Insert: {
+          contact?: Json | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          phase?: Database["public"]["Enums"]["company_phase"] | null
+          rut?: string | null
+          sector_id?: string | null
+          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Update: {
+          contact?: Json | null
+          created_at?: string | null
+          id?: string | null
+          name?: string | null
+          phase?: Database["public"]["Enums"]["company_phase"] | null
+          rut?: string | null
+          sector_id?: string | null
+          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      current_company_id: { Args: never; Returns: string }
       diagnosis_questions: {
         Args: { p_token: string }
         Returns: {
@@ -916,6 +1058,7 @@ export type Database = {
         }[]
       }
       is_admin: { Args: never; Returns: boolean }
+      is_client: { Args: never; Returns: boolean }
       is_consultant: { Args: never; Returns: boolean }
       open_diagnosis: {
         Args: { p_token: string }
