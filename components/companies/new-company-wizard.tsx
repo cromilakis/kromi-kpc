@@ -495,23 +495,52 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                 ))}
               </div>
               {selectedSector ? (
-                <div className="mt-16">
-                  <p className="text-caption font-medium text-carbon">
-                    {t("classification.lawsLabel")}
-                  </p>
-                  <ul className="mt-8 flex flex-col gap-8">
+                <div className="mt-16 rounded-cards bg-ash px-16 pb-4 pt-14">
+                  <div className="flex items-start gap-10">
+                    <span
+                      aria-hidden="true"
+                      className="mt-[1px] flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-ink text-white"
+                    >
+                      <svg
+                        width={13}
+                        height={13}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M12 3v18M7 21h10M5 7h14l-2.5 6.5a4 4 0 0 1-9 0L5 7ZM3 7l2-4 2 4M17 7l2-4 2 4" />
+                      </svg>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-semibold text-ink">
+                        {t("classification.lawsLabel")}
+                      </p>
+                      <p className="text-caption leading-caption text-carbon">
+                        {t("classification.lawsDerivedHint")}
+                      </p>
+                    </div>
+                  </div>
+                  <ul className="mt-12 divide-y divide-stone">
                     {orderedLaws(selectedSector.laws).map((law) => {
                       const slug = LAW_SLUG[law];
+                      const isBase = slug === "l21719";
                       return (
-                        <li
-                          key={law}
-                          className="rounded-cards border border-stone bg-[#fbfbfc] px-12 py-[10px]"
-                        >
-                          <span className="text-[13px] font-semibold text-ink">
-                            {law}
+                        <li key={law} className="flex flex-col gap-[5px] py-12">
+                          <span className="flex items-center gap-6">
+                            <span className="inline-flex items-center rounded-tags border border-stone bg-white px-8 py-[3px] text-[12px] font-semibold text-ink">
+                              {law}
+                            </span>
+                            {isBase ? (
+                              <span className="inline-flex items-center rounded-tags bg-ink px-[7px] py-[3px] text-[10px] font-semibold uppercase tracking-[0.3px] text-white">
+                                {t("classification.lawsBaseTag")}
+                              </span>
+                            ) : null}
                           </span>
                           {slug && t.has(`lawInfo.${slug}`) ? (
-                            <span className="mt-[2px] block text-caption leading-caption text-carbon">
+                            <span className="text-caption leading-caption text-carbon">
                               {t(`lawInfo.${slug}`)}
                             </span>
                           ) : null}
