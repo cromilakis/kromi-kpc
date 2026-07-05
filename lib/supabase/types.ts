@@ -209,6 +209,7 @@ export type Database = {
           contact: Json
           created_at: string
           employees_count: number | null
+          factors: string[]
           id: string
           name: string
           notes: string | null
@@ -223,6 +224,7 @@ export type Database = {
           contact?: Json
           created_at?: string
           employees_count?: number | null
+          factors?: string[]
           id?: string
           name: string
           notes?: string | null
@@ -237,6 +239,7 @@ export type Database = {
           contact?: Json
           created_at?: string
           employees_count?: number | null
+          factors?: string[]
           id?: string
           name?: string
           notes?: string | null
@@ -762,6 +765,45 @@ export type Database = {
         }
         Relationships: []
       }
+      self_assessments: {
+        Row: {
+          answers: Json
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          estimated_tier: string | null
+          id: string
+          risk_factors: string[]
+          sector_code: string | null
+          size_tier: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Insert: {
+          answers?: Json
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          estimated_tier?: string | null
+          id?: string
+          risk_factors?: string[]
+          sector_code?: string | null
+          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Update: {
+          answers?: Json
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          estimated_tier?: string | null
+          id?: string
+          risk_factors?: string[]
+          sector_code?: string | null
+          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+        }
+        Relationships: []
+      }
       share_links: {
         Row: {
           company_id: string
@@ -812,45 +854,6 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
-      }
-      self_assessments: {
-        Row: {
-          answers: Json
-          contact_email: string | null
-          contact_name: string | null
-          contact_phone: string | null
-          created_at: string
-          estimated_tier: string | null
-          id: string
-          risk_factors: string[]
-          sector_code: string | null
-          size_tier: Database["public"]["Enums"]["company_size_tier"] | null
-        }
-        Insert: {
-          answers?: Json
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          estimated_tier?: string | null
-          id?: string
-          risk_factors?: string[]
-          sector_code?: string | null
-          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
-        }
-        Update: {
-          answers?: Json
-          contact_email?: string | null
-          contact_name?: string | null
-          contact_phone?: string | null
-          created_at?: string
-          estimated_tier?: string | null
-          id?: string
-          risk_factors?: string[]
-          sector_code?: string | null
-          size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
-        }
-        Relationships: []
       }
       solution_catalog: {
         Row: {

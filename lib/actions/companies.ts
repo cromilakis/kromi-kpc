@@ -85,6 +85,7 @@ export async function createCompany(
       size_tier: data.sizeTier,
       phase: "diagnostico",
       complexity_score: score.score,
+      factors: [...data.factors],
       contact: {
         name: data.contactName,
         email: data.contactEmail ?? null,
