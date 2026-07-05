@@ -30,10 +30,21 @@ export interface ClientDashboardCertificate {
   valid_until: string;
 }
 
+export interface ClientDashboardProposal {
+  id: string;
+  plan: string;
+  amountClp: number;
+  status: Database["public"]["Enums"]["proposal_status"];
+}
+
 export interface ClientDashboard {
   company: ClientDashboardCompany | null;
   cert: ClientDashboardCertificate | null;
   progress: { evaluated: number; total: number; pct: number };
+  /** La propuesta más reciente que ya dejó de ser 'draft' (spec fase 2, tarea
+   * 3): el consultor la "publica" (status 'sent') al crearla, así que el
+   * cliente nunca ve borradores. `null` si aún no hay ninguna publicada. */
+  proposal: ClientDashboardProposal | null;
 }
 
 const EMPTY_PROGRESS = { evaluated: 0, total: 0, pct: 0 };
@@ -71,14 +82,30 @@ export async function loadClientDashboard(): Promise<ClientDashboard> {
       progress = checklistProgress((rows ?? []).map((row) => row.status));
     }
 
+    const { data: proposalRow } = await supabase
+      .from("proposals")
+      .select("id,plan,amount_clp,status")
+      .neq("status", "draft")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     return {
       company: company?.id && company.name
         ? { id: company.id, name: company.name }
         : null,
       cert: cert ?? null,
       progress,
+      proposal: proposalRow
+        ? {
+            id: proposalRow.id,
+            plan: proposalRow.plan,
+            amountClp: proposalRow.amount_clp,
+            status: proposalRow.status,
+          }
+        : null,
     };
   } catch {
-    return { company: null, cert: null, progress: EMPTY_PROGRESS };
+    return { company: null, cert: null, progress: EMPTY_PROGRESS, proposal: null };
   }
 }
