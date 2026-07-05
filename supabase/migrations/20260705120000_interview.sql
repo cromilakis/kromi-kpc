@@ -7,6 +7,7 @@ create type share_kind as enum ('diagnosis','certificate','document');
 create table public.processing_activities (
   id uuid primary key default gen_random_uuid(),
   company_id uuid not null references public.companies(id) on delete cascade,
+  source_session_id uuid,
   area text not null,
   name text not null,
   purpose text not null default '',
@@ -52,6 +53,12 @@ create table public.share_links (
   created_by uuid references public.profiles(user_id),
   created_at timestamptz not null default now()
 );
+
+alter table public.processing_activities
+  add constraint processing_activities_source_session_id_fkey
+  foreign key (source_session_id) references public.interview_sessions(id) on delete cascade;
+
+create index on public.processing_activities(source_session_id);
 
 alter table public.processing_activities enable row level security;
 alter table public.interview_sessions enable row level security;

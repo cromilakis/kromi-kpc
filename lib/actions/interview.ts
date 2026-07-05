@@ -364,10 +364,10 @@ export async function saveDiagnosisDraft(
 /**
  * Vuelca las respuestas de la sesión al modelo operativo:
  * - `answers.rat[]` → `processing_activities` (camelCase → snake_case).
- *   Idempotente por DELETE-then-INSERT scoped a `company_id`: la tabla no
- *   tiene `session_id` propio y una empresa tiene un solo RAT vigente (el de
- *   la última materialización), así que no hace falta una clave natural más
- *   fina — re-materializar nunca duplica filas.
+ *   Idempotente por DELETE-then-INSERT scoped a `source_session_id`: una
+ *   empresa puede tener más de una `interview_sessions` (ciclos/re-tomas), así
+ *   que el scope debe ser la sesión que originó las filas — no `company_id` —
+ *   para no borrar RAT materializado por otra sesión de la misma empresa.
  * - `answers.compliance[controlCode]` → `mapAnswersToControlStatus` →
  *   upsert de `assessment_controls` con onConflict=(assessment_id,control_id)
  *   (unique existente en la tabla, ver migración de operaciones) — también
@@ -420,11 +420,11 @@ export async function materializeDiagnosis(
     }
     const answers = answersParsed.data;
 
-    // 1. RAT → processing_activities (delete-then-insert por company_id).
+    // 1. RAT → processing_activities (delete-then-insert por source_session_id).
     const { error: deleteError } = await supabase
       .from("processing_activities")
       .delete()
-      .eq("company_id", session.company_id);
+      .eq("source_session_id", session.id);
     if (deleteError) {
       console.error(
         "[interview] limpieza de processing_activities falló:",
@@ -437,6 +437,7 @@ export async function materializeDiagnosis(
       const rows: TablesInsert<"processing_activities">[] = answers.rat.map(
         (activity) => ({
           company_id: session.company_id,
+          source_session_id: session.id,
           area: activity.area,
           name: activity.name,
           purpose: activity.purpose,

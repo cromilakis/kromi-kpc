@@ -546,6 +546,7 @@ export type Database = {
           retention: string
           security_measures: string[]
           source: string
+          source_session_id: string | null
           updated_at: string
         }
         Insert: {
@@ -567,6 +568,7 @@ export type Database = {
           retention?: string
           security_measures?: string[]
           source?: string
+          source_session_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -588,6 +590,7 @@ export type Database = {
           retention?: string
           security_measures?: string[]
           source?: string
+          source_session_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -596,6 +599,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "processing_activities_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "interview_sessions"
             referencedColumns: ["id"]
           },
         ]
