@@ -42,6 +42,5 @@ export default isGitHubPages
       project: process.env.SENTRY_PROJECT,
       silent: !process.env.CI,
       widenClientFileUpload: true,
-      disableLogger: true,
       sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
     });

@@ -3,7 +3,7 @@
  * solo se aceptan rutas internas de la plataforma (/app…). Cualquier otra
  * cosa (URLs absolutas, protocol-relative //, backslashes) cae al fallback.
  * Pura y fuera del archivo "use server" (esos módulos solo exportan async
- * functions) para poder testearla y reusarla desde el middleware.
+ * functions) para poder testearla y reusarla desde el proxy.
  */
 export const DEFAULT_APP_PATH = "/app";
 

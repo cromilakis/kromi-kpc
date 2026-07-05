@@ -14,7 +14,7 @@ export async function createClient() {
           try {
             toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
           } catch {
-            // Server Component: el refresh de sesión lo maneja el middleware.
+            // Server Component: el refresh de sesión lo maneja el proxy.
           }
         },
       },

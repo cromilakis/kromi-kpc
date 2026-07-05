@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 
 /**
- * Middleware de sesión (patrón oficial @supabase/ssr): refresca el token en
- * cada request cubierto por el matcher y protege la plataforma interna.
+ * Proxy de sesión (patrón oficial @supabase/ssr; antes `middleware`, renombrado
+ * a `proxy` en Next 16): refresca el token en cada request cubierto por el
+ * matcher y protege la plataforma interna.
  * - /app/* sin sesión → redirect a /login?next=<ruta original>.
  * - /login con sesión → redirect a /app (o al ?next= saneado).
  * Matcher acotado a esas rutas: las páginas públicas no pagan el costo del
@@ -12,7 +13,7 @@ import { safeNextPath } from "@/lib/auth/safe-next-path";
  * Defensa en profundidad: app/app/layout.tsx re-verifica la sesión y las
  * server actions validan por su cuenta (además de RLS en la base).
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
  * Shell de la plataforma interna (/app) — prototipo §1.4 (isApp):
  * sidebar fija 236px + topbar 56px + main (max-width 1160px, padding
  * 32/32/80). Server component: re-verifica la sesión (defensa en profundidad,
- * el middleware ya protege /app/*) y carga el profile (nombre/rol) para el
+ * el proxy ya protege /app/*) y carga el profile (nombre/rol) para el
  * menú de usuario. Solo los namespaces `app` y `common` viajan al cliente
  * (sidebar/topbar son client components por usePathname/contexto).
  */

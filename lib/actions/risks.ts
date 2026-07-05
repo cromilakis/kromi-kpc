@@ -53,7 +53,7 @@ const removeRiskSchema = z.object({
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-/** Sesión verificada en la action (además del middleware y de RLS). */
+/** Sesión verificada en la action (además del proxy y de RLS). */
 async function getSessionUserId(supabase: SupabaseServerClient): Promise<string | null> {
   const {
     data: { user },

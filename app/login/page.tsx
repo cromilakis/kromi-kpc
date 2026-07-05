@@ -6,7 +6,7 @@ import { Logo } from "@/components/ui";
 /**
  * /login — login FUNCIONAL del equipo (spec auth, prototipo isLogin): card
  * centrada sobre #fbfbfc con logo + tagline, email + contraseña y server
- * action signInWithPassword (lib/actions/auth.ts). El middleware redirige
+ * action signInWithPassword (lib/actions/auth.ts). El proxy redirige
  * aquí (/login?next=…) los accesos a /app sin sesión, y de vuelta a /app si
  * ya hay sesión. Acceso discreto desde el footer de la landing (RFC §11).
  *
