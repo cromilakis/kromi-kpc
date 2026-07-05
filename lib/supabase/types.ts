@@ -92,6 +92,7 @@ export type Database = {
           created_at: string
           cycle: number
           id: string
+          origin: string
           started_at: string
           status: Database["public"]["Enums"]["assessment_status"]
           updated_at: string
@@ -102,6 +103,7 @@ export type Database = {
           created_at?: string
           cycle?: number
           id?: string
+          origin?: string
           started_at?: string
           status?: Database["public"]["Enums"]["assessment_status"]
           updated_at?: string
@@ -112,6 +114,7 @@ export type Database = {
           created_at?: string
           cycle?: number
           id?: string
+          origin?: string
           started_at?: string
           status?: Database["public"]["Enums"]["assessment_status"]
           updated_at?: string
