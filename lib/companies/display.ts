@@ -34,15 +34,19 @@ export function companyInitials(name: string): string {
 
 /**
  * Avance del checklist a partir de los estados de assessment_controls del
- * ciclo vigente: evaluado = todo lo que ya no está 'pending'.
+ * ciclo vigente: evaluado = todo lo que ya no está 'pending'. Los controles
+ * 'not_applicable' (fuera de alcance por aplicabilidad) se excluyen del
+ * denominador aquí, de forma central, para que panel, listado y resumen midan
+ * el avance sobre lo aplicable de manera consistente.
  */
 export function checklistProgress(statuses: readonly string[]): {
   evaluated: number;
   total: number;
   pct: number;
 } {
-  const total = statuses.length;
-  const evaluated = statuses.filter((status) => status !== "pending").length;
+  const applicable = statuses.filter((status) => status !== "not_applicable");
+  const total = applicable.length;
+  const evaluated = applicable.filter((status) => status !== "pending").length;
   const pct = total > 0 ? Math.round((evaluated / total) * 100) : 0;
   return { evaluated, total, pct };
 }
