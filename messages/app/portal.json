@@ -32,6 +32,26 @@
         "title": "Avance de cumplimiento",
         "summary": "{evaluated}/{total} controles evaluados",
         "note": "El avance se mide sobre los controles aplicables a tu empresa."
+      },
+      "proposal": {
+        "title": "Tu propuesta",
+        "status": {
+          "draft": "Borrador",
+          "sent": "Pendiente de aceptación",
+          "accepted": "Aceptada",
+          "paid": "Pagada",
+          "expired": "Vencida"
+        },
+        "accept": "Aceptar propuesta",
+        "accepting": "Aceptando…",
+        "paymentComingSoon": "El pago se habilitará próximamente.",
+        "errors": {
+          "validation": "No se pudo procesar la solicitud. Intenta nuevamente.",
+          "unauthorized": "Tu sesión no tiene acceso a esta propuesta.",
+          "not_found": "No encontramos la propuesta.",
+          "conflict": "La propuesta ya no está disponible para aceptar.",
+          "unavailable": "No se pudo aceptar la propuesta. Intenta nuevamente."
+        }
       }
     }
   }

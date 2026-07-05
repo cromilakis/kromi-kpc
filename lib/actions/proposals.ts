@@ -1,6 +1,8 @@
 "use server";
 
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -127,6 +129,109 @@ export async function createProposal(
     return { ok: true, proposalId: proposal.id };
   } catch (cause) {
     console.error("[proposals] createProposal no disponible:", cause);
+    return { ok: false, error: "unavailable" };
+  }
+}
+
+export type AcceptProposalError =
+  | "validation"
+  | "unauthorized"
+  | "not_found"
+  | "conflict"
+  | "unavailable";
+
+export type AcceptProposalResult =
+  | { ok: true }
+  | { ok: false; error: AcceptProposalError };
+
+const acceptProposalSchema = z.object({ proposalId: z.uuid() });
+
+/**
+ * El cliente acepta SU propuesta ('sent' -> 'accepted'). Por diseño de RLS
+ * (migración 20260706110000_proposals_payments.sql), el cliente NO tiene
+ * policy de UPDATE sobre `proposals` — solo SELECT de la suya. Por eso acá:
+ * 1. Se lee la propuesta con el cliente AUTENTICADO (`createClient()`): la
+ *    RLS de SELECT (`company_id = current_company_id()`) ya garantiza que
+ *    solo puede ver la propia; si no aparece, es que no existe o es de otra
+ *    empresa (no se distingue el caso, para no filtrar existencia ajena).
+ * 2. El UPDATE se hace con el cliente **service-role** (`lib/supabase/admin.ts`),
+ *    recién DESPUÉS de haber verificado la pertenencia con el paso 1 — nunca
+ *    antes. El service-role bypassa RLS a propósito acá (no hay otra forma
+ *    de mutar `proposals` desde una sesión de cliente); la comprobación de
+ *    pertenencia + el filtro `status = 'sent'` en el UPDATE hacen de guardas.
+ * 3. `audit_log` también se inserta con service-role: su policy de INSERT
+ *    exige `is_consultant()`, que el cliente nunca cumple.
+ *
+ * Idempotencia: si la propuesta ya está 'accepted', se responde ok:true (el
+ * cliente pudo reintentar tras un timeout de red sin haber visto la
+ * confirmación); si ya está 'paid' (o en cualquier otro estado que no sea
+ * 'sent'/'accepted', p. ej. 'draft'/'expired'), se responde 'conflict': no
+ * hay nada razonable que aceptar.
+ */
+export async function acceptProposal(proposalId: string): Promise<AcceptProposalResult> {
+  const parsed = acceptProposalSchema.safeParse({ proposalId });
+  if (!parsed.success) return { ok: false, error: "validation" };
+
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "unauthorized" };
+
+    // Lectura con el cliente autenticado: RLS (`proposals_client_select`)
+    // acota el resultado a la propuesta de SU propia empresa.
+    const { data: proposal, error: readError } = await supabase
+      .from("proposals")
+      .select("id,company_id,status")
+      .eq("id", parsed.data.proposalId)
+      .maybeSingle();
+    if (readError) {
+      console.error("[proposals] lectura de proposal falló:", readError.message);
+      return { ok: false, error: "unavailable" };
+    }
+    if (!proposal) return { ok: false, error: "not_found" };
+
+    if (proposal.status === "accepted") return { ok: true };
+    if (proposal.status !== "sent") return { ok: false, error: "conflict" };
+
+    // UPDATE con service-role: el cliente no tiene policy de UPDATE por
+    // diseño (ver comentario de la función). El filtro `eq("status","sent")`
+    // evita una doble-aceptación concurrente (si otra request ya la marcó
+    // 'accepted' entre la lectura y este UPDATE, aquí no matchea ninguna
+    // fila y se detecta abajo).
+    const admin = createAdminClient();
+    const { data: updated, error: updateError } = await admin
+      .from("proposals")
+      .update({ status: "accepted", accepted_at: new Date().toISOString() })
+      .eq("id", parsed.data.proposalId)
+      .eq("status", "sent")
+      .select("id")
+      .maybeSingle();
+    if (updateError) {
+      console.error("[proposals] update de proposal falló:", updateError.message);
+      return { ok: false, error: "unavailable" };
+    }
+    if (!updated) return { ok: false, error: "conflict" };
+
+    const { error: auditError } = await admin.from("audit_log").insert({
+      actor_id: user.id,
+      action: "proposal.accepted",
+      entity: "proposals",
+      entity_id: parsed.data.proposalId,
+      detail: { company_id: proposal.company_id },
+    });
+    if (auditError) {
+      console.error(
+        `[proposals] audit_log (proposal.accepted, id=${parsed.data.proposalId}) falló:`,
+        auditError.message,
+      );
+    }
+
+    revalidatePath("/portal");
+    return { ok: true };
+  } catch (cause) {
+    console.error("[proposals] acceptProposal no disponible:", cause);
     return { ok: false, error: "unavailable" };
   }
 }

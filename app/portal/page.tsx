@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Card, ProgressBar, StatusBadge, type StatusBadgeVariant } from "@/components/ui";
+import { ProposalCard } from "@/components/portal/proposal-card";
 import { progressFillClass } from "@/lib/companies/display";
 import { certificateStanding, type CertStanding } from "@/lib/portal/certificate-status";
 import { loadClientDashboard } from "@/lib/portal/load-dashboard.server";
@@ -30,7 +31,7 @@ function formatDate(value: string): string {
 }
 
 export default async function PortalPage() {
-  const [{ company, cert, progress }, t, tHome] = await Promise.all([
+  const [{ company, cert, progress, proposal }, t, tHome] = await Promise.all([
     loadClientDashboard(),
     getTranslations("portal.dashboard"),
     getTranslations("portal.home"),
@@ -99,6 +100,12 @@ export default async function PortalPage() {
           </p>
         </Card>
       </div>
+
+      {proposal ? (
+        <div className="mt-16 grid gap-16 sm:grid-cols-2">
+          <ProposalCard proposal={proposal} />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,16 +1,25 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-// `createClient` (Supabase server, cliente de sesión del consultor)
-// mockeado: mismo patrón que test/company-members.test.ts.
+// `createClient` (Supabase server, cliente de sesión del consultor/cliente)
+// y `createAdminClient` (service-role) mockeados: mismo patrón que
+// test/company-members.test.ts.
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: vi.fn(),
+}));
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
 
 import { createClient } from "@/lib/supabase/server";
-import { createProposal } from "@/lib/actions/proposals";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { acceptProposal, createProposal } from "@/lib/actions/proposals";
 
 // z.uuid() valida el nibble de variante RFC4122 (8/9/a/b en el 3er grupo).
 const CONSULTANT_ID = "11111111-1111-4111-a111-111111111111";
+const CLIENT_USER_ID = "22222222-2222-4222-a222-222222222222";
 const COMPANY_ID = "33333333-3333-4333-a333-333333333333";
 const PROPOSAL_ID = "55555555-5555-4555-a555-555555555555";
 
@@ -189,5 +198,141 @@ describe("createProposal", () => {
     });
 
     expect(result).toEqual({ ok: false, error: "unavailable" });
+  });
+});
+
+describe("acceptProposal", () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /** Cliente de sesión del cliente final: lee `proposals` (RLS lo acota a
+   * SU empresa) y expone `auth.getUser()`. */
+  function fakeSessionClient(opts: {
+    user?: { id: string } | null;
+    proposal?: QueryResult;
+  } = {}) {
+    const { user = { id: CLIENT_USER_ID }, proposal = null } = opts;
+    return {
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user } }) },
+      from: vi.fn((table: string) => {
+        if (table === "proposals") return chain(proposal ?? { data: null, error: null });
+        throw new Error(`tabla no mockeada en el test (session): ${table}`);
+      }),
+    };
+  }
+
+  /** Cliente service-role: hace el UPDATE de `proposals` y el INSERT de
+   * `audit_log` (el cliente final no tiene policy de UPDATE ni de INSERT en
+   * audit_log — ver comentario de la función). */
+  function fakeAdminClient(opts: {
+    updateResult?: QueryResult;
+    auditInsert?: QueryResult;
+  } = {}) {
+    const {
+      updateResult = { data: { id: PROPOSAL_ID }, error: null },
+      auditInsert = { data: null, error: null },
+    } = opts;
+    const updateChain = {
+      eq: () => updateChain,
+      select: () => updateChain,
+      maybeSingle: () => Promise.resolve(updateResult),
+    };
+    return {
+      from: vi.fn((table: string) => {
+        if (table === "proposals") return { update: () => updateChain };
+        if (table === "audit_log") return { insert: () => Promise.resolve(auditInsert) };
+        throw new Error(`tabla no mockeada en el test (admin): ${table}`);
+      }),
+    };
+  }
+
+  it("Zod inválido (proposalId no-uuid) devuelve validation sin tocar supabase", async () => {
+    const session = fakeSessionClient();
+    vi.mocked(createClient).mockResolvedValue(session as never);
+
+    const result = await acceptProposal("no-es-uuid");
+    expect(result).toEqual({ ok: false, error: "validation" });
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it("sin sesión devuelve unauthorized", async () => {
+    const session = fakeSessionClient({ user: null });
+    vi.mocked(createClient).mockResolvedValue(session as never);
+
+    const result = await acceptProposal(PROPOSAL_ID);
+    expect(result).toEqual({ ok: false, error: "unauthorized" });
+  });
+
+  it("propuesta inexistente o de otra empresa (RLS) devuelve not_found", async () => {
+    const session = fakeSessionClient({ proposal: { data: null, error: null } });
+    vi.mocked(createClient).mockResolvedValue(session as never);
+
+    const result = await acceptProposal(PROPOSAL_ID);
+    expect(result).toEqual({ ok: false, error: "not_found" });
+    expect(createAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("status 'sent' -> acepta OK: UPDATE con service-role + audit_log", async () => {
+    const session = fakeSessionClient({
+      proposal: {
+        data: { id: PROPOSAL_ID, company_id: COMPANY_ID, status: "sent" },
+        error: null,
+      },
+    });
+    vi.mocked(createClient).mockResolvedValue(session as never);
+    const admin = fakeAdminClient();
+    vi.mocked(createAdminClient).mockReturnValue(admin as never);
+
+    const result = await acceptProposal(PROPOSAL_ID);
+
+    expect(result).toEqual({ ok: true });
+    expect(admin.from).toHaveBeenCalledWith("proposals");
+    expect(admin.from).toHaveBeenCalledWith("audit_log");
+  });
+
+  it("status 'accepted' es idempotente: devuelve ok sin volver a mutar", async () => {
+    const session = fakeSessionClient({
+      proposal: {
+        data: { id: PROPOSAL_ID, company_id: COMPANY_ID, status: "accepted" },
+        error: null,
+      },
+    });
+    vi.mocked(createClient).mockResolvedValue(session as never);
+
+    const result = await acceptProposal(PROPOSAL_ID);
+
+    expect(result).toEqual({ ok: true });
+    expect(createAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("status 'paid' devuelve conflict", async () => {
+    const session = fakeSessionClient({
+      proposal: {
+        data: { id: PROPOSAL_ID, company_id: COMPANY_ID, status: "paid" },
+        error: null,
+      },
+    });
+    vi.mocked(createClient).mockResolvedValue(session as never);
+
+    const result = await acceptProposal(PROPOSAL_ID);
+
+    expect(result).toEqual({ ok: false, error: "conflict" });
+    expect(createAdminClient).not.toHaveBeenCalled();
+  });
+
+  it("carrera perdida en el UPDATE (ya no está 'sent') devuelve conflict", async () => {
+    const session = fakeSessionClient({
+      proposal: {
+        data: { id: PROPOSAL_ID, company_id: COMPANY_ID, status: "sent" },
+        error: null,
+      },
+    });
+    vi.mocked(createClient).mockResolvedValue(session as never);
+    const admin = fakeAdminClient({ updateResult: { data: null, error: null } });
+    vi.mocked(createAdminClient).mockReturnValue(admin as never);
+
+    const result = await acceptProposal(PROPOSAL_ID);
+    expect(result).toEqual({ ok: false, error: "conflict" });
   });
 });
