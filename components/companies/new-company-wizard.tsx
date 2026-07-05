@@ -49,7 +49,7 @@ type IdentificationField =
   | "contactName"
   | "contactEmail"
   | "contactPhone";
-type ErrorField = IdentificationField | "sectorCode" | "sizeTier" | "employeesCount";
+type ErrorField = IdentificationField | "sectorCode" | "sizeTier";
 
 /** Option-card con radio/checkbox sr-only (mismo patrón del autoevaluador). */
 const optionCardClasses =
@@ -112,7 +112,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
     sectors.some((sector) => sector.code === "otro") ? "otro" : null,
   );
   const [sizeTier, setSizeTier] = useState<SizeTier | null>(null);
-  const [employees, setEmployees] = useState("");
   const [factors, setFactors] = useState<Record<ComplexityFactor, boolean>>(
     () =>
       Object.fromEntries(
@@ -137,8 +136,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
 
   const selectedSector = sectors.find((sector) => sector.code === sectorCode);
   const selectedFactors = COMPLEXITY_FACTORS.filter((factor) => factors[factor]);
-  const employeesCount =
-    employees.trim() === "" ? Number.NaN : Number(employees.trim());
 
   /** Valida el paso actual con el contrato Zod correspondiente. */
   function validateCurrentStep(): boolean {
@@ -165,7 +162,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
       const parsed = classificationSchema.safeParse({
         sectorCode: sectorCode ?? "",
         sizeTier,
-        employeesCount,
       });
       if (parsed.success) {
         setFieldErrors({});
@@ -204,7 +200,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
       contactPhone,
       sectorCode: sectorCode ?? "",
       sizeTier,
-      employeesCount,
       factors: selectedFactors,
     });
     if (!parsed.success) {
@@ -502,38 +497,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
               </fieldset>
             </div>
 
-            <div className="mt-20 border-t border-ash pt-20">
-              <Field
-                label={
-                  <span className="inline-flex items-center gap-6">
-                    {t("classification.employeesLabel")}
-                    <InfoTooltip label={t("classification.employeesLabel")}>
-                      {t("help.employees")}
-                    </InfoTooltip>
-                  </span>
-                }
-                htmlFor="company-employees"
-                error={fieldError("employeesCount")}
-                className="max-w-[220px]"
-              >
-                <Input
-                  id="company-employees"
-                  type="number"
-                  name="employeesCount"
-                  min={0}
-                  step={1}
-                  inputMode="numeric"
-                  value={employees}
-                  onChange={(event) => setEmployees(event.target.value)}
-                  placeholder={t("classification.employeesPlaceholder")}
-                  aria-invalid={fieldErrors.employeesCount ? true : undefined}
-                  aria-describedby={describedBy(
-                    "employeesCount",
-                    "company-employees",
-                  )}
-                />
-              </Field>
-            </div>
           </Card>
         ) : null}
 
@@ -634,16 +597,6 @@ export function NewCompanyWizard({ sectors }: { sectors: WizardSector[] }) {
                   </dt>
                   <dd className={summaryValueClasses}>
                     {sizeTier ? tCompanies(`sizeTiers.${sizeTier}`) : null}
-                  </dd>
-                </div>
-                <div>
-                  <dt className={summaryTermClasses}>
-                    {t("classification.employeesLabel")}
-                  </dt>
-                  <dd className={summaryValueClasses}>
-                    {Number.isInteger(employeesCount)
-                      ? t("confirm.employeesValue", { count: employeesCount })
-                      : null}
                   </dd>
                 </div>
                 {selectedSector ? (

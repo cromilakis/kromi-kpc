@@ -83,7 +83,6 @@ export async function createCompany(
       rut: formatRut(data.rut),
       sector_id: sector.id,
       size_tier: data.sizeTier,
-      employees_count: data.employeesCount,
       phase: "diagnostico",
       complexity_score: score.score,
       contact: {

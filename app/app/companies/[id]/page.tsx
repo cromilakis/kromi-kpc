@@ -276,13 +276,6 @@ export default async function CompanySummaryPage({
       key: "contact",
       value: contactParts.length > 0 ? contactParts.join(" · ") : t("none"),
     },
-    {
-      key: "employees",
-      value:
-        company.employees_count !== null
-          ? t("detail.record.employeesValue", { count: company.employees_count })
-          : t("none"),
-    },
     { key: "sector", value: company.sectors?.name ?? t("none") },
     {
       key: "laws",

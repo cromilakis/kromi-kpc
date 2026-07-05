@@ -166,7 +166,6 @@ describe("createCompanySchema", () => {
     contactPhone: "+56 9 1234 5678",
     sectorCode: "salud",
     sizeTier: "enterprise",
-    employeesCount: 480,
     factors: ["sensitive_data", "multi_site"],
   };
 
@@ -203,19 +202,14 @@ describe("createCompanySchema", () => {
     }
   });
 
-  it("rechaza correos inválidos, factores desconocidos y dotación negativa", () => {
+  it("rechaza correos inválidos y factores desconocidos", () => {
     expect(
       createCompanySchema.safeParse({ ...validPayload, contactEmail: "no-es-correo" })
         .success,
     ).toBe(false);
     expect(
-      createCompanySchema.safeParse({ ...validPayload, factors: ["otro"] }).success,
-    ).toBe(false);
-    expect(
-      createCompanySchema.safeParse({ ...validPayload, employeesCount: -1 }).success,
-    ).toBe(false);
-    expect(
-      createCompanySchema.safeParse({ ...validPayload, employeesCount: 12.5 }).success,
+      createCompanySchema.safeParse({ ...validPayload, factors: ["unknown_factor"] })
+        .success,
     ).toBe(false);
   });
 });
