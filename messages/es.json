@@ -28,6 +28,8 @@
     "stakes": {
       "title": "Lo que está en juego",
       "note": "Fiscalización de la Agencia desde el 1 de diciembre de 2026",
+      "reputationalLead": "No es solo la multa.",
+      "reputational": "La APDP también puede emitir una amonestación pública y dejar la sanción en el Registro Nacional de Sanciones, accesible durante 5 años — un golpe reputacional que suele costar más que la propia multa.",
       "items": {
         "minor": {
           "severity": "Infracción leve",

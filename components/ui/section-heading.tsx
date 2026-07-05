@@ -1,4 +1,4 @@
-import { createElement, type ElementType, type ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 import { cn } from "./cn";
 
 /**
@@ -55,13 +55,11 @@ export function SectionHeading({
           {eyebrow}
         </p>
       ) : null}
-      {/* createElement (no JSX) para el tag dinámico: evita el conflicto de
-          tipos de JSX.IntrinsicElements introducido por react-three-fiber. */}
-      {createElement(
-        Heading,
-        { className: cn("font-serif font-medium text-ink", sizeClasses[size]) },
-        title,
-      )}
+      <Heading
+        className={cn("font-serif font-medium text-ink", sizeClasses[size])}
+      >
+        {title}
+      </Heading>
       {description ? (
         <p
           className={cn(

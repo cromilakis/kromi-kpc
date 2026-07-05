@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { buttonClasses } from "@/components/ui";
-import { HeroBackground } from "./hero-background";
+import { HeroCipher } from "./hero-cipher";
 import { CheckCircleIcon, DocumentIcon } from "./icons";
 import { WhatsAppButton } from "./whatsapp-button";
 
@@ -18,9 +18,9 @@ export async function Hero() {
 
   return (
     <section className="mx-auto w-full max-w-[1180px] px-32 pb-[64px] pt-[96px] text-center max-sm:px-16 max-sm:pt-60">
-      {/* Bloque título→CTAs con el fondo WebGL (HeroBackground) detrás. */}
+      {/* Bloque título→CTAs con el fondo de cifrado binario 2D (HeroCipher). */}
       <div className="relative">
-        <HeroBackground />
+        <HeroCipher />
         <div className="relative z-10">
           {/* Pill de urgencia — Ley 21.719 vigente */}
           <p className="mb-28 inline-flex flex-wrap items-center justify-center gap-x-[9px] gap-y-4 rounded-full border border-danger-red/25 bg-[#f6e9e8] py-[5px] pl-[10px] pr-[14px] text-caption font-semibold text-danger-red">

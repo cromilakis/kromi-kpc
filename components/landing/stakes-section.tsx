@@ -64,6 +64,16 @@ export async function StakesSection() {
             </div>
           ))}
         </div>
+        {/* Cierre: el riesgo reputacional (amonestación pública + Registro
+            Nacional de Sanciones). Afirmación legal — validar con abogado. */}
+        <div className="border-t border-ash bg-[#fbfbfc] px-24 py-[18px]">
+          <p className="text-[13px] leading-[1.55] text-carbon">
+            <b className="font-semibold text-ink">
+              {t("stakes.reputationalLead")}
+            </b>{" "}
+            {t("stakes.reputational")}
+          </p>
+        </div>
       </div>
 
       {/* Caso hipotético como pull-quote editorial centrado: la cifra en serif
