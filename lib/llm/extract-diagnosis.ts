@@ -65,12 +65,22 @@ const alertSchema = z.object({
   reason: z.string(),
 });
 
+// Siguiente mejor pregunta sugerida por la IA (guía para el consultor en vivo):
+// qué conviene preguntar ahora para cerrar el gap más importante.
+const nextQuestionSchema = z.object({
+  controlCode: z.string(),
+  question: z.string(),
+  reason: z.string(),
+});
+
 // Forma canónica de salida (todas las listas presentes) — tipo de retorno.
 export const extractionResultSchema = z.object({
   rat: z.array(ratSuggestionSchema),
   compliance: z.array(complianceSuggestionSchema),
   unassigned: z.array(unassignedSchema),
   alerts: z.array(alertSchema),
+  // Sugerencia (no determinista, es guía): la IA propone; el consultor decide.
+  nextQuestion: nextQuestionSchema.nullable(),
 });
 
 export type ExtractionResult = z.infer<typeof extractionResultSchema>;
@@ -86,6 +96,7 @@ const rawExtractionSchema = z
     compliance: z.array(z.unknown()).catch([]).default([]),
     unassigned: z.array(z.unknown()).catch([]).default([]),
     alerts: z.array(z.unknown()).catch([]).default([]),
+    nextQuestion: z.unknown().optional(),
   })
   .catch({ rat: [], compliance: [], unassigned: [], alerts: [] });
 
@@ -106,10 +117,12 @@ Reglas DURAS (no negociables):
   "rat": [ { "fields": { ... subconjunto de campos del RAT ... }, "evidence": { "campo": "cita textual" } } ],
   "compliance": [ { "controlCode": "string", "criterionIndex": 0, "answer": "yes"|"partial"|"no", "evidence": "cita textual" } ],
   "alerts": [ { "controlCode": "string", "criterionIndex": 0, "reason": "qué falta aclarar para poder evaluar este criterio" } ],
-  "unassigned": [ { "text": "fragmento o idea", "reason": "motivo por el que no se pudo asignar" } ]
+  "unassigned": [ { "text": "fragmento o idea", "reason": "motivo por el que no se pudo asignar" } ],
+  "nextQuestion": { "controlCode": "string", "question": "pregunta concreta a realizar ahora", "reason": "por qué es la más importante ahora" }
 }
 8. Los campos válidos de "fields" son: area, name, purpose, legalBasis (uno de: ${LEGAL_BASES.join(", ")}), dataCategories, dataSubjects, source, recipients, processors, intlTransfer, intlCountries, retention, securityMeasures, isSensitive. No incluyas otros campos.
-9. No inventes controlCode ni criterionIndex que no estén en el catálogo entregado.`;
+9. No inventes controlCode ni criterionIndex que no estén en el catálogo entregado.
+10. "nextQuestion": la SIGUIENTE MEJOR pregunta que el consultor debería hacer ahora para cerrar el gap más importante que sigue pendiente o ambiguo (criterios en "alerts", parciales o aún no cubiertos). Elige UN control del catálogo (usa su "controlCode") cuyo tema convenga abordar a continuación, redacta una pregunta clara y conversacional (puedes basarte en el tema del control, no tiene que ser textual del catálogo) y explica en "reason" por qué es prioritaria dado lo conversado. Si TODO quedó cubierto sin ambigüedad, devuelve "nextQuestion": null. No inventes hechos; es una guía de qué preguntar, no un veredicto.`;
 
 function formatControlsCatalog(controls: ControlLike[]): string {
   return controls
@@ -304,7 +317,19 @@ export function sanitizeExtraction(
     alerts.push(alert);
   }
 
-  return { rat, compliance, unassigned, alerts };
+  // nextQuestion (guía): se acepta solo si referencia un control del catálogo y
+  // trae una pregunta no vacía; si no, null (no se inventa un control).
+  let nextQuestion: ExtractionResult["nextQuestion"] = null;
+  const parsedNext = nextQuestionSchema.safeParse(top.nextQuestion);
+  if (
+    parsedNext.success &&
+    parsedNext.data.question.trim() &&
+    controlsByCode.has(parsedNext.data.controlCode)
+  ) {
+    nextQuestion = parsedNext.data;
+  }
+
+  return { rat, compliance, unassigned, alerts, nextQuestion };
 }
 
 export async function extractDiagnosis(args: {

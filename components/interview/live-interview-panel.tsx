@@ -69,10 +69,13 @@ export function LiveInterviewPanel({
   const [source, setSource] = useState<SttSource>("mic");
   const [interim, setInterim] = useState("");
   const [sttError, setSttError] = useState<SttError | null>(null);
-  // Ref con el transcript vigente para el análisis debounced (closure estable).
+  // Siguiente mejor pregunta sugerida por la IA (guía; el consultor decide).
+  const [suggested, setSuggested] = useState<ExtractionResult["nextQuestion"]>(null);
+  // Ref con el transcript vigente para el análisis periódico (closure estable).
   const transcriptRef = useRef("");
   transcriptRef.current = transcript;
-  const analyzeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dirtyRef = useRef(false); // hay tramos finales nuevos sin analizar
+  const analyzingRef = useRef(false); // evita análisis solapados
 
   const queue = useMemo(() => buildQuestionQueue(guide, compliance), [guide, compliance]);
   const coverage = useMemo(() => computeGuideCoverage(guide, compliance), [guide, compliance]);
@@ -80,7 +83,20 @@ export function LiveInterviewPanel({
   // que apunta a lo que hay que insistir antes de cerrar la reunión).
   const nextIndex = queue.findIndex((question) => question.status !== "resolved");
 
+  // Nombre de control por código, para mostrar la sugerencia de la IA con su tema.
+  const controlNameByCode = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const domain of guide) {
+      for (const control of domain.controls) map.set(control.code, control.name);
+    }
+    return map;
+  }, [guide]);
+
   function integrateExtraction(extraction: ExtractionResult) {
+    // Guía en vivo: la IA sugiere la siguiente mejor pregunta (o null si todo
+    // quedó cubierto). No escribe nada al borrador; solo orienta al consultor.
+    setSuggested(extraction.nextQuestion);
+
     for (const suggestion of extraction.compliance) {
       onAcceptCompliance(suggestion.controlCode, suggestion.criterionIndex, suggestion.answer);
     }
@@ -137,29 +153,44 @@ export function LiveInterviewPanel({
   // duplica nada; los fills entran al borrador vía integrateExtraction.
   function analyzeAccumulated() {
     const full = transcriptRef.current.trim();
-    if (!full || pending) return;
+    if (!full || analyzingRef.current) return;
+    analyzingRef.current = true;
+    dirtyRef.current = false;
     startTransition(async () => {
       const result = await extractDiagnosisFromTranscript(sessionId, full);
       if (result.ok) integrateExtraction(result.extraction);
+      analyzingRef.current = false;
     });
   }
 
-  // Debounce: tras cada tramo final de voz, se reprograma el análisis; así se
-  // acota el costo/latencia (no se analiza en cada palabra).
-  function scheduleAnalyze() {
-    if (analyzeTimerRef.current) clearTimeout(analyzeTimerRef.current);
-    analyzeTimerRef.current = setTimeout(() => analyzeAccumulated(), 10000);
-  }
+  // Ref siempre apuntando a la última versión de analyzeAccumulated, para que el
+  // interval periódico invoque la closure vigente (props/estado actuales).
+  const analyzeRef = useRef(analyzeAccumulated);
+  analyzeRef.current = analyzeAccumulated;
 
   const stt = useDeepgramLive({
     onInterim: (text) => setInterim(text),
     onFinal: (text) => {
       setInterim("");
       setTranscript((prev) => (prev ? `${prev}\n${text}` : text));
-      scheduleAnalyze();
+      dirtyRef.current = true; // marca que hay texto nuevo para el próximo tick
     },
     onError: (err) => setSttError(err),
   });
+
+  // Mientras se escucha, cada 8 s: (1) analiza el acumulado si hay texto nuevo;
+  // (2) fuerza un Finalize para que el audio en buffer salga como tramo final
+  // (así el habla continua se trocea y el próximo tick tiene texto nuevo, aunque
+  // no haya pausas). Antes se usaba un debounce que se reiniciaba con cada frase
+  // → con habla continua nunca disparaba.
+  useEffect(() => {
+    if (stt.status !== "listening") return;
+    const id = setInterval(() => {
+      if (dirtyRef.current) analyzeRef.current();
+      stt.finalize();
+    }, 8000);
+    return () => clearInterval(id);
+  }, [stt.status, stt.finalize]);
 
   async function handleStartListening() {
     if (!consent) return;
@@ -172,16 +203,8 @@ export function LiveInterviewPanel({
   function handleStopListening() {
     stt.stop();
     setInterim("");
-    if (analyzeTimerRef.current) clearTimeout(analyzeTimerRef.current);
     analyzeAccumulated(); // flush: analiza lo acumulado al detener
   }
-
-  // Limpia el timer de análisis al desmontar.
-  useEffect(() => {
-    return () => {
-      if (analyzeTimerRef.current) clearTimeout(analyzeTimerRef.current);
-    };
-  }, []);
 
   const listening = stt.status === "listening";
   const connecting = stt.status === "connecting";
@@ -299,6 +322,26 @@ export function LiveInterviewPanel({
             </StatusBadge>
           )}
         </div>
+        {/* Siguiente mejor pregunta sugerida por la IA (guía en vivo, destacada
+            al tope). La IA propone según lo conversado; el consultor decide. */}
+        {suggested ? (
+          <div className="mb-8 rounded-tags border border-focus-blue bg-focus-blue/5 px-12 py-8">
+            <div className="mb-4 flex items-center gap-8">
+              <StatusBadge variant="positive">{t("suggestedLabel")}</StatusBadge>
+              {controlNameByCode.get(suggested.controlCode) ? (
+                <span className="text-caption leading-caption text-carbon">
+                  {controlNameByCode.get(suggested.controlCode)}
+                </span>
+              ) : null}
+            </div>
+            <p className="text-body-sm font-semibold text-ink">{suggested.question}</p>
+            {suggested.reason ? (
+              <p className="mt-4 text-caption leading-caption text-carbon">
+                {suggested.reason}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         {/* Pregunta de apertura: siempre al tope, encuadra la conversación. No
             se tacha ni cuenta para la cobertura (no está ligada a un control). */}
         <div className="mb-8 flex items-baseline gap-8 rounded-tags bg-ash px-8 py-4">

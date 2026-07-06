@@ -114,6 +114,7 @@ const validExtraction: ExtractionResult = {
   ],
   unassigned: [{ text: "algo ambiguo", reason: "sin cita" }],
   alerts: [],
+  nextQuestion: null,
 };
 
 describe("extractDiagnosisFromTranscript", () => {

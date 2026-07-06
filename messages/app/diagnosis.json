@@ -69,6 +69,7 @@
         "clarify": "Falta aclarar",
         "openerLabel": "Apertura",
         "opener": "Cuéntame en general cómo funciona el negocio: qué datos de personas manejan (clientes, trabajadores, proveedores), de dónde salen y para qué los usan.",
+        "suggestedLabel": "Siguiente pregunta (IA)",
         "listening": {
           "title": "Escucha activa (voz)",
           "consentText": "Confirmo que informé a los presentes y obtuve su consentimiento para grabar y transcribir esta reunión con fines del diagnóstico. (Texto legal preliminar, pendiente de revisión.)",

@@ -34,7 +34,42 @@ const DEEPGRAM_URL = `wss://api.deepgram.com/v1/listen?${new URLSearchParams({
   language: "es",
   smart_format: "true",
   interim_results: "true",
+  // Diarización: Deepgram etiqueta cada palabra con un índice de hablante, para
+  // separar quién dice qué (consultor vs. empresa) en el transcrito auditado.
+  diarize: "true",
 }).toString()}`;
+
+type DeepgramWord = { word?: string; punctuated_word?: string; speaker?: number };
+
+// Reconstruye el texto agrupando palabras por hablante ("Hablante N: …"). Si no
+// hay info de hablante (o no hay words), cae al transcript plano.
+function diarizedText(
+  words: DeepgramWord[] | undefined,
+  fallback: string,
+): string {
+  if (!words || words.length === 0) return fallback;
+  const segments: string[] = [];
+  let currentSpeaker: number | undefined;
+  let buffer: string[] = [];
+  const flush = () => {
+    if (buffer.length === 0) return;
+    const label =
+      currentSpeaker === undefined ? "" : `Hablante ${currentSpeaker + 1}: `;
+    segments.push(`${label}${buffer.join(" ")}`);
+    buffer = [];
+  };
+  for (const w of words) {
+    const token = w.punctuated_word ?? w.word ?? "";
+    if (!token) continue;
+    if (w.speaker !== currentSpeaker) {
+      flush();
+      currentSpeaker = w.speaker;
+    }
+    buffer.push(token);
+  }
+  flush();
+  return segments.join("\n") || fallback;
+}
 
 // MediaRecorder no soporta el mismo mimeType en todos los navegadores; se elige
 // el primero disponible (Deepgram autodetecta el contenedor webm/opus).
@@ -95,6 +130,19 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
     cleanup();
     setStatus("idle");
   }, [cleanup]);
+
+  // Fuerza a Deepgram a devolver como FINAL el audio en buffer (sin esperar una
+  // pausa). Útil para analizar periódicamente aunque el habla sea continua.
+  const finalize = useCallback(() => {
+    const ws = socketRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify({ type: "Finalize" }));
+      } catch {
+        /* noop */
+      }
+    }
+  }, []);
 
   const start = useCallback(
     async (source: SttSource) => {
@@ -162,7 +210,9 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
         let data: {
           type?: string;
           is_final?: boolean;
-          channel?: { alternatives?: Array<{ transcript?: string }> };
+          channel?: {
+            alternatives?: Array<{ transcript?: string; words?: DeepgramWord[] }>;
+          };
         };
         try {
           data = JSON.parse(event.data as string);
@@ -170,10 +220,16 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
           return;
         }
         if (data.type !== "Results") return;
-        const text = data.channel?.alternatives?.[0]?.transcript?.trim() ?? "";
-        if (!text) return;
-        if (data.is_final) cbRef.current.onFinal?.(text);
-        else cbRef.current.onInterim?.(text);
+        const alt = data.channel?.alternatives?.[0];
+        const plain = alt?.transcript?.trim() ?? "";
+        if (!plain) return;
+        if (data.is_final) {
+          // En finales se usa la versión con hablantes (diarizada).
+          cbRef.current.onFinal?.(diarizedText(alt?.words, plain));
+        } else {
+          // Interinos: texto plano (los hablantes aún no son estables).
+          cbRef.current.onInterim?.(plain);
+        }
       };
 
       ws.onerror = () => {
@@ -191,5 +247,5 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
   // Corta todo si el componente se desmonta con la escucha activa.
   useEffect(() => cleanup, [cleanup]);
 
-  return { status, start, stop };
+  return { status, start, stop, finalize };
 }
