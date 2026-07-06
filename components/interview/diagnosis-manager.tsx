@@ -19,6 +19,7 @@ import type { ExtractionResult } from "@/lib/llm/extract-diagnosis";
 import { ComplianceForm } from "./compliance-form";
 import { ExtractionReview } from "./extraction-review";
 import { InterviewGuidePanel } from "./interview-guide-panel";
+import { LiveInterviewPanel } from "./live-interview-panel";
 import { RatForm } from "./rat-form";
 import { TranscriptImport } from "./transcript-import";
 
@@ -310,6 +311,14 @@ export function DiagnosisManager({
           ) : null}
         </p>
       </Card>
+
+      <LiveInterviewPanel
+        sessionId={sessionId}
+        guide={guide}
+        compliance={answers.compliance}
+        onAcceptCompliance={handleAcceptCompliance}
+        onAcceptRat={handleAcceptRat}
+      />
 
       <InterviewGuidePanel
         guide={guide}

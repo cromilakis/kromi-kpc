@@ -58,7 +58,7 @@ const NEEDS_REVIEW = "Por completar";
  * rellena los campos de texto obligatorios ausentes con un placeholder de
  * revisión, para que `ratActivitySchema` valide y la sugerencia sea aceptable;
  * el consultor la afina en el RatForm que queda montado debajo. */
-function buildRatActivity(fields: RatSuggestion["fields"]): RatActivity {
+export function buildRatActivity(fields: RatSuggestion["fields"]): RatActivity {
   const merged = { ...RAT_FIELD_DEFAULTS, ...fields };
   if (!merged.area.trim()) merged.area = NEEDS_REVIEW;
   if (!merged.name.trim()) merged.name = merged.purpose.trim() || NEEDS_REVIEW;

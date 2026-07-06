@@ -54,6 +54,28 @@
           "generic": "Ocurrió un error inesperado. Reintentar."
         }
       },
+      "live": {
+        "title": "Entrevista en vivo",
+        "subtitle": "Co-piloto de escucha activa: registra lo conversado por tramos y la IA avisa qué falta cubrir.",
+        "chunkPlaceholder": "Escribe o pega lo que se va conversando…",
+        "analyze": "Analizar tramo",
+        "analyzing": "Analizando…",
+        "transcriptTitle": "Transcripción acumulada",
+        "transcriptEmpty": "Aún no se ha registrado ningún tramo.",
+        "queueTitle": "Preguntas a cubrir",
+        "queueEmpty": "No hay preguntas aplicables.",
+        "nextLabel": "Siguiente",
+        "answered": "Respondida",
+        "coverage": "Faltan {n} de {total} criterios",
+        "ready": "Cobertura completa: listo para aplicar",
+        "ratSuggested": "Actividades detectadas",
+        "acceptActivity": "Agregar al RAT",
+        "errors": {
+          "llm_disabled": "Esta función no está configurada todavía. Contactar al equipo.",
+          "llm_failed": "No fue posible analizar el tramo. Reintentar.",
+          "generic": "Ocurrió un error inesperado. Reintentar."
+        }
+      },
       "guide": {
         "title": "Guion de entrevista",
         "subtitle": "Temas a cubrir en la reunión con la empresa para que el diagnóstico quede completo.",
