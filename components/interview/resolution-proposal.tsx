@@ -159,78 +159,78 @@ export function ResolutionProposal({
                     onChange={(event) => patch(key, { action: event.target.value })}
                     disabled={accepting}
                     aria-label={t("actionLabel")}
-                    className="min-h-[40px] py-[6px]"
+                    className="min-h-[44px]"
                   />
                   {item.example ? (
-                    <p className="text-caption leading-caption text-metal">{item.example}</p>
+                    <p className="text-caption leading-caption text-carbon">{item.example}</p>
                   ) : null}
 
-                  {/* Controles + acciones en una sola fila. */}
-                  <div className="flex flex-wrap items-center gap-8">
-                    <div className="w-[104px]">
-                      <Select
-                        value={item.priority}
-                        onChange={(event) =>
-                          patch(key, {
-                            priority: event.target.value as EditableItem["priority"],
-                          })
-                        }
-                        disabled={accepting}
-                        aria-label={t("priorityLabel")}
-                        title={t("priorityLabel")}
-                        className="h-32 cursor-pointer py-0"
-                      >
-                        {PRIORITIES.map((p) => (
-                          <option key={p} value={p}>
-                            {t(`priority.${p}`)}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div className="w-[104px]">
-                      <Select
-                        value={item.effort}
-                        onChange={(event) =>
-                          patch(key, {
-                            effort: event.target.value as EditableItem["effort"],
-                          })
-                        }
-                        disabled={accepting}
-                        aria-label={t("effortLabel")}
-                        title={t("effortLabel")}
-                        className="h-32 cursor-pointer py-0"
-                      >
-                        {EFFORTS.map((e) => (
-                          <option key={e} value={e}>
-                            {t(`effort.${e}`)}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div className="w-[150px]">
-                      <Input
-                        type="date"
-                        value={item.dueDate}
-                        onChange={(event) => patch(key, { dueDate: event.target.value })}
-                        disabled={accepting}
-                        aria-label={t("dueLabel")}
-                        title={t("dueLabel")}
-                        className="h-32 py-0"
-                      />
-                    </div>
+                  {/* Controles etiquetados + acciones en una fila (envuelve si falta ancho). */}
+                  <div className="flex flex-wrap items-center gap-x-16 gap-y-8">
+                    <label className="flex items-center gap-6 text-caption leading-caption text-carbon">
+                      {t("priorityLabel")}
+                      <div className="w-[108px]">
+                        <Select
+                          value={item.priority}
+                          onChange={(event) =>
+                            patch(key, {
+                              priority: event.target.value as EditableItem["priority"],
+                            })
+                          }
+                          disabled={accepting}
+                          className="cursor-pointer"
+                        >
+                          {PRIORITIES.map((p) => (
+                            <option key={p} value={p}>
+                              {t(`priority.${p}`)}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-6 text-caption leading-caption text-carbon">
+                      {t("effortLabel")}
+                      <div className="w-[108px]">
+                        <Select
+                          value={item.effort}
+                          onChange={(event) =>
+                            patch(key, {
+                              effort: event.target.value as EditableItem["effort"],
+                            })
+                          }
+                          disabled={accepting}
+                          className="cursor-pointer"
+                        >
+                          {EFFORTS.map((e) => (
+                            <option key={e} value={e}>
+                              {t(`effort.${e}`)}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                    </label>
+                    <label className="flex items-center gap-6 text-caption leading-caption text-carbon">
+                      {t("dueLabel")}
+                      <div className="w-[150px]">
+                        <Input
+                          type="date"
+                          value={item.dueDate}
+                          onChange={(event) => patch(key, { dueDate: event.target.value })}
+                          disabled={accepting}
+                        />
+                      </div>
+                    </label>
                     <div className="ml-auto flex items-center gap-8">
                       <Button
                         variant="secondary"
                         onClick={() => handleDismiss(item)}
                         disabled={accepting}
-                        className="h-32 py-0"
                       >
                         {t("dismiss")}
                       </Button>
                       <Button
                         onClick={() => handleAccept(item)}
                         disabled={accepting || !item.action.trim()}
-                        className="h-32 py-0"
                       >
                         {accepting ? t("accepted") : t("accept")}
                       </Button>
