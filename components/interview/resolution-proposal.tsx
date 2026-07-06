@@ -107,10 +107,15 @@ export function ResolutionProposal({
   }
 
   return (
-    <Card className="flex flex-col gap-20">
+    <section aria-labelledby="diagnosis-proposal-title" className="flex flex-col gap-16">
       <div className="flex flex-wrap items-start justify-between gap-8">
         <div>
-          <h2 className="text-body-sm font-semibold text-ink">{t("title")}</h2>
+          <h2
+            id="diagnosis-proposal-title"
+            className="text-body-sm font-semibold text-ink"
+          >
+            {t("title")}
+          </h2>
           <p className="mt-4 text-caption leading-caption text-carbon">{t("subtitle")}</p>
         </div>
         <Button onClick={handleGenerate} disabled={pending}>
@@ -247,6 +252,6 @@ export function ResolutionProposal({
           })}
         </ul>
       ) : null}
-    </Card>
+    </section>
   );
 }
