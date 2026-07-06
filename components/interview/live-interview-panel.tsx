@@ -114,6 +114,21 @@ export function LiveInterviewPanel({
     [queue],
   );
 
+  // Códigos de control ya resueltos → se excluyen del análisis para que la IA
+  // solo procese lo pendiente (más rápido). Ref para usarlo en la cola async.
+  const resolvedCodes = useMemo(() => {
+    const uncovered = new Set(coverage.uncovered.map((u) => u.controlCode));
+    const codes: string[] = [];
+    for (const domain of guide) {
+      for (const control of domain.controls) {
+        if (!uncovered.has(control.code)) codes.push(control.code);
+      }
+    }
+    return codes;
+  }, [guide, coverage]);
+  const resolvedCodesRef = useRef<string[]>([]);
+  resolvedCodesRef.current = resolvedCodes;
+
   function integrateExtraction(extraction: ExtractionResult) {
     // Guía en vivo: la IA sugiere la siguiente mejor pregunta (o null si todo
     // quedó cubierto). No escribe nada al borrador; solo orienta al consultor.
@@ -183,7 +198,11 @@ export function LiveInterviewPanel({
     analyzingRef.current = true;
     setAnalyzing(true);
     startTransition(async () => {
-      const result = await extractDiagnosisFromTranscript(sessionId, next);
+      const result = await extractDiagnosisFromTranscript(
+        sessionId,
+        next,
+        resolvedCodesRef.current,
+      );
       if (result.ok) integrateExtraction(result.extraction);
       analyzingRef.current = false;
       setAnalyzing(false);

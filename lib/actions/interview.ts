@@ -85,6 +85,10 @@ const sessionIdSchema = z.object({ sessionId: z.uuid() });
 const extractFromTranscriptSchema = z.object({
   sessionId: z.uuid(),
   transcript: z.string().min(1).max(50000),
+  // Códigos de control YA resueltos (todos sus criterios con veredicto): se
+  // excluyen del catálogo enviado al LLM para acelerar el análisis en vivo
+  // (prompt y salida más chicos). Vacío = extracción exhaustiva (flujo manual).
+  resolvedCodes: z.array(z.string()).default([]),
 });
 
 const createShareLinkSchema = z.object({
@@ -681,10 +685,12 @@ export async function materializeDiagnosis(
 export async function extractDiagnosisFromTranscript(
   sessionId: string,
   transcript: string,
+  resolvedCodes: string[] = [],
 ): Promise<ExtractFromTranscriptResult> {
   const parsed = extractFromTranscriptSchema.safeParse({
     sessionId,
     transcript,
+    resolvedCodes,
   });
   if (!parsed.success) return { ok: false, error: "validation" };
 
@@ -764,9 +770,28 @@ export async function extractDiagnosisFromTranscript(
         overrides,
       ),
     );
+    // Pendientes = aplicables que NO están ya resueltos (todos sus criterios con
+    // veredicto). En vivo el cliente manda `resolvedCodes` para achicar el
+    // catálogo y acelerar; en el flujo manual llega vacío → catálogo completo.
+    const resolvedSet = new Set(parsed.data.resolvedCodes);
     const applicableControls = (sectorControls ?? []).filter(
-      (c) => !naCodes.has(c.code),
+      (c) => !naCodes.has(c.code) && !resolvedSet.has(c.code),
     );
+
+    // Todo lo aplicable ya está resuelto: nada que analizar (no se llama al LLM).
+    if (applicableControls.length === 0) {
+      return {
+        ok: true,
+        extraction: {
+          rat: [],
+          compliance: [],
+          unassigned: [],
+          alerts: [],
+          nextQuestion: null,
+        },
+      };
+    }
+
     const controlLikes: ControlLike[] = applicableControls.map((c) => ({
       code: c.code,
       name: c.name,
