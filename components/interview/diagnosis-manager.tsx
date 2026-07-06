@@ -15,10 +15,12 @@ import type { GuideDomain } from "@/lib/interview/guide";
 import { normalizeAnswers } from "@/lib/interview/normalize-answers";
 import type { ComplianceQuestion } from "@/lib/interview/questions";
 import type { RatActivity } from "@/lib/interview/rat-schema";
+import { applyAnswer } from "@/lib/interview/script/engine";
+import { RAT_SCRIPT } from "@/lib/interview/script/rat-script";
 import type { ExtractionResult } from "@/lib/llm/extract-diagnosis";
 import { ComplianceForm } from "./compliance-form";
 import { ExtractionReview } from "./extraction-review";
-import { InterviewGuidePanel } from "./interview-guide-panel";
+import { GuidedScript } from "./guided-script";
 import { LiveInterviewPanel } from "./live-interview-panel";
 import { ResolutionProposal } from "./resolution-proposal";
 import { RatForm } from "./rat-form";
@@ -42,14 +44,14 @@ type MaterializeState = "idle" | "loading" | "done" | "error";
 
 /** Botón-icono de la barra de acciones (32px, cuadrado). Clases completas —
  * sin componer con Button — porque `cn` no dedupea (sin tailwind-merge). */
-const ICON_BTN =
-  "inline-flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center " +
-  "rounded-buttons border border-slate bg-white text-ink transition-colors " +
+// Botones del toolbar del diagnóstico (icono + texto).
+const TEXT_BTN =
+  "inline-flex h-32 shrink-0 cursor-pointer items-center gap-6 px-12 " +
+  "rounded-buttons border border-slate bg-white text-body-sm text-ink transition-colors " +
   "hover:bg-ash disabled:pointer-events-none disabled:opacity-60";
-/** Variante primaria (acción "Aplicar diagnóstico"). */
-const ICON_BTN_PRIMARY =
-  "inline-flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center " +
-  "rounded-buttons border border-ink bg-ink text-white transition-colors " +
+const TEXT_BTN_PRIMARY =
+  "inline-flex h-32 shrink-0 cursor-pointer items-center gap-6 px-12 " +
+  "rounded-buttons border border-ink bg-ink text-body-sm text-white transition-colors " +
   "hover:bg-ink/90 disabled:pointer-events-none disabled:opacity-60";
 
 export function DiagnosisManager({
@@ -60,7 +62,6 @@ export function DiagnosisManager({
   initialAnswers,
   companyFactors,
   guide,
-  layout = "full",
 }: {
   companyId: string;
   sessionId: string | null;
@@ -69,8 +70,6 @@ export function DiagnosisManager({
   initialAnswers: unknown;
   companyFactors: string[];
   guide: GuideDomain[];
-  /** "live" = pantalla dedicada de entrevista en vivo (solo el co-piloto). */
-  layout?: "full" | "live";
 }) {
   const t = useTranslations("app.diagnosis");
   const tErrors = useTranslations("app.diagnosis.errors");
@@ -175,6 +174,34 @@ export function DiagnosisManager({
     });
   }
 
+  /** Respuesta de un nodo del guion guiado (Guion guiado): aplica el efecto al
+   * borrador vía el motor determinista (`applyAnswer` — sets de criterios;
+   * "Otros"/criterios cubiertos sin veredicto → 'flagged') y persiste el estado
+   * del nodo en `answers.script`. Todo en una sola actualización (un autosave).
+   * El motor NO decide nada de negocio: solo traduce la opción elegida a
+   * criterios; el consultor puede reafinar en la evaluación de cumplimiento. */
+  function handleScriptAnswer(nodeId: string, optionIds: string[], other?: string) {
+    const node = RAT_SCRIPT.nodes.find((n) => n.id === nodeId);
+    if (!node) return;
+    const { compliance } = applyAnswer(node, optionIds, other);
+    updateAnswers((current) => {
+      const nextCompliance = { ...current.compliance };
+      for (const { control, criterion, answer } of compliance) {
+        const arr = [...(nextCompliance[control] ?? [])];
+        arr[criterion] = answer;
+        nextCompliance[control] = arr;
+      }
+      return {
+        ...current,
+        compliance: nextCompliance,
+        script: {
+          ...(current.script ?? {}),
+          [nodeId]: { options: optionIds, ...(other ? { other } : {}) },
+        },
+      };
+    });
+  }
+
   function handleStart() {
     setStartError(null);
     startTransitionStart(async () => {
@@ -249,53 +276,23 @@ export function DiagnosisManager({
     );
   }
 
-  // Pantalla dedicada de entrevista en vivo: solo el co-piloto (sin toolbar,
-  // guion, propuesta ni pegar transcripción), con autoguardado silencioso.
-  if (layout === "live") {
-    return (
-      <div className="flex flex-col gap-12">
-        <p
-          role="status"
-          aria-live="polite"
-          className="text-caption leading-caption text-carbon"
-        >
-          {saveState === "saving" ? t("autosave.saving") : null}
-          {saveState === "saved" ? t("autosave.saved") : null}
-          {saveState === "error" ? (
-            <span className="text-danger-red">
-              {saveError ? tErrors(saveError) : t("autosave.error")}
-            </span>
-          ) : null}
-        </p>
-        <LiveInterviewPanel
-          sessionId={sessionId}
-          guide={guide}
-          compliance={answers.compliance}
-          onAcceptCompliance={handleAcceptCompliance}
-          onAcceptRat={handleAcceptRat}
-          variant="fullscreen"
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-20">
-      <Card className="flex flex-wrap items-center justify-between gap-12">
-        <div className="flex flex-wrap items-center gap-8">
+  // Toolbar del diagnóstico (estado + acciones + autoguardado). Se pasa al panel
+  // en vivo para que viva en el MISMO panel que la grabadora.
+  const toolbar = (
+    <div className="flex flex-wrap items-center justify-between gap-12">
+      <div className="flex flex-wrap items-center gap-8">
           {sessionStatus ? (
             <StatusBadge pill variant="neutral">
               {t(`status.${sessionStatus}`)}
             </StatusBadge>
           ) : null}
-          {/* Acciones como iconos, al costado del estado. */}
+          {/* Acciones del diagnóstico (icono + texto), al costado del estado. */}
           <button
             type="button"
             onClick={() => setTranscriptOpen((open) => !open)}
-            aria-label={t("transcript.button")}
             title={t("transcript.button")}
             aria-pressed={transcriptOpen}
-            className={cn(ICON_BTN, transcriptOpen && "bg-ash")}
+            className={cn(TEXT_BTN, transcriptOpen && "bg-ash")}
           >
             <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -303,32 +300,33 @@ export function DiagnosisManager({
               <path d="M12 18v-6" />
               <path d="m9 15 3 3 3-3" />
             </svg>
+            {t("transcript.button")}
           </button>
           <button
             type="button"
             onClick={handleShareLink}
             disabled={shareState === "loading"}
-            aria-label={t("actions.shareLink")}
             title={t("actions.shareLink")}
-            className={ICON_BTN}
+            className={TEXT_BTN}
           >
             <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
             </svg>
+            {t("actions.shareLink")}
           </button>
           <button
             type="button"
             onClick={handleMaterialize}
             disabled={materializeState === "loading"}
-            aria-label={t("actions.materialize")}
             title={t("actions.materialize")}
-            className={ICON_BTN_PRIMARY}
+            className={TEXT_BTN_PRIMARY}
           >
             <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
               <path d="m9 11 3 3L22 4" />
             </svg>
+            {t("actions.materialize")}
           </button>
         </div>
         <p
@@ -344,22 +342,18 @@ export function DiagnosisManager({
             </span>
           ) : null}
         </p>
-      </Card>
+    </div>
+  );
 
+  return (
+    <div className="flex flex-col gap-20">
       <LiveInterviewPanel
         sessionId={sessionId}
         guide={guide}
         compliance={answers.compliance}
         onAcceptCompliance={handleAcceptCompliance}
         onAcceptRat={handleAcceptRat}
-      />
-
-      <ResolutionProposal sessionId={sessionId} companyId={companyId} />
-
-      <InterviewGuidePanel
-        guide={guide}
-        compliance={answers.compliance}
-        printHref={`/app/companies/${companyId}/diagnosis/guide`}
+        toolbar={toolbar}
       />
 
       {sessionId && transcriptOpen ? (
@@ -419,14 +413,19 @@ export function DiagnosisManager({
         </p>
       ) : null}
 
+      {/* Entrevista guiada (modo principal): guion determinista de opción
+          múltiple que rellena el checklist. Alterna con la grabación/voz de
+          arriba y con la evaluación manual de más abajo. */}
+      <GuidedScript
+        scriptAnswers={answers.script ?? {}}
+        factors={companyFactors}
+        onAnswer={handleScriptAnswer}
+      />
+
       <section aria-labelledby="diagnosis-rat-title">
-        <h2 id="diagnosis-rat-title" className="mb-4 text-body-sm font-semibold text-ink">
-          {t("sections.rat.title")}
-        </h2>
-        <p className="mb-12 text-caption leading-caption text-carbon">
-          {t("sections.rat.description")}
-        </p>
         <RatForm
+          title={t("sections.rat.title")}
+          description={t("sections.rat.description")}
           activities={answers.rat}
           onChange={(rat) => updateAnswers((current) => ({ ...current, rat }))}
           companyFactors={companyFactors}
@@ -453,8 +452,12 @@ export function DiagnosisManager({
           companyFactors={companyFactors}
           applicabilityOverrides={answers.applicability ?? {}}
           onSetApplicability={handleSetApplicability}
+          guide={guide}
         />
       </section>
+
+      {/* Propuesta de resolución: al final, tras RAT y evaluación. */}
+      <ResolutionProposal sessionId={sessionId} companyId={companyId} />
     </div>
   );
 }

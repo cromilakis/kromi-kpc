@@ -43,25 +43,26 @@
         "button": "Importar desde transcripción",
         "buttonUnavailable": "El diagnóstico debe iniciarse antes de importar una transcripción.",
         "panelTitle": "Importar desde transcripción",
-        "placeholder": "Pegar aquí la transcripción de la reunión…",
-        "privacyNote": "El texto pegado se enviará a DeepSeek (proveedor externo) para su análisis. No incluir información que no deba salir de la organización.",
+        "chooseFile": "Elegir archivo",
+        "fileHint": "Archivo de texto (.txt, .vtt, .srt, .md)",
+        "privacyNote": "El contenido del archivo se enviará a DeepSeek (proveedor externo) para su análisis. No incluir información que no deba salir de la organización.",
         "analyze": "Analizar",
         "analyzing": "Analizando…",
         "cancel": "Cancelar",
         "errors": {
           "llm_disabled": "Esta función no está configurada todavía. Contactar al equipo.",
           "llm_failed": "No fue posible analizar la transcripción. Reintentar.",
-          "generic": "Ocurrió un error inesperado. Reintentar."
+          "generic": "Ocurrió un error inesperado. Reintentar.",
+          "empty": "El archivo está vacío."
         }
       },
       "live": {
         "title": "Entrevista en vivo",
         "subtitle": "Co-piloto de escucha activa: registra lo conversado por tramos y la IA avisa qué falta cubrir.",
-        "screenTitle": "Entrevista en vivo",
-        "screenEyebrow": "{company}",
-        "screenDescription": "Graba la reunión; la IA transcribe, marca lo cubierto y sugiere qué preguntar.",
-        "backToDiagnosis": "← Volver al diagnóstico",
-        "openScreen": "Abrir entrevista en vivo",
+        "mode": {
+          "record": "🎙️ Grabar reunión",
+          "paste": "📋 Pegar transcripción"
+        },
         "chunkPlaceholder": "Escribe o pega lo que se va conversando…",
         "analyze": "Analizar tramo",
         "analyzing": "Analizando…",
@@ -79,17 +80,20 @@
         "suggestedLabel": "Siguiente pregunta (IA)",
         "listening": {
           "title": "Escucha activa (voz)",
-          "consentText": "Confirmo que informé a los presentes y obtuve su consentimiento para grabar y transcribir esta reunión con fines del diagnóstico. (Texto legal preliminar, pendiente de revisión.)",
-          "source_mic": "Micrófono",
-          "source_tab": "Compartir pestaña (Meet)",
-          "start": "Iniciar escucha",
+          "consentText": "Confirmo que informé a los presentes y obtuve su consentimiento para grabar y transcribir esta reunión con fines del diagnóstico.",
+          "captureHint": "Se captura el micrófono y el audio del PC. Al iniciar, comparte la pestaña/pantalla de la reunión y marca \"Compartir audio\" (así queda el audio del cliente en reuniones online). En presencial, con el micrófono basta.",
+          "start": "Iniciar grabación",
+          "pause": "Pausar",
+          "resume": "Reanudar",
           "stop": "Detener escucha",
           "analyzeHeard": "Analizar lo escuchado",
+          "checkpoint": "Marcar y analizar",
           "analyzingHeard": "Analizando…",
           "queued": "{n} en cola",
           "connecting": "Conectando…",
           "listening": "Escuchando",
           "interimLabel": "En vivo",
+          "waiting": "Esperando audio… habla para ver la transcripción.",
           "errors": {
             "stt_disabled": "La transcripción por voz no está disponible (falta configurar el proveedor o la clave no tiene permisos de uso).",
             "mic_denied": "No se pudo acceder al audio. Revisa los permisos del micrófono o de compartir pestaña.",
@@ -138,6 +142,17 @@
         "print": "Imprimir guion",
         "empty": "No hay temas aplicables."
       },
+      "script": {
+        "title": "Entrevista guiada",
+        "subtitle": "Una pregunta a la vez. Cada respuesta completa el checklist automáticamente; se puede ajustar a mano después.",
+        "progress": "Tema {n} de {total}",
+        "progressDone": "{total} de {total}",
+        "done": "Guion completo. Revisa la evaluación de cumplimiento más abajo para afinar los criterios.",
+        "otherLabel": "Otros (respuesta libre)",
+        "otherPlaceholder": "Si ninguna opción calza, descríbelo aquí. Quedará marcado para aclarar.",
+        "continue": "Continuar",
+        "back": "← Anterior"
+      },
       "sections": {
         "rat": {
           "title": "A · Registro de Actividades de Tratamiento (RAT)",
@@ -157,6 +172,19 @@
         "empty": "Aún no se ha registrado ninguna actividad de tratamiento.",
         "sensitiveBadge": "Datos sensibles",
         "intlBadge": "Transferencia internacional",
+        "table": {
+          "name": "Actividad",
+          "purpose": "Finalidad",
+          "legalBasis": "Base de licitud",
+          "sensitive": "Sensible",
+          "intl": "Transf. intl.",
+          "status": "Estado",
+          "actions": "Acciones",
+          "yes": "Sí",
+          "untitled": "(sin nombre)",
+          "complete": "Ficha completa",
+          "incomplete": "Faltan datos por completar"
+        },
         "exception": "Esta actividad es una excepción: mostrar {field}",
         "fields": {
           "area": "Área / departamento",
@@ -167,16 +195,22 @@
           "legalBasis": "Base de licitud",
           "dataCategories": "Categorías de datos",
           "dataCategoriesHint": "Separadas por coma.",
+          "dataCategoriesPlaceholder": "p. ej. nombre, correo, teléfono, RUT",
           "dataSubjects": "Titulares de los datos",
-          "dataSubjectsHint": "Separados por coma. p. ej. Trabajadores, Clientes",
+          "dataSubjectsHint": "Separados por coma.",
+          "dataSubjectsPlaceholder": "p. ej. Clientes, Trabajadores, Proveedores",
           "source": "Origen de los datos",
+          "sourceHint": "De dónde provienen los datos.",
+          "sourcePlaceholder": "p. ej. Formulario web, punto de venta, el propio titular",
           "recipients": "Destinatarios",
-          "recipientsHint": "Separados por coma.",
+          "recipientsHint": "A quién se le entregan o comunican los datos.",
+          "recipientsPlaceholder": "p. ej. SII, banco, empresa de despacho",
           "processors": "Encargados de tratamiento",
-          "processorsHint": "Separados por coma.",
+          "processorsHint": "Terceros que tratan datos por encargo tuyo.",
+          "processorsPlaceholder": "p. ej. proveedor de nube, contador externo, software de RRHH",
           "intlTransfer": "¿Hay transferencia internacional de datos?",
           "intlCountries": "Países de destino",
-          "intlCountriesHint": "Separados por coma.",
+          "intlCountriesHint": "Selecciona uno o más países.",
           "retention": "Plazo de conservación",
           "securityMeasures": "Medidas de seguridad",
           "securityMeasuresHint": "Separadas por coma.",
@@ -192,12 +226,29 @@
           "interes_vital": "Interés vital",
           "funcion_publica": "Función pública"
         },
+        "countrySelect": {
+          "placeholder": "Seleccionar países…",
+          "add": "Agregar país",
+          "searchPlaceholder": "Buscar país…",
+          "empty": "Sin resultados.",
+          "remove": "Quitar {country}"
+        },
+        "legalBasesHelp": {
+          "consentimiento": "La persona autorizó de forma libre, informada y específica el tratamiento (p. ej. marcó una casilla al registrarse). Debe poder retirarlo.",
+          "contrato": "El tratamiento es necesario para cumplir un contrato con la persona o gestiones previas a su pedido (p. ej. procesar una compra o el envío).",
+          "obligacion_legal": "Una ley obliga a tratar los datos (p. ej. emitir boleta, retención tributaria, cotizaciones previsionales).",
+          "interes_legitimo": "Interés legítimo del responsable o un tercero que no afecta de forma desproporcionada los derechos de la persona (requiere ponderación y aviso).",
+          "interes_vital": "Necesario para proteger la vida o integridad física de la persona u otra (situaciones de emergencia).",
+          "funcion_publica": "Ejercicio de funciones públicas o una tarea de interés público por un organismo del Estado."
+        },
         "errors": {
           "validation": "Revisar los campos obligatorios: área, nombre, finalidad y base de licitud."
         }
       },
       "compliance": {
         "empty": "El catálogo de controles no define criterios de verificación.",
+        "domainComplete": "Dominio completo",
+        "domainPending": "Faltan criterios por evaluar",
         "criteria": {
           "yes": "Cumple",
           "partial": "Parcial",

@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
-import { Button, Card, StatusBadge, Textarea, cn } from "@/components/ui";
+import { Button, Card, StatusBadge, cn } from "@/components/ui";
+import { AudioSpectrum } from "./audio-spectrum";
 import {
   extractDiagnosisFromTranscript,
   recordListeningConsent,
 } from "@/lib/actions/interview";
-import {
-  useDeepgramLive,
-  type SttError,
-  type SttSource,
-} from "@/lib/stt/use-deepgram-live";
+import { useDeepgramLive, type SttError } from "@/lib/stt/use-deepgram-live";
 import { buildQuestionQueue, computeGuideCoverage, type GuideDomain } from "@/lib/interview/guide";
 import { ratActivitySchema, type RatActivity } from "@/lib/interview/rat-schema";
 import type { ExtractionResult } from "@/lib/llm/extract-diagnosis";
@@ -39,13 +43,31 @@ import { buildRatActivity } from "./extraction-review";
 
 type LiveInterviewError = "llm_disabled" | "llm_failed" | "generic";
 
+// Marca de separación que agrega cada checkpoint en el transcrito visible.
+const CHECKPOINT_MARK = "———";
+
+// Botones-icono de la grabadora (solo iconos, con tooltip por `title`).
+const REC_BTN =
+  "inline-flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center " +
+  "rounded-buttons border border-slate bg-white text-ink transition-colors " +
+  "hover:bg-ash disabled:pointer-events-none disabled:opacity-50";
+const REC_BTN_PRIMARY =
+  "inline-flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center " +
+  "rounded-buttons border border-ink bg-ink text-white transition-colors " +
+  "hover:bg-ink/90 disabled:pointer-events-none disabled:opacity-50";
+// Botón principal de grabación: círculo rojo (grabar) / pausa mientras graba.
+const REC_BTN_RECORD =
+  "inline-flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center " +
+  "rounded-full bg-danger-red text-white transition-colors " +
+  "hover:bg-danger-red/90 disabled:pointer-events-none disabled:opacity-50";
+
 export function LiveInterviewPanel({
   sessionId,
   guide,
   compliance,
   onAcceptCompliance,
   onAcceptRat,
-  variant = "embedded",
+  toolbar,
 }: {
   sessionId: string;
   guide: GuideDomain[];
@@ -56,21 +78,18 @@ export function LiveInterviewPanel({
     answer: "yes" | "partial" | "no" | "flagged",
   ) => void;
   onAcceptRat: (activity: RatActivity) => void;
-  /** "fullscreen" = pantalla dedicada limpia (sin pegar transcripción ni RAT). */
-  variant?: "embedded" | "fullscreen";
+  /** Toolbar del diagnóstico (estado + acciones), renderizado en este panel. */
+  toolbar?: ReactNode;
 }) {
   const t = useTranslations("app.diagnosis.live");
-  const fullscreen = variant === "fullscreen";
 
   const [transcript, setTranscript] = useState("");
-  const [chunk, setChunk] = useState("");
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<LiveInterviewError | null>(null);
+  const [, startTransition] = useTransition();
+  const [analysisError, setAnalysisError] = useState<LiveInterviewError | null>(null);
   const [pendingRat, setPendingRat] = useState<RatActivity[]>([]);
 
   // Escucha activa por voz (Fase 3).
   const [consent, setConsent] = useState(false);
-  const [source, setSource] = useState<SttSource>("mic");
   const [interim, setInterim] = useState("");
   const [sttError, setSttError] = useState<SttError | null>(null);
   // Siguiente mejor pregunta sugerida por la IA (guía; el consultor decide).
@@ -79,7 +98,9 @@ export function LiveInterviewPanel({
   const [analyzing, setAnalyzing] = useState(false);
   // Ref con el transcript vigente para el análisis periódico (closure estable).
   const transcriptRef = useRef("");
-  transcriptRef.current = transcript;
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
   const analyzingRef = useRef(false); // evita análisis solapados
   // Cola FIFO de análisis: cada clic "Analizar lo escuchado" encola el
   // transcrito hasta ese punto; se procesan en serie (uno a la vez) mientras el
@@ -131,7 +152,9 @@ export function LiveInterviewPanel({
     return codes;
   }, [guide, coverage]);
   const resolvedCodesRef = useRef<string[]>([]);
-  resolvedCodesRef.current = resolvedCodes;
+  useEffect(() => {
+    resolvedCodesRef.current = resolvedCodes;
+  }, [resolvedCodes]);
 
   function integrateExtraction(extraction: ExtractionResult) {
     // Guía en vivo: la IA sugiere la siguiente mejor pregunta (o null si todo
@@ -162,26 +185,6 @@ export function LiveInterviewPanel({
     });
   }
 
-  function handleAnalyze() {
-    if (!chunk.trim() || pending) return;
-    setError(null);
-    const nextTranscript = transcript ? `${transcript}\n${chunk.trim()}` : chunk.trim();
-    startTransition(async () => {
-      const result = await extractDiagnosisFromTranscript(sessionId, nextTranscript);
-      if (result.ok) {
-        setTranscript(nextTranscript);
-        setChunk("");
-        integrateExtraction(result.extraction);
-      } else {
-        setError(
-          result.error === "llm_disabled" || result.error === "llm_failed"
-            ? result.error
-            : "generic",
-        );
-      }
-    });
-  }
-
   function handleAcceptActivity(activity: RatActivity) {
     onAcceptRat(activity);
     setPendingRat((current) =>
@@ -202,26 +205,49 @@ export function LiveInterviewPanel({
     analyzingRef.current = true;
     setAnalyzing(true);
     startTransition(async () => {
-      const result = await extractDiagnosisFromTranscript(
-        sessionId,
-        next,
-        resolvedCodesRef.current,
-      );
-      if (result.ok) integrateExtraction(result.extraction);
-      analyzingRef.current = false;
-      setAnalyzing(false);
-      drainAnalysisQueue(); // siguiente en cola
+      // try/finally: pase lo que pase, se libera el lock y se sigue con la cola
+      // (antes, si la extracción fallaba, la cola quedaba trabada).
+      try {
+        const result = await extractDiagnosisFromTranscript(
+          sessionId,
+          next,
+          resolvedCodesRef.current,
+        );
+        if (result.ok) {
+          setAnalysisError(null);
+          integrateExtraction(result.extraction);
+        } else {
+          setAnalysisError(
+            result.error === "llm_disabled" || result.error === "llm_failed"
+              ? result.error
+              : "generic",
+          );
+        }
+      } catch (cause) {
+        console.error("[live] análisis falló:", cause);
+        setAnalysisError("generic");
+      } finally {
+        analyzingRef.current = false;
+        setAnalyzing(false);
+        drainAnalysisQueue(); // siguiente en cola
+      }
     });
   }
 
-  // "Analizar lo escuchado": encola el transcrito acumulado hasta este punto.
-  // La IA suma este contexto para determinar qué criterios resolver y qué falta
-  // preguntar. No detiene el micrófono.
+  // Checkpoint: encola el transcrito acumulado hasta este punto (limpio de
+  // marcas) y agrega una línea separadora al transcrito visible. La IA suma el
+  // contexto para determinar qué resolver y qué falta preguntar; no detiene el
+  // micrófono.
   function enqueueAnalysis() {
-    const full = transcriptRef.current.trim();
+    const full = transcriptRef.current
+      .split("\n")
+      .filter((line) => line !== CHECKPOINT_MARK)
+      .join("\n")
+      .trim();
     if (!full) return;
     analysisQueueRef.current.push(full);
     setQueuedCount(analysisQueueRef.current.length);
+    setTranscript((prev) => (prev ? `${prev}\n${CHECKPOINT_MARK}` : prev));
     drainAnalysisQueue();
   }
 
@@ -229,7 +255,12 @@ export function LiveInterviewPanel({
     onInterim: (text) => setInterim(text),
     onFinal: (text) => {
       setInterim("");
-      setTranscript((prev) => (prev ? `${prev}\n${text}` : text));
+      setTranscript((prev) => {
+        // Tras un checkpoint empieza línea nueva; si no, continúa el párrafo.
+        if (!prev) return text;
+        if (prev.endsWith(CHECKPOINT_MARK)) return `${prev}\n${text}`;
+        return `${prev} ${text}`;
+      });
     },
     onError: (err) => setSttError(err),
   });
@@ -250,7 +281,7 @@ export function LiveInterviewPanel({
     setElapsed(0); // reinicia el contador de tiempo de la grabación
     // Registra el consentimiento (auditable) antes de abrir el micrófono.
     await recordListeningConsent(sessionId);
-    await stt.start(source);
+    await stt.start();
   }
 
   function handleStopListening() {
@@ -261,6 +292,8 @@ export function LiveInterviewPanel({
 
   const listening = stt.status === "listening";
   const connecting = stt.status === "connecting";
+  const paused = stt.status === "paused";
+  const active = listening || connecting || paused; // sesión de grabación en curso
 
   // Contador de tiempo de grabación (mm:ss), corre mientras se escucha.
   const [elapsed, setElapsed] = useState(0);
@@ -279,234 +312,317 @@ export function LiveInterviewPanel({
     [transcript],
   );
 
-  return (
-    <Card className="flex flex-col gap-20">
-      {!fullscreen ? (
-        <div>
-          <h2 className="text-body-sm font-semibold text-ink">{t("title")}</h2>
-          <p className="mt-4 text-caption leading-caption text-carbon">{t("subtitle")}</p>
-        </div>
-      ) : null}
+  // Auto-scroll de la transcripción al final con cada tramo nuevo.
+  const transcriptScrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = transcriptScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [transcript, interim]);
 
-      {/* Escucha activa por voz (Fase 3): consentimiento + fuente + iniciar. */}
-      <div className="flex flex-col gap-8 rounded-tags border border-stone bg-ash/40 p-12">
-        <h3 className="text-caption font-medium leading-caption text-ink">
-          {t("listening.title")}
-        </h3>
+  // Bloquea cerrar/recargar la pestaña mientras se graba (no perder la reunión).
+  useEffect(() => {
+    if (stt.status !== "listening") return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [stt.status]);
 
-        {!listening && !connecting ? (
-          <>
-            <label className="flex items-start gap-8 text-caption leading-caption text-carbon">
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={(event) => setConsent(event.target.checked)}
-                className="mt-[2px] cursor-pointer"
-              />
-              <span>{t("listening.consentText")}</span>
-            </label>
-
-            <div className="flex flex-wrap items-center gap-8">
-              <div className="flex overflow-hidden rounded-tags border border-stone">
-                {(["mic", "tab"] as const).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setSource(s)}
-                    className={cn(
-                      "cursor-pointer px-12 py-4 text-caption leading-caption",
-                      source === s ? "bg-ink text-white" : "bg-white text-carbon",
-                    )}
-                  >
-                    {t(`listening.source_${s}`)}
-                  </button>
-                ))}
-              </div>
-              <Button onClick={handleStartListening} disabled={!consent}>
-                {t("listening.start")}
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col gap-8">
-            <div className="flex flex-wrap items-center gap-8">
-              <StatusBadge variant={listening ? "positive" : "neutral"}>
-                {connecting ? t("listening.connecting") : t("listening.listening")}
-              </StatusBadge>
-              {listening ? (
-                <span className="font-mono text-body-sm tabular-nums text-ink">
-                  {elapsedLabel}
-                </span>
-              ) : null}
-              {listening ? (
-                <Button onClick={enqueueAnalysis} disabled={!transcript.trim()}>
-                  {t("listening.analyzeHeard")}
-                </Button>
-              ) : null}
-              <Button variant="secondary" onClick={handleStopListening}>
-                {t("listening.stop")}
-              </Button>
-            </div>
-            {analyzing || queuedCount > 0 ? (
-              <p className="text-caption leading-caption text-carbon">
-                {t("listening.analyzingHeard")}
-                {queuedCount > 0
-                  ? ` · ${t("listening.queued", { n: queuedCount })}`
-                  : ""}
-              </p>
-            ) : null}
-          </div>
-        )}
-
-        {interim ? (
-          <p className="text-caption italic leading-caption text-metal">
-            {t("listening.interimLabel")}: {interim}
+  // Panel de transcripción en vivo (derecha). Altura fija con scroll interno
+  // (no crece sin parar); se auto-desplaza al final con cada tramo nuevo.
+  const transcriptView = (
+    <div className="flex">
+      <div
+        ref={transcriptScrollRef}
+        className="h-[260px] w-full overflow-y-auto rounded-tags bg-ash px-12 py-8"
+      >
+        {clips.length === 0 && !interim ? (
+          <p className="text-caption leading-caption text-carbon">
+            {t("listening.waiting")}
           </p>
         ) : null}
-        {sttError ? (
-          <p role="alert" className="text-caption leading-caption text-danger-red">
-            {t(`listening.errors.${sttError}`)}
+        <ul className="flex flex-col gap-4">
+          {clips.map((clip, index) =>
+            clip === CHECKPOINT_MARK ? (
+              <li key={index} className="py-2">
+                <hr className="border-stone" />
+              </li>
+            ) : (
+              <li key={index} className="text-caption leading-caption text-carbon">
+                {clip}
+              </li>
+            ),
+          )}
+        </ul>
+        {interim ? (
+          <p className="mt-4 text-caption italic leading-caption text-metal">
+            {interim}
           </p>
         ) : null}
       </div>
+    </div>
+  );
 
-      {!fullscreen ? (
-        <div className="flex flex-col gap-8">
-          <Textarea
-            value={chunk}
-            onChange={(event) => setChunk(event.target.value)}
-            placeholder={t("chunkPlaceholder")}
-            disabled={pending}
-            className="min-h-[120px]"
-          />
-          {error ? (
-            <p role="alert" className="text-caption leading-caption text-danger-red">
-              {t(`errors.${error}`)}
-            </p>
-          ) : null}
-          <div>
-            <Button onClick={handleAnalyze} disabled={pending || !chunk.trim()}>
-              {pending ? t("analyzing") : t("analyze")}
-            </Button>
-          </div>
-        </div>
+  // Temas resueltos (ancho completo).
+  const resolvedView =
+    resolvedControls.length > 0 ? (
+      <div>
+        <h3 className="mb-8 text-body-sm font-semibold text-ink">
+          {t("resolvedTitle")} ({resolvedControls.length})
+        </h3>
+        <ul className="flex flex-col gap-4">
+          {resolvedControls.map((name) => (
+            <li
+              key={name}
+              className="flex items-baseline gap-8 rounded-tags bg-ash px-8 py-4"
+            >
+              <StatusBadge variant="positive" className="shrink-0">
+                {t("answered")}
+              </StatusBadge>
+              <span className="text-body-sm text-metal line-through">{name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+
+  // Siguiente mejor pregunta sugerida por la IA (guía; el consultor decide).
+  const suggestedView = suggested ? (
+    <div className="rounded-tags border border-focus-blue bg-focus-blue/5 px-12 py-8">
+      <div className="mb-4 flex items-center gap-8">
+        <StatusBadge variant="positive">{t("suggestedLabel")}</StatusBadge>
+        {controlNameByCode.get(suggested.controlCode) ? (
+          <span className="text-caption leading-caption text-carbon">
+            {controlNameByCode.get(suggested.controlCode)}
+          </span>
+        ) : null}
+      </div>
+      <p className="text-body-sm font-semibold text-ink">{suggested.question}</p>
+      {suggested.reason ? (
+        <p className="mt-4 text-caption leading-caption text-carbon">
+          {suggested.reason}
+        </p>
       ) : null}
+    </div>
+  ) : null;
 
-      {clips.length > 0 ? (
-        <div>
-          <h3 className="mb-8 text-caption font-medium leading-caption text-ink">
-            {t("clipsTitle")} ({clips.length})
-          </h3>
-          <div
-            className={cn(
-              "overflow-y-auto rounded-tags bg-ash px-12 py-8",
-              fullscreen ? "max-h-[280px]" : "max-h-[160px]",
-            )}
-          >
-            <ul className="flex flex-col gap-4">
-              {clips.map((clip, index) => (
-                <li
-                  key={index}
-                  className="text-caption leading-caption text-carbon"
-                >
-                  {clip}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      ) : null}
+  // Preguntas pendientes agrupadas por objetivo (dominio), preservando orden.
+  const questionGroups: { domain: string; items: typeof pendingQueue }[] = [];
+  const groupIndex = new Map<string, number>();
+  for (const question of pendingQueue) {
+    let i = groupIndex.get(question.domainName);
+    if (i === undefined) {
+      i = questionGroups.length;
+      groupIndex.set(question.domainName, i);
+      questionGroups.push({ domain: question.domainName, items: [] });
+    }
+    questionGroups[i]!.items.push(question);
+  }
 
-      {/* Temas resueltos: crece a medida que los análisis cierran controles. */}
-      {resolvedControls.length > 0 ? (
-        <div>
-          <h3 className="mb-8 text-body-sm font-semibold text-ink">
-            {t("resolvedTitle")} ({resolvedControls.length})
-          </h3>
-          <ul className="flex flex-col gap-4">
-            {resolvedControls.map((name) => (
-              <li
-                key={name}
-                className="flex items-baseline gap-8 rounded-tags bg-ash px-8 py-4"
-              >
-                <StatusBadge variant="positive">{t("answered")}</StatusBadge>
-                <span className="text-body-sm text-metal line-through">{name}</span>
-              </li>
-            ))}
-          </ul>
+  // Preguntas a cubrir (ancho completo, agrupadas por objetivo).
+  const questionsView = (
+    <div>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-8">
+        <h3 className="text-body-sm font-semibold text-ink">{t("queueTitle")}</h3>
+        {coverage.uncovered.length === 0 ? (
+          <StatusBadge variant="positive">{t("ready")}</StatusBadge>
+        ) : (
+          <StatusBadge variant="warning">
+            {t("coverage", { n: coverage.uncovered.length, total: coverage.total })}
+          </StatusBadge>
+        )}
+      </div>
+      {/* Pregunta de apertura: encuadra la conversación. */}
+      <div className="mb-12 flex items-start gap-8 rounded-tags bg-ash px-12 py-6">
+        <StatusBadge variant="neutral" className="mt-[1px] shrink-0">
+          {t("openerLabel")}
+        </StatusBadge>
+        <span className="text-caption font-medium leading-caption text-ink">
+          {t("opener")}
+        </span>
+      </div>
+      {pendingQueue.length === 0 ? (
+        <p className="text-caption leading-caption text-carbon">{t("queueEmpty")}</p>
+      ) : (
+        <div className="flex flex-col gap-12">
+          {questionGroups.map((group, groupIdx) => (
+            <div key={group.domain}>
+              <h4 className="mb-2 text-[10px] font-semibold uppercase leading-[1.4] tracking-[0.4px] text-metal">
+                {group.domain}
+              </h4>
+              <ul className="flex flex-col">
+                {group.items.map((question, itemIdx) => {
+                  const isNext = groupIdx === 0 && itemIdx === 0;
+                  return (
+                    <li
+                      key={`${question.controlCode}-${itemIdx}`}
+                      className={cn(
+                        "flex items-start justify-between gap-8 rounded-tags px-8 py-[5px]",
+                        isNext && "bg-ash",
+                      )}
+                    >
+                      <div className="flex min-w-0 items-start gap-6">
+                        {isNext ? (
+                          <StatusBadge variant="neutral" className="mt-[1px] shrink-0">
+                            {t("nextLabel")}
+                          </StatusBadge>
+                        ) : null}
+                        <span className="text-caption leading-caption text-carbon">
+                          {question.question}
+                        </span>
+                      </div>
+                      {question.status === "clarify" ? (
+                        <StatusBadge variant="warning" className="mt-[1px] shrink-0">
+                          {t("clarify")}
+                        </StatusBadge>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </div>
+      )}
+    </div>
+  );
+
+  return (
+    <Card className="flex flex-col gap-20">
+      {toolbar ? (
+        <div className="border-b border-stone pb-16">{toolbar}</div>
       ) : null}
 
       <div>
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-8">
-          <h3 className="text-body-sm font-semibold text-ink">{t("queueTitle")}</h3>
-          {coverage.uncovered.length === 0 ? (
-            <StatusBadge variant="positive">{t("ready")}</StatusBadge>
-          ) : (
-            <StatusBadge variant="warning">
-              {t("coverage", { n: coverage.uncovered.length, total: coverage.total })}
-            </StatusBadge>
-          )}
-        </div>
-        {/* Siguiente mejor pregunta sugerida por la IA (guía en vivo, destacada
-            al tope). La IA propone según lo conversado; el consultor decide. */}
-        {suggested ? (
-          <div className="mb-8 rounded-tags border border-focus-blue bg-focus-blue/5 px-12 py-8">
-            <div className="mb-4 flex items-center gap-8">
-              <StatusBadge variant="positive">{t("suggestedLabel")}</StatusBadge>
-              {controlNameByCode.get(suggested.controlCode) ? (
-                <span className="text-caption leading-caption text-carbon">
-                  {controlNameByCode.get(suggested.controlCode)}
-                </span>
-              ) : null}
-            </div>
-            <p className="text-body-sm font-semibold text-ink">{suggested.question}</p>
-            {suggested.reason ? (
-              <p className="mt-4 text-caption leading-caption text-carbon">
-                {suggested.reason}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-        {/* Pregunta de apertura: siempre al tope, encuadra la conversación. No
-            se tacha ni cuenta para la cobertura (no está ligada a un control). */}
-        <div className="mb-8 flex items-baseline gap-8 rounded-tags bg-ash px-8 py-4">
-          <StatusBadge variant="neutral">{t("openerLabel")}</StatusBadge>
-          <span className="text-body-sm font-medium text-ink">{t("opener")}</span>
-        </div>
-        {pendingQueue.length === 0 ? (
-          <p className="text-caption leading-caption text-carbon">{t("queueEmpty")}</p>
-        ) : (
-          <ul className="flex flex-col gap-4">
-            {pendingQueue.map((question, index) => (
-              <li
-                key={`${question.controlCode}-${index}`}
-                className={cn(
-                  "flex items-baseline gap-8 rounded-tags px-8 py-4",
-                  index === 0 && "bg-ash",
-                )}
-              >
-                {index === 0 ? (
-                  <StatusBadge variant="neutral">{t("nextLabel")}</StatusBadge>
-                ) : null}
-                <span
-                  className={cn(
-                    "text-body-sm text-ink",
-                    question.status === "clarify" && "text-warning-yellow",
-                  )}
-                >
-                  {question.question}
-                </span>
-                {question.status === "clarify" ? (
-                  <StatusBadge variant="warning">{t("clarify")}</StatusBadge>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
+        <h2 className="text-body-sm font-semibold text-ink">{t("title")}</h2>
+        <p className="mt-4 text-caption leading-caption text-carbon">{t("subtitle")}</p>
       </div>
 
-      {!fullscreen && pendingRat.length > 0 ? (
+      {/* Grabadora (izquierda) + transcripción (derecha); preguntas full-width
+          abajo. El layout se mantiene igual esté grabando o no. */}
+      <div className="grid gap-16 md:grid-cols-2">
+        {/* Recuadro grabadora: mismo layout en reposo y grabando. */}
+        <div className="flex flex-col gap-12 rounded-tags border border-stone bg-white p-16">
+          <label className="flex items-start gap-8 text-caption leading-caption text-carbon">
+            <input
+              type="checkbox"
+              checked={consent}
+              disabled={active}
+              onChange={(event) => setConsent(event.target.checked)}
+              className="mt-[2px] cursor-pointer"
+            />
+            <span>{t("listening.consentText")}</span>
+          </label>
+
+          <div className="flex flex-wrap items-center gap-12">
+            {/* Contador (00:00 en reposo). */}
+            <span className="text-heading-sm font-medium tabular-nums leading-none text-ink">
+              {elapsedLabel}
+            </span>
+            {/* Espectro de audio (plano en reposo/pausa, animado al grabar). */}
+            <AudioSpectrum
+              getAnalyser={stt.getAnalyser}
+              active={listening}
+              className="h-32 w-[160px] max-w-full"
+            />
+
+            {/* Controles: círculo rojo (grabar) ↔ pausa · ✓ checkpoint · ■ detener. */}
+            <div className="ml-auto flex items-center gap-8">
+              <button
+                type="button"
+                onClick={
+                  listening
+                    ? stt.pause
+                    : paused
+                      ? stt.resume
+                      : handleStartListening
+                }
+                disabled={connecting || (!active && !consent)}
+                title={
+                  listening
+                    ? t("listening.pause")
+                    : paused
+                      ? t("listening.resume")
+                      : t("listening.start")
+                }
+                aria-label={
+                  listening
+                    ? t("listening.pause")
+                    : paused
+                      ? t("listening.resume")
+                      : t("listening.start")
+                }
+                className={cn(REC_BTN_RECORD, listening && "animate-pulse")}
+              >
+                {listening ? (
+                  // Pausa (dos barras).
+                  <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <rect x="6" y="5" width="4" height="14" rx="1" />
+                    <rect x="14" y="5" width="4" height="14" rx="1" />
+                  </svg>
+                ) : (
+                  // Círculo (grabar / reanudar).
+                  <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <circle cx="12" cy="12" r="7" />
+                  </svg>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={enqueueAnalysis}
+                disabled={!listening || !transcript.trim()}
+                title={t("listening.checkpoint")}
+                aria-label={t("listening.checkpoint")}
+                className={REC_BTN_PRIMARY}
+              >
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={handleStopListening}
+                disabled={!active}
+                title={t("listening.stop")}
+                aria-label={t("listening.stop")}
+                className={REC_BTN}
+              >
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {analyzing || queuedCount > 0 ? (
+            <p className="text-caption leading-caption text-carbon">
+              {t("listening.analyzingHeard")}
+              {queuedCount > 0 ? ` · ${t("listening.queued", { n: queuedCount })}` : ""}
+            </p>
+          ) : null}
+
+          {analysisError ? (
+            <p role="alert" className="text-caption leading-caption text-danger-red">
+              {t(`errors.${analysisError}`)}
+            </p>
+          ) : null}
+          {sttError ? (
+            <p role="alert" className="text-caption leading-caption text-danger-red">
+              {t(`listening.errors.${sttError}`)}
+            </p>
+          ) : null}
+        </div>
+
+        {transcriptView}
+      </div>
+
+      {suggestedView}
+      {resolvedView}
+      {questionsView}
+
+      {pendingRat.length > 0 ? (
         <div>
           <h3 className="mb-8 text-body-sm font-semibold text-ink">{t("ratSuggested")}</h3>
           <ul className="flex flex-col gap-8">
