@@ -1,10 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Card, StatusBadge, cn } from "@/components/ui";
 import { controlApplies, inapplicabilityFactors } from "@/lib/interview/applicability";
 import { mapAnswersToControlStatus, type CriterionAnswer } from "@/lib/interview/auto-map";
+import type { GuideDomain } from "@/lib/interview/guide";
 import type { ComplianceQuestion } from "@/lib/interview/questions";
 
 /**
@@ -33,6 +34,10 @@ import type { ComplianceQuestion } from "@/lib/interview/questions";
 // como alerta ámbar en vez de "Sin evaluar" cuando el LLM no pudo determinar
 // el criterio (Tarea 3, plan 2026-07-05-exhaustive-compliance-alerts).
 const ANSWER_ORDER: readonly CriterionAnswer[] = ["yes", "partial", "no", "unknown", "flagged"];
+
+// Un criterio está "resuelto" solo con veredicto real (no unknown ni flagged).
+// Un control/dominio está completo cuando todos sus criterios están resueltos.
+const VERDICT_SET = new Set<CriterionAnswer>(["yes", "partial", "no"]);
 
 const ANSWER_TINTS: Record<CriterionAnswer, string> = {
   yes: "border-success-green/40 bg-[#e9f2ec] text-success-green",
@@ -122,6 +127,7 @@ export function ComplianceForm({
   companyFactors,
   applicabilityOverrides,
   onSetApplicability,
+  guide,
 }: {
   questions: ComplianceQuestion[];
   value: Record<string, CriterionAnswer[]>;
@@ -133,9 +139,13 @@ export function ComplianceForm({
   applicabilityOverrides?: Record<string, boolean>;
   /** Ausente => modo estático (sin recorte, sin sección "No aplica"). */
   onSetApplicability?: (controlCode: string, include: boolean | undefined) => void;
+  /** Presente => evaluación en tabs verticales por dominio (orden del guion).
+   * Ausente (modo self) => lista plana como antes. */
+  guide?: GuideDomain[];
 }) {
   const t = useTranslations("app.diagnosis.compliance");
   const tApplicability = useTranslations("app.diagnosis.applicability");
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   if (questions.length === 0) {
     return (
@@ -164,31 +174,57 @@ export function ComplianceForm({
     }
   }
 
-  return (
-    <div className="flex flex-col gap-12">
-      {applicableQuestions.map((question) => (
-        <QuestionCard
-          key={question.controlCode}
-          question={question}
-          answers={value[question.controlCode] ?? []}
-          onChange={(index, answer) => onChange(question.controlCode, index, answer)}
-          t={t}
-          applicabilityAction={
-            dynamic ? (
-              <button
-                type="button"
-                onClick={() => onSetApplicability?.(question.controlCode, false)}
-                className="rounded-tags border border-stone bg-white px-8 py-[3px] text-caption font-medium leading-caption text-carbon transition-colors hover:bg-ash"
-              >
-                {tApplicability("markNotApplicable")}
-              </button>
-            ) : undefined
-          }
-        />
-      ))}
+  const renderCard = (question: ComplianceQuestion) => (
+    <QuestionCard
+      key={question.controlCode}
+      question={question}
+      answers={value[question.controlCode] ?? []}
+      onChange={(index, answer) => onChange(question.controlCode, index, answer)}
+      t={t}
+      applicabilityAction={
+        dynamic ? (
+          <button
+            type="button"
+            onClick={() => onSetApplicability?.(question.controlCode, false)}
+            className="rounded-tags border border-stone bg-white px-8 py-[3px] text-caption font-medium leading-caption text-carbon transition-colors hover:bg-ash"
+          >
+            {tApplicability("markNotApplicable")}
+          </button>
+        ) : undefined
+      }
+    />
+  );
 
-      {dynamic && notApplicableQuestions.length > 0 ? (
-        <details className="rounded-card border border-stone bg-white p-16">
+  // Tabs verticales por dominio (orden del guion), solo si se recibe `guide`.
+  const groups = guide
+    ? guide
+        .map((domain) => {
+          const domainQuestions = applicableQuestions.filter(
+            (q) => q.controlCode.replace(/-\d+$/, "") === domain.domainCode,
+          );
+          // Dominio completo = todos sus controles con todos sus criterios resueltos.
+          const complete =
+            domainQuestions.length > 0 &&
+            domainQuestions.every((q) => {
+              const answers = value[q.controlCode] ?? [];
+              return (
+                q.criteria.length > 0 &&
+                q.criteria.every((_, i) => VERDICT_SET.has(answers[i]))
+              );
+            });
+          return {
+            code: domain.domainCode,
+            name: domain.domainName,
+            questions: domainQuestions,
+            complete,
+          };
+        })
+        .filter((group) => group.questions.length > 0)
+    : [];
+
+  const notApplicableDetails =
+    dynamic && notApplicableQuestions.length > 0 ? (
+      <details className="rounded-card border border-stone bg-white p-16">
           <summary className="cursor-pointer text-body-sm font-semibold text-ink">
             {tApplicability("notApplicableGroup", { count: notApplicableQuestions.length })}
           </summary>
@@ -226,7 +262,76 @@ export function ComplianceForm({
             })}
           </ul>
         </details>
-      ) : null}
+      ) : null;
+
+  // Tabs verticales por dominio (modo asistido con guion).
+  if (groups.length > 0) {
+    const active = groups.find((group) => group.code === activeTab) ?? groups[0];
+    return (
+      <div className="flex flex-col gap-16">
+        <div className="flex flex-col gap-16 md:flex-row">
+          <nav className="flex flex-row gap-4 overflow-x-auto pb-4 md:w-[220px] md:shrink-0 md:flex-col md:pb-0">
+            {groups.map((group) => (
+              <button
+                key={group.code}
+                type="button"
+                onClick={() => setActiveTab(group.code)}
+                aria-pressed={active.code === group.code}
+                title={group.complete ? t("domainComplete") : t("domainPending")}
+                className={cn(
+                  "flex shrink-0 cursor-pointer items-center justify-between gap-8 rounded-tags px-12 py-8 text-left text-body-sm leading-body-sm transition-colors",
+                  active.code === group.code
+                    ? "bg-ink text-white"
+                    : "text-carbon hover:bg-ash",
+                )}
+              >
+                <span className="min-w-0">{group.name}</span>
+                {group.complete ? (
+                  // Completo: check verde.
+                  <svg
+                    width={16}
+                    height={16}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={cn(
+                      "shrink-0",
+                      active.code === group.code ? "text-white" : "text-success-green",
+                    )}
+                    aria-hidden="true"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                ) : (
+                  // Pendiente: punto ámbar.
+                  <span
+                    className={cn(
+                      "h-8 w-8 shrink-0 rounded-full",
+                      active.code === group.code ? "bg-white/70" : "bg-warning-yellow",
+                    )}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+            ))}
+          </nav>
+          <div className="flex flex-1 flex-col gap-12">
+            {active.questions.map(renderCard)}
+          </div>
+        </div>
+        {notApplicableDetails}
+      </div>
+    );
+  }
+
+  // Lista plana (modo self / sin guion).
+  return (
+    <div className="flex flex-col gap-12">
+      {applicableQuestions.map(renderCard)}
+      {notApplicableDetails}
     </div>
   );
 }

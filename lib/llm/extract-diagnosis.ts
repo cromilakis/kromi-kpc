@@ -102,7 +102,10 @@ const rawExtractionSchema = z
 
 const SYSTEM_PROMPT = `Eres un asistente que extrae información ESTRICTAMENTE explícita de una transcripción de reunión sobre tratamiento de datos personales (Ley 21.719, Chile), para llenar un Registro de Actividades de Tratamiento (RAT) y un checklist de cumplimiento EXHAUSTIVO.
 
+La transcripción es una reunión entre un CONSULTOR (que hace preguntas) y la EMPRESA (que responde). No viene etiquetada por hablante.
+
 Reglas DURAS (no negociables):
+0. Distingue preguntas de respuestas: las PREGUNTAS del consultor NO son hechos. Solo cuenta como hecho lo que la EMPRESA AFIRMA. Ejemplo: si aparece "¿Piden consentimiento? — No, nunca", el hecho es "no piden consentimiento" (respuesta), no la pregunta. Nunca tomes una pregunta como afirmación de cumplimiento.
 1. Solo incluyes lo que fue dicho EXPLÍCITAMENTE en la transcripción. Nunca infieras, asumas ni completes con conocimiento general.
 2. Cada campo o respuesta que propongas DEBE tener una cita textual exacta (copiada de la transcripción) en "evidence" que la respalde.
 3. Si no hay una cita textual clara para un dato del RAT, NO lo incluyas en "rat"; en su lugar, agrégalo a "unassigned" explicando el motivo.
@@ -121,6 +124,7 @@ Reglas DURAS (no negociables):
   "nextQuestion": { "controlCode": "string", "question": "pregunta concreta a realizar ahora", "reason": "por qué es la más importante ahora" }
 }
 8. Los campos válidos de "fields" son: area, name, purpose, legalBasis (uno de: ${LEGAL_BASES.join(", ")}), dataCategories, dataSubjects, source, recipients, processors, intlTransfer, intlCountries, retention, securityMeasures, isSensitive. No incluyas otros campos.
+8.1. "name" es una ETIQUETA CORTA del tratamiento (2-5 palabras, p. ej. "Facturación electrónica", "Gestión de clientes", "Nómina"). "purpose" es la FINALIDAD (el para qué, p. ej. "Enviar la boleta electrónica al teléfono del cliente"). NO repitas el mismo texto en "name" y "purpose": deben ser distintos.
 9. No inventes controlCode ni criterionIndex que no estén en el catálogo entregado.
 10. "nextQuestion": la SIGUIENTE MEJOR pregunta que el consultor debería hacer ahora para cerrar el gap más importante que sigue pendiente o ambiguo (criterios en "alerts", parciales o aún no cubiertos). Elige UN control del catálogo (usa su "controlCode") cuyo tema convenga abordar a continuación, redacta una pregunta clara y conversacional (puedes basarte en el tema del control, no tiene que ser textual del catálogo) y explica en "reason" por qué es prioritaria dado lo conversado. Si TODO quedó cubierto sin ambigüedad, devuelve "nextQuestion": null. No inventes hechos; es una guía de qué preguntar, no un veredicto.`;
 

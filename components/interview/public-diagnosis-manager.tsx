@@ -136,13 +136,9 @@ export function PublicDiagnosisManager({
       ) : null}
 
       <section aria-labelledby="diagnosis-rat-title">
-        <h2 id="diagnosis-rat-title" className="mb-4 text-body-sm font-semibold text-ink">
-          {t("sections.rat.title")}
-        </h2>
-        <p className="mb-12 text-caption leading-caption text-carbon">
-          {t("sections.rat.description")}
-        </p>
         <RatForm
+          title={t("sections.rat.title")}
+          description={t("sections.rat.description")}
           activities={answers.rat}
           onChange={(rat) => updateAnswers((current) => ({ ...current, rat }))}
         />

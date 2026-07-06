@@ -105,17 +105,24 @@ export default async function DiagnosisPage({
         title={t("title")}
         description={t("description")}
         actions={
-          <div className="flex flex-wrap items-center gap-12">
+          <div className="flex items-center gap-8">
             {assessmentRes.data ? (
               <StatusBadge pill variant="neutral">
                 {t("cycleBadge", { cycle: assessmentRes.data.cycle })}
               </StatusBadge>
             ) : null}
+            {/* Guion de entrevista: botón-icono junto al ciclo (abre imprimible). */}
             <Link
-              href={`/app/companies/${companyRes.data.id}/diagnosis/live`}
-              className="text-caption font-medium leading-caption text-ink underline underline-offset-2 hover:text-carbon"
+              href={`/app/companies/${companyRes.data.id}/diagnosis/guide`}
+              target="_blank"
+              title={t("guide.title")}
+              aria-label={t("guide.title")}
+              className="inline-flex h-32 w-32 items-center justify-center rounded-buttons border border-slate bg-white text-ink transition-colors hover:bg-ash"
             >
-              {t("live.openScreen")}
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
             </Link>
           </div>
         }

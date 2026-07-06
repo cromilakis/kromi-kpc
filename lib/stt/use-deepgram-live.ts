@@ -4,23 +4,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { grantDeepgramToken } from "@/lib/actions/interview";
 
 /**
- * Escucha activa por voz (Fase 3, spec `2026-07-06-live-stt-deepgram-design.md`).
- * Hook cliente que: pide un token efímero al servidor (`grantDeepgramToken`),
- * captura audio del micrófono o de una pestaña (Meet), abre un WebSocket directo
- * a Deepgram y transmite el audio; emite transcripción interina y final por
- * callbacks. El secreto nunca sale al cliente (solo el token JWT, TTL 60s).
+ * Escucha activa por voz (Fase 3). Captura el micrófono (consultor) y, si se
+ * comparte, el audio del PC (la empresa en reuniones online), los MEZCLA en una
+ * sola pista y abre UN WebSocket a Deepgram. La transcripción es un solo hilo
+ * de texto (sin diferenciar hablantes) — suficiente para el análisis del
+ * diagnóstico, que usa el contenido, no quién lo dijo.
  *
- * Se usa el `WebSocket` nativo (no el SDK): en el navegador la auth va por
- * subprotocolo `["bearer", <token>]` (los headers no se pueden enviar en un
- * WebSocket de navegador). Verificado contra Deepgram.
- *
- * No testeable con audio real en CI (sin micrófono); la prueba en vivo la hace
- * el usuario. La degradación (sin permisos/clave) devuelve error "stt_disabled"
- * y el panel mantiene las entradas manual/pegar.
+ * WebSocket nativo con auth por subprotocolo ["bearer", <token efímero>] (en el
+ * navegador no se pueden enviar headers). El secreto nunca sale al cliente.
+ * No testeable con audio real en CI; la prueba en vivo la hace el usuario.
  */
 
-export type SttStatus = "idle" | "connecting" | "listening" | "error";
-export type SttSource = "mic" | "tab";
+export type SttStatus = "idle" | "connecting" | "listening" | "paused" | "error";
 export type SttError = "stt_disabled" | "mic_denied" | "generic";
 
 interface UseDeepgramLiveArgs {
@@ -34,45 +29,9 @@ const DEEPGRAM_URL = `wss://api.deepgram.com/v1/listen?${new URLSearchParams({
   language: "es",
   smart_format: "true",
   interim_results: "true",
-  // Diarización: Deepgram etiqueta cada palabra con un índice de hablante, para
-  // separar quién dice qué (consultor vs. empresa) en el transcrito auditado.
-  diarize: "true",
 }).toString()}`;
 
-type DeepgramWord = { word?: string; punctuated_word?: string; speaker?: number };
-
-// Reconstruye el texto agrupando palabras por hablante ("Hablante N: …"). Si no
-// hay info de hablante (o no hay words), cae al transcript plano.
-function diarizedText(
-  words: DeepgramWord[] | undefined,
-  fallback: string,
-): string {
-  if (!words || words.length === 0) return fallback;
-  const segments: string[] = [];
-  let currentSpeaker: number | undefined;
-  let buffer: string[] = [];
-  const flush = () => {
-    if (buffer.length === 0) return;
-    const label =
-      currentSpeaker === undefined ? "" : `Hablante ${currentSpeaker + 1}: `;
-    segments.push(`${label}${buffer.join(" ")}`);
-    buffer = [];
-  };
-  for (const w of words) {
-    const token = w.punctuated_word ?? w.word ?? "";
-    if (!token) continue;
-    if (w.speaker !== currentSpeaker) {
-      flush();
-      currentSpeaker = w.speaker;
-    }
-    buffer.push(token);
-  }
-  flush();
-  return segments.join("\n") || fallback;
-}
-
-// MediaRecorder no soporta el mismo mimeType en todos los navegadores; se elige
-// el primero disponible (Deepgram autodetecta el contenedor webm/opus).
+// MediaRecorder no soporta el mismo mimeType en todos los navegadores.
 function pickMimeType(): string | undefined {
   if (typeof MediaRecorder === "undefined") return undefined;
   const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"];
@@ -82,15 +41,16 @@ function pickMimeType(): string | undefined {
 export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLiveArgs) {
   const [status, setStatus] = useState<SttStatus>("idle");
 
-  // Refs mutables del ciclo de vida de la conexión (no re-render).
   const socketRef = useRef<WebSocket | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null); // pista mezclada (al recorder)
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const displayStreamRef = useRef<MediaStream | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Marca de parada intencional (para no reportar error en el close normal).
   const stoppingRef = useRef(false);
 
-  // Callbacks en refs para no recrear start/stop en cada render.
   const cbRef = useRef({ onInterim, onFinal, onError });
   useEffect(() => {
     cbRef.current = { onInterim, onFinal, onError };
@@ -111,6 +71,15 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
     recorderRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    micStreamRef.current?.getTracks().forEach((t) => t.stop());
+    micStreamRef.current = null;
+    displayStreamRef.current?.getTracks().forEach((t) => t.stop());
+    displayStreamRef.current = null;
+    analyserRef.current = null;
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {});
+      audioCtxRef.current = null;
+    }
     const ws = socketRef.current;
     socketRef.current = null;
     if (ws) {
@@ -131,8 +100,30 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
     setStatus("idle");
   }, [cleanup]);
 
-  // Fuerza a Deepgram a devolver como FINAL el audio en buffer (sin esperar una
-  // pausa). Útil para analizar periódicamente aunque el habla sea continua.
+  const pause = useCallback(() => {
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state === "recording") {
+      try {
+        recorder.pause();
+      } catch {
+        /* noop */
+      }
+      setStatus("paused");
+    }
+  }, []);
+
+  const resume = useCallback(() => {
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state === "paused") {
+      try {
+        recorder.resume();
+      } catch {
+        /* noop */
+      }
+      setStatus("listening");
+    }
+  }, []);
+
   const finalize = useCallback(() => {
     const ws = socketRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -145,7 +136,7 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
   }, []);
 
   const start = useCallback(
-    async (source: SttSource) => {
+    async () => {
       stoppingRef.current = false;
       setStatus("connecting");
       const fail = (error: SttError) => {
@@ -154,31 +145,67 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
         cbRef.current.onError?.(error);
       };
 
-      // 1) Token efímero (secreto server-only; al cliente solo el JWT).
+      // 1) Token efímero.
       const granted = await grantDeepgramToken();
       if (!granted.ok) return fail("stt_disabled");
 
-      // 2) Captura de audio (mic presencial o audio de pestaña Meet).
-      let stream: MediaStream;
+      // 2) Micrófono (obligatorio) con cancelación de eco.
+      let mic: MediaStream;
       try {
-        stream =
-          source === "tab"
-            ? await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
-            : await navigator.mediaDevices.getUserMedia({ audio: true });
+        mic = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
       } catch {
         return fail("mic_denied");
       }
-      // getDisplayMedia trae video; el STT solo usa audio → descartar video.
-      if (source === "tab") {
-        if (stream.getAudioTracks().length === 0) {
-          stream.getTracks().forEach((t) => t.stop());
-          return fail("mic_denied");
-        }
-        stream.getVideoTracks().forEach((t) => t.stop());
+      micStreamRef.current = mic;
+
+      // 3) Audio del PC (compartir pestaña/pantalla con audio). No se detiene la
+      // pista de video (hacerlo corta toda la captura en Chrome); se ignora.
+      let display: MediaStream | null = null;
+      try {
+        display = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true,
+        });
+        displayStreamRef.current = display;
+        if (display.getAudioTracks().length === 0) display = null;
+      } catch {
+        display = null;
       }
+
+      // 4) Mezcla mic + audio del PC en UNA pista para el recorder/STT.
+      let mixed: MediaStream;
+      try {
+        const ctx = new AudioContext();
+        audioCtxRef.current = ctx;
+        if (ctx.state === "suspended") await ctx.resume().catch(() => {});
+        const dest = ctx.createMediaStreamDestination();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 128;
+        analyserRef.current = analyser;
+        const micSrc = ctx.createMediaStreamSource(mic);
+        micSrc.connect(dest);
+        micSrc.connect(analyser);
+        if (display && display.getAudioTracks().length > 0) {
+          const displaySrc = ctx.createMediaStreamSource(
+            new MediaStream(display.getAudioTracks()),
+          );
+          displaySrc.connect(dest);
+          displaySrc.connect(analyser);
+        }
+        mixed = dest.stream;
+      } catch {
+        return fail("generic");
+      }
+      const stream = mixed;
       streamRef.current = stream;
 
-      // 3) WebSocket directo a Deepgram (auth por subprotocolo bearer).
+      // 5) WebSocket a Deepgram (auth por subprotocolo bearer).
       let ws: WebSocket;
       try {
         ws = new WebSocket(DEEPGRAM_URL, ["bearer", granted.token]);
@@ -188,7 +215,7 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
       socketRef.current = ws;
 
       ws.onopen = () => {
-        if (socketRef.current !== ws) return; // parado durante la conexión
+        if (socketRef.current !== ws) return;
         const mimeType = pickMimeType();
         const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
         recorderRef.current = recorder;
@@ -210,9 +237,7 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
         let data: {
           type?: string;
           is_final?: boolean;
-          channel?: {
-            alternatives?: Array<{ transcript?: string; words?: DeepgramWord[] }>;
-          };
+          channel?: { alternatives?: Array<{ transcript?: string }> };
         };
         try {
           data = JSON.parse(event.data as string);
@@ -220,16 +245,10 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
           return;
         }
         if (data.type !== "Results") return;
-        const alt = data.channel?.alternatives?.[0];
-        const plain = alt?.transcript?.trim() ?? "";
+        const plain = data.channel?.alternatives?.[0]?.transcript?.trim() ?? "";
         if (!plain) return;
-        if (data.is_final) {
-          // En finales se usa la versión con hablantes (diarizada).
-          cbRef.current.onFinal?.(diarizedText(alt?.words, plain));
-        } else {
-          // Interinos: texto plano (los hablantes aún no son estables).
-          cbRef.current.onInterim?.(plain);
-        }
+        if (data.is_final) cbRef.current.onFinal?.(plain);
+        else cbRef.current.onInterim?.(plain);
       };
 
       ws.onerror = () => {
@@ -237,15 +256,15 @@ export function useDeepgramLive({ onInterim, onFinal, onError }: UseDeepgramLive
       };
 
       ws.onclose = () => {
-        // Cierre inesperado antes/durante la escucha (no provocado por stop).
         if (!stoppingRef.current && socketRef.current === ws) fail("generic");
       };
     },
     [cleanup],
   );
 
-  // Corta todo si el componente se desmonta con la escucha activa.
   useEffect(() => cleanup, [cleanup]);
 
-  return { status, start, stop, finalize };
+  const getAnalyser = useCallback(() => analyserRef.current, []);
+
+  return { status, start, stop, pause, resume, finalize, getAnalyser };
 }
