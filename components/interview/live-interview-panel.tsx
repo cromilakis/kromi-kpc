@@ -45,6 +45,7 @@ export function LiveInterviewPanel({
   compliance,
   onAcceptCompliance,
   onAcceptRat,
+  variant = "embedded",
 }: {
   sessionId: string;
   guide: GuideDomain[];
@@ -55,8 +56,11 @@ export function LiveInterviewPanel({
     answer: "yes" | "partial" | "no" | "flagged",
   ) => void;
   onAcceptRat: (activity: RatActivity) => void;
+  /** "fullscreen" = pantalla dedicada limpia (sin pegar transcripción ni RAT). */
+  variant?: "embedded" | "fullscreen";
 }) {
   const t = useTranslations("app.diagnosis.live");
+  const fullscreen = variant === "fullscreen";
 
   const [transcript, setTranscript] = useState("");
   const [chunk, setChunk] = useState("");
@@ -243,6 +247,7 @@ export function LiveInterviewPanel({
   async function handleStartListening() {
     if (!consent) return;
     setSttError(null);
+    setElapsed(0); // reinicia el contador de tiempo de la grabación
     // Registra el consentimiento (auditable) antes de abrir el micrófono.
     await recordListeningConsent(sessionId);
     await stt.start(source);
@@ -257,12 +262,31 @@ export function LiveInterviewPanel({
   const listening = stt.status === "listening";
   const connecting = stt.status === "connecting";
 
+  // Contador de tiempo de grabación (mm:ss), corre mientras se escucha.
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (stt.status !== "listening") return;
+    const id = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(id);
+  }, [stt.status]);
+  const elapsedLabel = `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(
+    elapsed % 60,
+  ).padStart(2, "0")}`;
+
+  // Clips de transcripción (cada tramo final es una línea).
+  const clips = useMemo(
+    () => (transcript ? transcript.split("\n").filter(Boolean) : []),
+    [transcript],
+  );
+
   return (
     <Card className="flex flex-col gap-20">
-      <div>
-        <h2 className="text-body-sm font-semibold text-ink">{t("title")}</h2>
-        <p className="mt-4 text-caption leading-caption text-carbon">{t("subtitle")}</p>
-      </div>
+      {!fullscreen ? (
+        <div>
+          <h2 className="text-body-sm font-semibold text-ink">{t("title")}</h2>
+          <p className="mt-4 text-caption leading-caption text-carbon">{t("subtitle")}</p>
+        </div>
+      ) : null}
 
       {/* Escucha activa por voz (Fase 3): consentimiento + fuente + iniciar. */}
       <div className="flex flex-col gap-8 rounded-tags border border-stone bg-ash/40 p-12">
@@ -310,6 +334,11 @@ export function LiveInterviewPanel({
                 {connecting ? t("listening.connecting") : t("listening.listening")}
               </StatusBadge>
               {listening ? (
+                <span className="font-mono text-body-sm tabular-nums text-ink">
+                  {elapsedLabel}
+                </span>
+              ) : null}
+              {listening ? (
                 <Button onClick={enqueueAnalysis} disabled={!transcript.trim()}>
                   {t("listening.analyzeHeard")}
                 </Button>
@@ -341,35 +370,49 @@ export function LiveInterviewPanel({
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-8">
-        <Textarea
-          value={chunk}
-          onChange={(event) => setChunk(event.target.value)}
-          placeholder={t("chunkPlaceholder")}
-          disabled={pending}
-          className="min-h-[120px]"
-        />
-        {error ? (
-          <p role="alert" className="text-caption leading-caption text-danger-red">
-            {t(`errors.${error}`)}
-          </p>
-        ) : null}
-        <div>
-          <Button onClick={handleAnalyze} disabled={pending || !chunk.trim()}>
-            {pending ? t("analyzing") : t("analyze")}
-          </Button>
+      {!fullscreen ? (
+        <div className="flex flex-col gap-8">
+          <Textarea
+            value={chunk}
+            onChange={(event) => setChunk(event.target.value)}
+            placeholder={t("chunkPlaceholder")}
+            disabled={pending}
+            className="min-h-[120px]"
+          />
+          {error ? (
+            <p role="alert" className="text-caption leading-caption text-danger-red">
+              {t(`errors.${error}`)}
+            </p>
+          ) : null}
+          <div>
+            <Button onClick={handleAnalyze} disabled={pending || !chunk.trim()}>
+              {pending ? t("analyzing") : t("analyze")}
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {transcript ? (
+      {clips.length > 0 ? (
         <div>
           <h3 className="mb-8 text-caption font-medium leading-caption text-ink">
-            {t("transcriptTitle")}
+            {t("clipsTitle")} ({clips.length})
           </h3>
-          <div className="max-h-[160px] overflow-y-auto rounded-tags bg-ash px-12 py-8">
-            <p className="whitespace-pre-wrap text-caption leading-caption text-carbon">
-              {transcript}
-            </p>
+          <div
+            className={cn(
+              "overflow-y-auto rounded-tags bg-ash px-12 py-8",
+              fullscreen ? "max-h-[280px]" : "max-h-[160px]",
+            )}
+          >
+            <ul className="flex flex-col gap-4">
+              {clips.map((clip, index) => (
+                <li
+                  key={index}
+                  className="text-caption leading-caption text-carbon"
+                >
+                  {clip}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       ) : null}
@@ -463,7 +506,7 @@ export function LiveInterviewPanel({
         )}
       </div>
 
-      {pendingRat.length > 0 ? (
+      {!fullscreen && pendingRat.length > 0 ? (
         <div>
           <h3 className="mb-8 text-body-sm font-semibold text-ink">{t("ratSuggested")}</h3>
           <ul className="flex flex-col gap-8">

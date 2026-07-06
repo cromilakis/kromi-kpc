@@ -60,6 +60,7 @@ export function DiagnosisManager({
   initialAnswers,
   companyFactors,
   guide,
+  layout = "full",
 }: {
   companyId: string;
   sessionId: string | null;
@@ -68,6 +69,8 @@ export function DiagnosisManager({
   initialAnswers: unknown;
   companyFactors: string[];
   guide: GuideDomain[];
+  /** "live" = pantalla dedicada de entrevista en vivo (solo el co-piloto). */
+  layout?: "full" | "live";
 }) {
   const t = useTranslations("app.diagnosis");
   const tErrors = useTranslations("app.diagnosis.errors");
@@ -243,6 +246,36 @@ export function DiagnosisManager({
           </Button>
         </div>
       </Card>
+    );
+  }
+
+  // Pantalla dedicada de entrevista en vivo: solo el co-piloto (sin toolbar,
+  // guion, propuesta ni pegar transcripción), con autoguardado silencioso.
+  if (layout === "live") {
+    return (
+      <div className="flex flex-col gap-12">
+        <p
+          role="status"
+          aria-live="polite"
+          className="text-caption leading-caption text-carbon"
+        >
+          {saveState === "saving" ? t("autosave.saving") : null}
+          {saveState === "saved" ? t("autosave.saved") : null}
+          {saveState === "error" ? (
+            <span className="text-danger-red">
+              {saveError ? tErrors(saveError) : t("autosave.error")}
+            </span>
+          ) : null}
+        </p>
+        <LiveInterviewPanel
+          sessionId={sessionId}
+          guide={guide}
+          compliance={answers.compliance}
+          onAcceptCompliance={handleAcceptCompliance}
+          onAcceptRat={handleAcceptRat}
+          variant="fullscreen"
+        />
+      </div>
     );
   }
 

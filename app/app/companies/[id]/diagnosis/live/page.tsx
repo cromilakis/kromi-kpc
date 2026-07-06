@@ -5,53 +5,38 @@ import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { PageHeader } from "@/components/app/shell";
 import { DiagnosisManager } from "@/components/interview/diagnosis-manager";
-import { StatusBadge } from "@/components/ui";
 import type { AppliesWhen } from "@/lib/interview/applicability";
 import { buildComplianceQuestions, type ControlLike } from "@/lib/interview/questions";
 import { loadInterviewGuide } from "@/lib/interview/load-guide.server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * /app/companies/[id]/diagnosis — Entrevista de diagnóstico (spec
- * diagnóstico, risk high: alimenta el checklist y la elegibilidad de
- * certificación). Server component: carga la empresa, el assessment
- * ACTIVO (status 'open' del ciclo mayor, mismo criterio que checklist), el
- * catálogo de controles con `verification_criteria` (ordenado por dominio y
- * control, igual que el checklist) y la sesión de entrevista más reciente de
- * la empresa (si existe). Toda la interacción (RAT, respuestas de
- * cumplimiento, autoguardado, enlace de autodiagnóstico, materializar) vive
- * en el client component `DiagnosisManager`. Datos con el cliente
- * AUTENTICADO (RLS autoriza consultores).
+ * /app/companies/[id]/diagnosis/live — Entrevista en vivo (pantalla dedicada y
+ * limpia): solo el co-piloto de escucha activa (grabación + timer + clips +
+ * preguntas), sin el resto del tablero de diagnóstico. Reusa `DiagnosisManager`
+ * en modo `layout="live"` (mismo estado/autoguardado que el diagnóstico). Carga
+ * de datos idéntica a la página de diagnóstico; cliente AUTENTICADO (RLS).
  */
 
 const companyIdSchema = z.uuid();
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("app.diagnosis.meta");
-  return { title: t("title") };
+  const t = await getTranslations("app.diagnosis.live");
+  return { title: t("screenTitle") };
 }
 
-export default async function DiagnosisPage({
+export default async function DiagnosisLivePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  // id que no es UUID (URL manipulada) → 404 sin tocar la base.
   if (!companyIdSchema.safeParse(id).success) notFound();
 
   const supabase = await createClient();
-  const [t, companyRes, assessmentRes, controlsRes, sessionRes, guide] = await Promise.all([
-    getTranslations("app.diagnosis"),
+  const [t, companyRes, controlsRes, sessionRes, guide] = await Promise.all([
+    getTranslations("app.diagnosis.live"),
     supabase.from("companies").select("id, name, factors").eq("id", id).maybeSingle(),
-    supabase
-      .from("assessments")
-      .select("id, cycle")
-      .eq("company_id", id)
-      .eq("status", "open")
-      .order("cycle", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
     supabase
       .from("controls")
       .select("code, name, domain_id, verification_criteria, applies_when, sort, domains ( sort )"),
@@ -69,9 +54,6 @@ export default async function DiagnosisPage({
     throw new Error(`No fue posible cargar la empresa: ${companyRes.error.message}`);
   }
   if (!companyRes.data) notFound();
-  if (assessmentRes.error) {
-    throw new Error(`No fue posible cargar la evaluación: ${assessmentRes.error.message}`);
-  }
   if (controlsRes.error) {
     throw new Error(`No fue posible cargar los controles: ${controlsRes.error.message}`);
   }
@@ -79,9 +61,6 @@ export default async function DiagnosisPage({
     throw new Error(`No fue posible cargar la sesión de diagnóstico: ${sessionRes.error.message}`);
   }
 
-  // Orden canónico del catálogo (mismo criterio que el checklist): dominio →
-  // control, ordenado en JS porque PostgREST no ordena por tabla embebida al
-  // mismo tiempo que por la tabla base con este SDK.
   const orderedControlRows = [...(controlsRes.data ?? [])].sort(
     (a, b) => (a.domains?.sort ?? 0) - (b.domains?.sort ?? 0) || a.sort - b.sort,
   );
@@ -90,34 +69,24 @@ export default async function DiagnosisPage({
     name: row.name,
     domain_id: row.domain_id,
     verification_criteria: row.verification_criteria,
-    // jsonb crudo de la base: null = siempre aplica; { factors_any: [...] } =
-    // aplica solo si la empresa declaró alguno de esos factores (Tarea 3).
     appliesWhen: (row.applies_when as AppliesWhen) ?? null,
   }));
   const questions = buildComplianceQuestions(controls);
-
   const session = sessionRes.data;
 
   return (
     <>
       <PageHeader
-        eyebrow={t("eyebrow", { company: companyRes.data.name })}
-        title={t("title")}
-        description={t("description")}
+        eyebrow={t("screenEyebrow", { company: companyRes.data.name })}
+        title={t("screenTitle")}
+        description={t("screenDescription")}
         actions={
-          <div className="flex flex-wrap items-center gap-12">
-            {assessmentRes.data ? (
-              <StatusBadge pill variant="neutral">
-                {t("cycleBadge", { cycle: assessmentRes.data.cycle })}
-              </StatusBadge>
-            ) : null}
-            <Link
-              href={`/app/companies/${companyRes.data.id}/diagnosis/live`}
-              className="text-caption font-medium leading-caption text-ink underline underline-offset-2 hover:text-carbon"
-            >
-              {t("live.openScreen")}
-            </Link>
-          </div>
+          <Link
+            href={`/app/companies/${companyRes.data.id}/diagnosis`}
+            className="text-caption font-medium leading-caption text-carbon underline underline-offset-2 hover:text-ink"
+          >
+            {t("backToDiagnosis")}
+          </Link>
         }
       />
 
@@ -129,6 +98,7 @@ export default async function DiagnosisPage({
         initialAnswers={session?.answers ?? null}
         companyFactors={companyRes.data.factors ?? []}
         guide={guide}
+        layout="live"
       />
     </>
   );
