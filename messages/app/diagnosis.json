@@ -56,8 +56,6 @@
         "effort": { "bajo": "Bajo", "medio": "Medio", "alto": "Alto" },
         "verdict": { "no": "No cumple", "partial": "Parcial", "flagged": "Falta aclarar" },
         "errors": {
-          "llm_disabled": "El asistente de IA no está configurado.",
-          "llm_failed": "El asistente no pudo generar la propuesta. Reintenta.",
           "generic": "No se pudo generar la propuesta."
         }
       },

@@ -8,16 +8,15 @@ import { createRemediationFromProposal } from "@/lib/actions/remediation";
 import type { EnrichedProposalItem } from "@/lib/actions/interview";
 
 /**
- * Panel "Propuesta de resolución" (Fase 2, spec
- * `2026-07-06-live-queue-opener-and-resolution-proposal-design.md` §B): al
- * cerrar el diagnóstico, la IA propone por cada gap (No cumple/parcial/Falta
- * aclarar) una acción estructurada (acción + prioridad + esfuerzo + plazo). El
- * consultor revisa/edita cada tarjeta y **acepta** (crea la tarea en el Plan de
- * adecuación con origin='diagnosis') o **descarta**. El LLM propone; nunca crea
- * tareas por sí solo.
+ * Panel "Propuesta de resolución" (Fase 2): al cerrar el diagnóstico, se propone
+ * por cada gap (No cumple/parcial/Falta aclarar) una acción estructurada (acción
+ * + prioridad + esfuerzo + plazo) mediante un mapeo DETERMINISTA gap→mitigación
+ * (`buildRemediationProposal`, sin LLM). El consultor revisa/edita cada tarjeta y
+ * **acepta** (crea la tarea en el Plan de adecuación con origin='diagnosis') o
+ * **descarta**. La propuesta nunca crea tareas por sí sola.
  */
 
-type ProposalError = "llm_disabled" | "llm_failed" | "generic";
+type ProposalError = "generic";
 
 // Cada tarjeta es editable en el cliente antes de aceptarse.
 type EditableItem = EnrichedProposalItem & { dueDate: string };
@@ -63,11 +62,7 @@ export function ResolutionProposal({
           })),
         );
       } else {
-        setError(
-          result.error === "llm_disabled" || result.error === "llm_failed"
-            ? result.error
-            : "generic",
-        );
+        setError("generic");
       }
     });
   }

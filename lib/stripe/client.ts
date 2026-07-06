@@ -4,11 +4,9 @@ import Stripe from "stripe";
 /**
  * Cliente Stripe — EXCLUSIVO de servidor (server actions / route handlers).
  * `STRIPE_SECRET_KEY` (modo TEST: `sk_test_…`) sin prefijo NEXT_PUBLIC_: Next
- * jamás lo inyecta en bundles de cliente. Mismo criterio de degradación que
- * el resto de integraciones opcionales del proyecto (ver lib/llm/deepseek.ts
- * / LlmError): sin la key, el flujo de pago se deshabilita con un error
- * tipado en vez de reventar — la propuesta/aceptación (Tareas 2-3) no
- * dependen de Stripe.
+ * jamás lo inyecta en bundles de cliente. Sin la key, el flujo de pago se
+ * deshabilita con un error tipado en vez de reventar — la propuesta/aceptación
+ * (Tareas 2-3) no dependen de Stripe.
  *
  * No se fija `apiVersion` explícito: se usa el default del SDK instalado
  * (Stripe recomienda fijarlo solo cuando se necesita anclar una versión

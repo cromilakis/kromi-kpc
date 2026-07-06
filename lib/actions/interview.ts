@@ -9,10 +9,9 @@ import { selectNotApplicable } from "@/lib/interview/select-not-applicable";
 import type { AppliesWhen } from "@/lib/interview/applicability";
 import { buildGaps } from "@/lib/interview/build-gaps";
 import {
-  proposeRemediation,
+  buildRemediationProposal,
   type ProposalItem,
-} from "@/lib/llm/propose-remediation";
-import { LlmError } from "@/lib/llm/deepseek";
+} from "@/lib/interview/remediation-map";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/lib/supabase/types";
 
@@ -66,7 +65,7 @@ export type EnrichedProposalItem = ProposalItem & {
 
 export type ProposeRemediationResult =
   | { ok: true; proposal: EnrichedProposalItem[] }
-  | { ok: false; error: InterviewActionError | "llm_disabled" | "llm_failed" };
+  | { ok: false; error: InterviewActionError };
 
 const companyIdSchema = z.object({ companyId: z.uuid() });
 const sessionIdSchema = z.object({ sessionId: z.uuid() });
@@ -656,10 +655,11 @@ export async function materializeDiagnosis(
 /**
  * Propuesta de resolución (Fase 2): lee el borrador de cumplimiento de la
  * sesión, arma los gaps (no/partial/flagged) sobre los controles APLICABLES a
- * la empresa (misma aplicabilidad que la extracción) y pide a DeepSeek una
- * acción estructurada por gap. NO persiste: devuelve la propuesta enriquecida
- * (nombre del control + texto del criterio) para que el consultor la revise y
- * acepte por tarjeta (`createRemediationFromProposal`).
+ * la empresa (misma aplicabilidad que la materialización) y mapea cada gap a su
+ * acción de mitigación de forma DETERMINISTA (`buildRemediationProposal`, sin
+ * LLM ni red). NO persiste: devuelve la propuesta enriquecida (nombre del
+ * control + texto del criterio) para que el consultor la revise y acepte por
+ * tarjeta (`createRemediationFromProposal`).
  */
 export async function proposeRemediationForSession(
   sessionId: string,
@@ -751,13 +751,8 @@ export async function proposeRemediationForSession(
 
     const gaps = buildGaps(compliance, applicable);
 
-    let proposal: ProposalItem[];
-    try {
-      proposal = await proposeRemediation(gaps);
-    } catch (cause) {
-      if (cause instanceof LlmError) return { ok: false, error: cause.code };
-      throw cause;
-    }
+    // Mapeo determinista gap → acción (config versionada, sin red).
+    const proposal: ProposalItem[] = buildRemediationProposal(gaps);
 
     // Enriquecer con nombre de control + texto del criterio para la UI.
     const byCode = new Map(applicable.map((c) => [c.code, c]));

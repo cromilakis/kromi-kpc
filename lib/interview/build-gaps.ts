@@ -1,4 +1,4 @@
-import type { RemediationGap } from "@/lib/llm/propose-remediation";
+import type { RemediationGap } from "@/lib/interview/remediation-map";
 
 /**
  * Arma la lista de gaps (criterios incumplidos) del diagnóstico a partir del
