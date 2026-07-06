@@ -35,6 +35,11 @@ const ANSWER_TINTS: Record<CriterionAnswer, string> = {
   partial: "border-warning-yellow/40 bg-[#f6f0df] text-warning-yellow",
   no: "border-danger-red/40 bg-[#f6e9e8] text-danger-red",
   unknown: "border-stone bg-white text-carbon",
+  // Placeholder mínimo para que el Record<CriterionAnswer,...> siga siendo
+  // exhaustivo tras agregar "flagged" (Tarea 1). La UI real de "requiere
+  // aclaración" (badge/botón ámbar en ComplianceForm) se implementa en la
+  // Tarea 3 del plan 2026-07-05-exhaustive-compliance-alerts.
+  flagged: "border-warning-yellow/40 bg-[#f6f0df] text-warning-yellow",
 };
 
 const STATUS_BADGE_VARIANT = {
