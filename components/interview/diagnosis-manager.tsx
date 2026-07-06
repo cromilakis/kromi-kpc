@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Card, cn, StatusBadge } from "@/components/ui";
+import { Button, Card, StatusBadge } from "@/components/ui";
 import {
   createDiagnosisSession,
   createDiagnosisShareLink,
@@ -17,14 +17,10 @@ import type { ComplianceQuestion } from "@/lib/interview/questions";
 import type { RatActivity } from "@/lib/interview/rat-schema";
 import { applyAnswer } from "@/lib/interview/script/engine";
 import { RAT_SCRIPT } from "@/lib/interview/script/rat-script";
-import type { ExtractionResult } from "@/lib/llm/extract-diagnosis";
 import { ComplianceForm } from "./compliance-form";
-import { ExtractionReview } from "./extraction-review";
 import { GuidedScript } from "./guided-script";
-import { LiveInterviewPanel } from "./live-interview-panel";
 import { ResolutionProposal } from "./resolution-proposal";
 import { RatForm } from "./rat-form";
-import { TranscriptImport } from "./transcript-import";
 
 /**
  * Orquestador cliente del diagnóstico (/app/companies/[id]/diagnosis):
@@ -81,9 +77,6 @@ export function DiagnosisManager({
   const [answers, setAnswers] = useState<DiagnosisAnswers>(() =>
     normalizeAnswers(initialAnswers, questions),
   );
-  // Panel de importar transcripción: el disparador es un icono en la barra de
-  // acciones; el panel (textarea) se abre debajo (TranscriptImport controlado).
-  const [transcriptOpen, setTranscriptOpen] = useState(false);
 
   const [startPending, startTransitionStart] = useTransition();
   const [startError, setStartError] = useState<InterviewActionError | null>(null);
@@ -98,27 +91,6 @@ export function DiagnosisManager({
 
   const [materializeState, setMaterializeState] = useState<MaterializeState>("idle");
   const [materializeError, setMaterializeError] = useState<InterviewActionError | null>(null);
-
-  // Sugerencias del LLM pendientes de revisión (Tarea 6): el LLM nunca
-  // escribe directo sobre `answers` — solo al aceptar una sugerencia en
-  // `ExtractionReview` esta pasa a `updateAnswers` y entra al borrador.
-  const [extraction, setExtraction] = useState<ExtractionResult | null>(null);
-
-  function handleAcceptRat(activity: RatActivity) {
-    updateAnswers((current) => ({ ...current, rat: [...current.rat, activity] }));
-  }
-
-  function handleAcceptCompliance(
-    controlCode: string,
-    index: number,
-    answer: "yes" | "partial" | "no" | "flagged",
-  ) {
-    updateAnswers((current) => {
-      const next = [...(current.compliance[controlCode] ?? [])];
-      next[index] = answer;
-      return { ...current, compliance: { ...current.compliance, [controlCode]: next } };
-    });
-  }
 
   // Autosave con debounce: se omite en el primer render (esos `answers` ya
   // son los que trajo el server) y cuando todavía no existe sesión. El
@@ -276,10 +248,10 @@ export function DiagnosisManager({
     );
   }
 
-  // Toolbar del diagnóstico (estado + acciones + autoguardado). Se pasa al panel
-  // en vivo para que viva en el MISMO panel que la grabadora.
+  // Toolbar del diagnóstico (estado + acciones + autoguardado). Encabeza la
+  // vista: estado de la sesión, enlace de autodiagnóstico, aplicar y autosave.
   const toolbar = (
-    <div className="flex flex-wrap items-center justify-between gap-12">
+    <Card className="flex flex-wrap items-center justify-between gap-12">
       <div className="flex flex-wrap items-center gap-8">
           {sessionStatus ? (
             <StatusBadge pill variant="neutral">
@@ -287,21 +259,6 @@ export function DiagnosisManager({
             </StatusBadge>
           ) : null}
           {/* Acciones del diagnóstico (icono + texto), al costado del estado. */}
-          <button
-            type="button"
-            onClick={() => setTranscriptOpen((open) => !open)}
-            title={t("transcript.button")}
-            aria-pressed={transcriptOpen}
-            className={cn(TEXT_BTN, transcriptOpen && "bg-ash")}
-          >
-            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <path d="M14 2v6h6" />
-              <path d="M12 18v-6" />
-              <path d="m9 15 3 3 3-3" />
-            </svg>
-            {t("transcript.button")}
-          </button>
           <button
             type="button"
             onClick={handleShareLink}
@@ -342,37 +299,12 @@ export function DiagnosisManager({
             </span>
           ) : null}
         </p>
-    </div>
+    </Card>
   );
 
   return (
     <div className="flex flex-col gap-20">
-      <LiveInterviewPanel
-        sessionId={sessionId}
-        guide={guide}
-        compliance={answers.compliance}
-        onAcceptCompliance={handleAcceptCompliance}
-        onAcceptRat={handleAcceptRat}
-        toolbar={toolbar}
-      />
-
-      {sessionId && transcriptOpen ? (
-        <TranscriptImport
-          sessionId={sessionId}
-          onExtracted={setExtraction}
-          onClose={() => setTranscriptOpen(false)}
-        />
-      ) : null}
-
-      {extraction ? (
-        <ExtractionReview
-          extraction={extraction}
-          questions={questions}
-          onAcceptRat={handleAcceptRat}
-          onAcceptCompliance={handleAcceptCompliance}
-          onClose={() => setExtraction(null)}
-        />
-      ) : null}
+      {toolbar}
 
       {shareError ? (
         <p role="alert" className="text-caption leading-caption text-danger-red">

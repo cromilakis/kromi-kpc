@@ -39,77 +39,6 @@
         "copied": "Copiado",
         "close": "Cerrar"
       },
-      "transcript": {
-        "button": "Importar desde transcripción",
-        "buttonUnavailable": "El diagnóstico debe iniciarse antes de importar una transcripción.",
-        "panelTitle": "Importar desde transcripción",
-        "chooseFile": "Elegir archivo",
-        "fileHint": "Archivo de texto (.txt, .vtt, .srt, .md)",
-        "privacyNote": "El contenido del archivo se enviará a DeepSeek (proveedor externo) para su análisis. No incluir información que no deba salir de la organización.",
-        "analyze": "Analizar",
-        "analyzing": "Analizando…",
-        "cancel": "Cancelar",
-        "errors": {
-          "llm_disabled": "Esta función no está configurada todavía. Contactar al equipo.",
-          "llm_failed": "No fue posible analizar la transcripción. Reintentar.",
-          "generic": "Ocurrió un error inesperado. Reintentar.",
-          "empty": "El archivo está vacío."
-        }
-      },
-      "live": {
-        "title": "Entrevista en vivo",
-        "subtitle": "Co-piloto de escucha activa: registra lo conversado por tramos y la IA avisa qué falta cubrir.",
-        "mode": {
-          "record": "🎙️ Grabar reunión",
-          "paste": "📋 Pegar transcripción"
-        },
-        "chunkPlaceholder": "Escribe o pega lo que se va conversando…",
-        "analyze": "Analizar tramo",
-        "analyzing": "Analizando…",
-        "transcriptTitle": "Transcripción acumulada",
-        "transcriptEmpty": "Aún no se ha registrado ningún tramo.",
-        "clipsTitle": "Clips de transcripción",
-        "resolvedTitle": "Temas resueltos",
-        "queueTitle": "Preguntas a cubrir",
-        "queueEmpty": "No hay preguntas aplicables.",
-        "nextLabel": "Siguiente",
-        "answered": "Respondida",
-        "clarify": "Falta aclarar",
-        "openerLabel": "Apertura",
-        "opener": "Cuéntame en general cómo funciona el negocio: qué datos de personas manejan (clientes, trabajadores, proveedores), de dónde salen y para qué los usan.",
-        "suggestedLabel": "Siguiente pregunta (IA)",
-        "listening": {
-          "title": "Escucha activa (voz)",
-          "consentText": "Confirmo que informé a los presentes y obtuve su consentimiento para grabar y transcribir esta reunión con fines del diagnóstico.",
-          "captureHint": "Se captura el micrófono y el audio del PC. Al iniciar, comparte la pestaña/pantalla de la reunión y marca \"Compartir audio\" (así queda el audio del cliente en reuniones online). En presencial, con el micrófono basta.",
-          "start": "Iniciar grabación",
-          "pause": "Pausar",
-          "resume": "Reanudar",
-          "stop": "Detener escucha",
-          "analyzeHeard": "Analizar lo escuchado",
-          "checkpoint": "Marcar y analizar",
-          "analyzingHeard": "Analizando…",
-          "queued": "{n} en cola",
-          "connecting": "Conectando…",
-          "listening": "Escuchando",
-          "interimLabel": "En vivo",
-          "waiting": "Esperando audio… habla para ver la transcripción.",
-          "errors": {
-            "stt_disabled": "La transcripción por voz no está disponible (falta configurar el proveedor o la clave no tiene permisos de uso).",
-            "mic_denied": "No se pudo acceder al audio. Revisa los permisos del micrófono o de compartir pestaña.",
-            "generic": "Se interrumpió la escucha. Reintenta."
-          }
-        },
-        "coverage": "Faltan {n} de {total} criterios",
-        "ready": "Cobertura completa: listo para aplicar",
-        "ratSuggested": "Actividades detectadas",
-        "acceptActivity": "Agregar al RAT",
-        "errors": {
-          "llm_disabled": "Esta función no está configurada todavía. Contactar al equipo.",
-          "llm_failed": "No fue posible analizar el tramo. Reintentar.",
-          "generic": "Ocurrió un error inesperado. Reintentar."
-        }
-      },
       "proposal": {
         "title": "Propuesta de resolución",
         "subtitle": "Genera acciones sugeridas por cada gap del diagnóstico. Revisa y acepta las que correspondan al plan.",
@@ -131,16 +60,6 @@
           "llm_failed": "El asistente no pudo generar la propuesta. Reintenta.",
           "generic": "No se pudo generar la propuesta."
         }
-      },
-      "guide": {
-        "title": "Guion de entrevista",
-        "subtitle": "Temas a cubrir en la reunión con la empresa para que el diagnóstico quede completo.",
-        "counter": "{domains} dominios · {questions} preguntas",
-        "uncovered": "Sin cubrir",
-        "covered": "Cubierto",
-        "criteriaLabel": "Debe quedar claro",
-        "print": "Imprimir guion",
-        "empty": "No hay temas aplicables."
       },
       "script": {
         "title": "Entrevista guiada",
@@ -262,29 +181,6 @@
           "partial": "Parcial",
           "non_compliant": "No cumple"
         }
-      },
-      "review": {
-        "title": "Revisión de sugerencias de la transcripción",
-        "ratGroup": "RAT sugerido",
-        "ratEmpty": "No quedan sugerencias de RAT por revisar.",
-        "ratIncomplete": "Faltan campos obligatorios (área, nombre, finalidad o base de licitud): al aceptar, completarlos luego en el RAT.",
-        "complianceGroup": "Cumplimiento sugerido",
-        "complianceEmpty": "No quedan sugerencias de cumplimiento por revisar.",
-        "alertsGroup": "Requiere aclaración",
-        "alertsEmpty": "No quedan alertas por revisar.",
-        "alertReasonLabel": "Motivo",
-        "unassignedGroup": "Información sin asignar",
-        "unassignedHelp": "El sistema no pudo asociar estos fragmentos con certeza a un campo del RAT o a un criterio del checklist. Ubicarlos a mano si corresponde.",
-        "unassignedEmpty": "No hay información sin asignar.",
-        "suggestedFrom": "Sugerido desde la transcripción",
-        "evidenceLabel": "Cita",
-        "criterionLabel": "Se evalúa",
-        "whyLabel": "Por qué (según la transcripción)",
-        "accept": "Aceptar",
-        "acceptAll": "Aceptar todo",
-        "discard": "Descartar",
-        "close": "Cerrar",
-        "done": "Se revisaron todas las sugerencias."
       },
       "applicability": {
         "notApplicableGroup": "No aplica ({count})",
