@@ -69,6 +69,22 @@
         "clarify": "Falta aclarar",
         "openerLabel": "Apertura",
         "opener": "Cuéntame en general cómo funciona el negocio: qué datos de personas manejan (clientes, trabajadores, proveedores), de dónde salen y para qué los usan.",
+        "listening": {
+          "title": "Escucha activa (voz)",
+          "consentText": "Confirmo que informé a los presentes y obtuve su consentimiento para grabar y transcribir esta reunión con fines del diagnóstico. (Texto legal preliminar, pendiente de revisión.)",
+          "source_mic": "Micrófono",
+          "source_tab": "Compartir pestaña (Meet)",
+          "start": "Iniciar escucha",
+          "stop": "Detener escucha",
+          "connecting": "Conectando…",
+          "listening": "Escuchando",
+          "interimLabel": "En vivo",
+          "errors": {
+            "stt_disabled": "La transcripción por voz no está disponible (falta configurar el proveedor o la clave no tiene permisos de uso).",
+            "mic_denied": "No se pudo acceder al audio. Revisa los permisos del micrófono o de compartir pestaña.",
+            "generic": "Se interrumpió la escucha. Reintenta."
+          }
+        },
         "coverage": "Faltan {n} de {total} criterios",
         "ready": "Cobertura completa: listo para aplicar",
         "ratSuggested": "Actividades detectadas",

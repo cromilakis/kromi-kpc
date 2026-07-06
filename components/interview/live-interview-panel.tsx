@@ -1,9 +1,17 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Card, StatusBadge, Textarea, cn } from "@/components/ui";
-import { extractDiagnosisFromTranscript } from "@/lib/actions/interview";
+import {
+  extractDiagnosisFromTranscript,
+  recordListeningConsent,
+} from "@/lib/actions/interview";
+import {
+  useDeepgramLive,
+  type SttError,
+  type SttSource,
+} from "@/lib/stt/use-deepgram-live";
 import { buildQuestionQueue, computeGuideCoverage, type GuideDomain } from "@/lib/interview/guide";
 import { ratActivitySchema, type RatActivity } from "@/lib/interview/rat-schema";
 import type { ExtractionResult } from "@/lib/llm/extract-diagnosis";
@@ -55,6 +63,16 @@ export function LiveInterviewPanel({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<LiveInterviewError | null>(null);
   const [pendingRat, setPendingRat] = useState<RatActivity[]>([]);
+
+  // Escucha activa por voz (Fase 3).
+  const [consent, setConsent] = useState(false);
+  const [source, setSource] = useState<SttSource>("mic");
+  const [interim, setInterim] = useState("");
+  const [sttError, setSttError] = useState<SttError | null>(null);
+  // Ref con el transcript vigente para el análisis debounced (closure estable).
+  const transcriptRef = useRef("");
+  transcriptRef.current = transcript;
+  const analyzeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const queue = useMemo(() => buildQuestionQueue(guide, compliance), [guide, compliance]);
   const coverage = useMemo(() => computeGuideCoverage(guide, compliance), [guide, compliance]);
@@ -114,11 +132,127 @@ export function LiveInterviewPanel({
     );
   }
 
+  // Analiza el transcript acumulado vigente (usado por la escucha por voz). La
+  // extracción es exhaustiva e idempotente, así que re-analizar el acumulado no
+  // duplica nada; los fills entran al borrador vía integrateExtraction.
+  function analyzeAccumulated() {
+    const full = transcriptRef.current.trim();
+    if (!full || pending) return;
+    startTransition(async () => {
+      const result = await extractDiagnosisFromTranscript(sessionId, full);
+      if (result.ok) integrateExtraction(result.extraction);
+    });
+  }
+
+  // Debounce: tras cada tramo final de voz, se reprograma el análisis; así se
+  // acota el costo/latencia (no se analiza en cada palabra).
+  function scheduleAnalyze() {
+    if (analyzeTimerRef.current) clearTimeout(analyzeTimerRef.current);
+    analyzeTimerRef.current = setTimeout(() => analyzeAccumulated(), 10000);
+  }
+
+  const stt = useDeepgramLive({
+    onInterim: (text) => setInterim(text),
+    onFinal: (text) => {
+      setInterim("");
+      setTranscript((prev) => (prev ? `${prev}\n${text}` : text));
+      scheduleAnalyze();
+    },
+    onError: (err) => setSttError(err),
+  });
+
+  async function handleStartListening() {
+    if (!consent) return;
+    setSttError(null);
+    // Registra el consentimiento (auditable) antes de abrir el micrófono.
+    await recordListeningConsent(sessionId);
+    await stt.start(source);
+  }
+
+  function handleStopListening() {
+    stt.stop();
+    setInterim("");
+    if (analyzeTimerRef.current) clearTimeout(analyzeTimerRef.current);
+    analyzeAccumulated(); // flush: analiza lo acumulado al detener
+  }
+
+  // Limpia el timer de análisis al desmontar.
+  useEffect(() => {
+    return () => {
+      if (analyzeTimerRef.current) clearTimeout(analyzeTimerRef.current);
+    };
+  }, []);
+
+  const listening = stt.status === "listening";
+  const connecting = stt.status === "connecting";
+
   return (
     <Card className="flex flex-col gap-20">
       <div>
         <h2 className="text-body-sm font-semibold text-ink">{t("title")}</h2>
         <p className="mt-4 text-caption leading-caption text-carbon">{t("subtitle")}</p>
+      </div>
+
+      {/* Escucha activa por voz (Fase 3): consentimiento + fuente + iniciar. */}
+      <div className="flex flex-col gap-8 rounded-tags border border-stone bg-ash/40 p-12">
+        <h3 className="text-caption font-medium leading-caption text-ink">
+          {t("listening.title")}
+        </h3>
+
+        {!listening && !connecting ? (
+          <>
+            <label className="flex items-start gap-8 text-caption leading-caption text-carbon">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(event) => setConsent(event.target.checked)}
+                className="mt-[2px] cursor-pointer"
+              />
+              <span>{t("listening.consentText")}</span>
+            </label>
+
+            <div className="flex flex-wrap items-center gap-8">
+              <div className="flex overflow-hidden rounded-tags border border-stone">
+                {(["mic", "tab"] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSource(s)}
+                    className={cn(
+                      "cursor-pointer px-12 py-4 text-caption leading-caption",
+                      source === s ? "bg-ink text-white" : "bg-white text-carbon",
+                    )}
+                  >
+                    {t(`listening.source_${s}`)}
+                  </button>
+                ))}
+              </div>
+              <Button onClick={handleStartListening} disabled={!consent}>
+                {t("listening.start")}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-wrap items-center gap-8">
+            <StatusBadge variant={listening ? "positive" : "neutral"}>
+              {connecting ? t("listening.connecting") : t("listening.listening")}
+            </StatusBadge>
+            <Button variant="secondary" onClick={handleStopListening}>
+              {t("listening.stop")}
+            </Button>
+          </div>
+        )}
+
+        {interim ? (
+          <p className="text-caption italic leading-caption text-metal">
+            {t("listening.interimLabel")}: {interim}
+          </p>
+        ) : null}
+        {sttError ? (
+          <p role="alert" className="text-caption leading-caption text-danger-red">
+            {t(`listening.errors.${sttError}`)}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-8">
