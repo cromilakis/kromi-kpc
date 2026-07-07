@@ -269,6 +269,80 @@ export async function createRemediationFromProposal(
   return { ok: true };
 }
 
+const fromProposalItemSchema = z.object({
+  controlCode: z.string().trim().min(1).max(40),
+  criterionIndex: z.number().int().min(0),
+  title: z.string().trim().min(1).max(300),
+  priority: z.enum(["alta", "media", "baja"]),
+  effort: z.enum(["bajo", "medio", "alto"]),
+  dueDate: z.iso.date().optional(),
+});
+
+const fromProposalBulkSchema = z.object({
+  companyId: z.uuid(),
+  items: z.array(fromProposalItemSchema).min(1).max(200),
+});
+
+export type CreateRemediationsResult =
+  | { ok: true; created: number }
+  | { ok: false; error: RemediationActionError };
+
+/**
+ * Materializa DE UNA VEZ toda la propuesta de resolución confirmada (Fase 2):
+ * inserta un remediation_item por acción con origin='diagnosis', su estructura
+ * (priority/effort_estimate) y la trazabilidad (control_code/criterion_index).
+ * El consultor revisa/ajusta/elimina en la pantalla de resumen y confirma el
+ * lote completo. Un solo insert multi-fila + un audit_log resumen del lote.
+ */
+export async function createRemediationsFromProposal(
+  input: unknown,
+): Promise<CreateRemediationsResult> {
+  const parsed = fromProposalBulkSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "validation" };
+
+  const supabase = await createClient();
+  const userId = await getSessionUserId(supabase);
+  if (!userId) return { ok: false, error: "unauthorized" };
+
+  const { companyId, items } = parsed.data;
+  const rows = items.map((item) => ({
+    company_id: companyId,
+    title: item.title,
+    priority: item.priority,
+    effort_estimate: item.effort,
+    origin: "diagnosis" as const,
+    control_code: item.controlCode,
+    criterion_index: item.criterionIndex,
+    due_date: item.dueDate ?? null,
+  }));
+
+  const { data, error } = await supabase
+    .from("remediation_items")
+    .insert(rows)
+    .select("id");
+
+  if (error || !data) {
+    if (error?.code === "42501") return { ok: false, error: "unauthorized" };
+    console.error("[remediation] createRemediationsFromProposal falló:", error?.message);
+    return { ok: false, error: "unavailable" };
+  }
+
+  await writeAudit(supabase, {
+    actorId: userId,
+    action: "remediation.items_added_bulk",
+    entityId: companyId,
+    detail: {
+      company_id: companyId,
+      source: "diagnosis",
+      count: data.length,
+      controls: items.map((i) => `${i.controlCode}#${i.criterionIndex}`),
+    },
+  });
+
+  revalidatePath(`/app/companies/${companyId}/plan`);
+  return { ok: true, created: data.length };
+}
+
 /**
  * Edita el estado de una tarea (pending / in_progress / done) — mutación
  * sensible del ciclo: audit_log 'remediation.status_changed' con from/to.
