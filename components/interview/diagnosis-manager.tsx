@@ -36,11 +36,11 @@ type SessionStatus = "draft" | "in_progress" | "submitted" | "reviewed";
 type SaveState = "idle" | "saving" | "saved" | "error";
 type ShareState = "idle" | "loading" | "error";
 
-/** Botón de la barra superior del diagnóstico (icono + texto). Clases completas
- * — sin componer con Button — porque `cn` no dedupea (sin tailwind-merge). */
-const TEXT_BTN =
-  "inline-flex h-32 shrink-0 cursor-pointer items-center gap-6 px-12 " +
-  "rounded-buttons border border-slate bg-white text-body-sm text-ink transition-colors " +
+/** Botón-icono cuadrado (32px) de la barra superior del diagnóstico. Clases
+ * completas — sin componer con Button — porque `cn` no dedupea (sin tailwind-merge). */
+const ICON_BTN =
+  "inline-flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center " +
+  "rounded-buttons border border-slate bg-white text-ink transition-colors " +
   "hover:bg-ash disabled:pointer-events-none disabled:opacity-60";
 
 export function DiagnosisManager({
@@ -251,13 +251,13 @@ export function DiagnosisManager({
           onClick={handleShareLink}
           disabled={shareState === "loading"}
           title={t("actions.shareLink")}
-          className={TEXT_BTN}
+          aria-label={t("actions.shareLink")}
+          className={ICON_BTN}
         >
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
           </svg>
-          {t("actions.shareLink")}
         </button>
       </div>
       <p
