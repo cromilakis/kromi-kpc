@@ -25,9 +25,14 @@ comment on column public.companies.preliminary_panorama is
 -- (vive en self_assessments.risk_factors); la lista de columnas de abajo copia
 -- EXACTAMENTE la definición vigente de esa migración y le añade las tres
 -- columnas nuevas.
+-- OJO: la vista NO usa security_invoker (corre como definer, igual que la
+-- definición original en 20260706101000_client_rls.sql). Es intencional: el
+-- cliente no tiene RLS de SELECT sobre `companies`; la vista definer se salta
+-- la RLS de la tabla base y expone SOLO estas columnas seguras, acotadas por
+-- current_company_id(). Con security_invoker=true la vista devolvería vacío
+-- para el cliente y el portal entraría en bucle de redirección.
 drop view if exists public.company_client_view;
-create view public.company_client_view
-with (security_invoker = true) as
+create view public.company_client_view as
   select
     id,
     name,
