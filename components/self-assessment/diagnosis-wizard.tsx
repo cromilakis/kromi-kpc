@@ -364,6 +364,8 @@ export function DiagnosisWizard({ sectors }: { sectors: WizardSector[] }) {
   // ── Result screen ───────────────────────────────────────────────────
   if (isComplete && result) {
     if (showLead) {
+      // panorama no es null acá: el useMemo lo calcula a partir de `result`,
+      // que ya es truthy en esta rama (isComplete && result).
       return (
         <DiagnosisLeadForm
           sectors={sectors}
@@ -374,7 +376,7 @@ export function DiagnosisWizard({ sectors }: { sectors: WizardSector[] }) {
             riskLevel: result.riskLevel,
             totalBreaches: result.totalBreaches,
           }}
-          panorama={panorama ?? buildPreliminaryPanorama(result)}
+          panorama={panorama!}
           onBack={() => setShowLead(false)}
         />
       );
