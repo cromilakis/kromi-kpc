@@ -70,8 +70,8 @@ depender del redirect de retorno de Stripe.
 
 ## Estados del portal
 
-El portal deriva su estado de: (membership active) + (payment_status del
-`self_assessments` vinculado por `company_id`) + (`companies.client_ready_at`).
+El portal deriva su estado (bajo RLS del cliente, vía `company_client_view`) de:
+(membership active) + (`companies.service_paid_at`) + (`companies.client_ready_at`).
 
 - **A — Pago pendiente** (registró, `payment_status != 'paid'`): aviso dominante
   "Completa tu pago para iniciar tu diagnóstico" + botón que reabre el Checkout.
@@ -93,15 +93,24 @@ trabajo está publicado (más explícito que inferirlo del % de avance).
 ## Cambios de datos
 
 Migración nueva:
-- `self_assessments.company_id uuid null references public.companies(id)`.
-- `companies.client_ready_at timestamptz null`.
-- Índice en `self_assessments.company_id`.
-- Tipos en `lib/supabase/types.ts` actualizados a mano (Row/Insert/Update).
+- `self_assessments.company_id uuid null references public.companies(id)` + índice.
+- `companies.client_ready_at timestamptz null` — flag B→C (lo activa el consultor).
+- `companies.service_paid_at timestamptz null` — lo fija el webhook cuando el lead
+  vinculado paga. **Necesario porque el portal usa el cliente autenticado con RLS y
+  `self_assessments` no tiene policy de SELECT para el cliente**: el estado de pago
+  se proyecta en `companies` (no se lee del lead). `self_assessments.payment_status`
+  sigue siendo la fuente de verdad; `service_paid_at` es su proyección legible.
+- `companies.preliminary_panorama jsonb null` — el detalle del panorama (áreas +
+  severidades + nivel + N.º hallazgos) copiado del diagnóstico, para mostrarlo en el
+  estado B bajo RLS del cliente (leerlo de `self_assessments` no es posible por RLS).
+- Recrear **`company_client_view`** para exponer `client_ready_at`, `service_paid_at`
+  y `preliminary_panorama` (sigue excluyendo `complexity_score` y `notes`).
+- Tipos en `lib/supabase/types.ts` actualizados a mano (Row/Insert/Update + la vista).
 
-Sin cambio de esquema: al enviar el formulario se persiste también el **detalle
-del panorama** (áreas + severidades) dentro de `self_assessments.answers` (jsonb),
-para poder re-mostrarlo en el estado B (hoy solo se guarda `risk_level` y
-`total_breaches`).
+Al enviar el formulario se persiste el **detalle del panorama** tanto en
+`self_assessments.answers` (registro interno, jsonb) como en
+`companies.preliminary_panorama` (lo que ve el cliente). Hoy solo se guarda
+`risk_level` y `total_breaches` en el lead.
 
 ## Componentes / archivos afectados
 
@@ -115,8 +124,8 @@ para poder re-mostrarlo en el estado B (hoy solo se guarda `risk_level` y
 - `app/portal/page.tsx` + `lib/portal/load-dashboard.server.ts` — estados A/B/C y
   render del panorama preliminar.
 - Migración `*_self_assessment_company_link.sql` + `lib/supabase/types.ts`.
-- `app/api/stripe/webhook/route.ts` — sin cambios de lógica (ya marca `paid`);
-  verificar que el portal derive el estado correctamente.
+- `app/api/stripe/webhook/route.ts` — además de marcar `self_assessments.paid`,
+  proyecta `companies.service_paid_at` en la empresa vinculada (`company_id`).
 
 ## Casos borde y seguridad
 
