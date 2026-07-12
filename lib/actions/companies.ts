@@ -79,7 +79,10 @@ export async function createCompany(
       sector_code: data.sectorCode,
       size_tier: data.sizeTier,
       factors: [...data.factors],
+      complexity_score: result.complexityScore,
+      score_tier: result.scoreTier,
       assessment_cycle: 1,
+      controls_seeded: result.controlsSeeded,
     },
   });
   if (auditError) {

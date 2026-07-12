@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatRut } from "@/lib/companies/rut";
-import { computeCompanyScore } from "@/lib/companies/scoring.server";
+import { computeCompanyScore, type ScoreTier } from "@/lib/companies/scoring.server";
 import type { ComplexityFactor, SizeTier } from "@/lib/companies/schema";
 import type { Database, Json } from "@/lib/supabase/types";
 
@@ -38,7 +38,13 @@ export interface ProvisionCompanyParams {
 }
 
 export type ProvisionCompanyResult =
-  | { ok: true; companyId: string }
+  | {
+      ok: true;
+      companyId: string;
+      complexityScore: number;
+      scoreTier: ScoreTier;
+      controlsSeeded: number;
+    }
   | { ok: false; error: "rutTaken" | "validation" | "unavailable" };
 
 /** Inserta empresa + evaluación ciclo 1 + assessment_controls pending. Acepta
@@ -139,5 +145,11 @@ export async function provisionCompany(
     }
   }
 
-  return { ok: true, companyId: company.id };
+  return {
+    ok: true,
+    companyId: company.id,
+    complexityScore: score.score,
+    scoreTier: score.scoreTier,
+    controlsSeeded: controls.length,
+  };
 }
