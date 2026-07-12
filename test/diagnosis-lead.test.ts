@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diagnosisLeadSchema } from "../lib/self-assessment/lead-schema";
+import { diagnosisLeadSchema, registrationLeadSchema } from "../lib/self-assessment/lead-schema";
 
 /**
  * Contrato del lead del diagnóstico público. Cubre el camino feliz, la regla de
@@ -59,5 +59,33 @@ describe("diagnosisLeadSchema", () => {
   it("admite el honeypot 'website' en el payload", () => {
     const parsed = diagnosisLeadSchema.safeParse({ ...base, website: "" });
     expect(parsed.success).toBe(true);
+  });
+});
+
+describe("registrationLeadSchema", () => {
+  const base = {
+    name: "Clínica Demo SpA",
+    rut: "76.086.428-5",
+    contactName: "María Pérez",
+    contactEmail: "maria@clinicademo.cl",
+    sectorCode: "salud",
+    sizeTier: "micro" as const,
+    factors: ["sensitive_data"],
+    diagnosis: { riskLevel: "critico" as const, totalBreaches: 9 },
+    password: "supersecreta",
+  };
+
+  it("acepta un registro válido con contraseña", () => {
+    expect(registrationLeadSchema.safeParse(base).success).toBe(true);
+  });
+
+  it("rechaza contraseña de menos de 8 caracteres", () => {
+    expect(registrationLeadSchema.safeParse({ ...base, password: "1234567" }).success).toBe(false);
+  });
+
+  it("rechaza cuando falta la contraseña", () => {
+    const { password, ...rest } = base;
+    void password;
+    expect(registrationLeadSchema.safeParse(rest).success).toBe(false);
   });
 });

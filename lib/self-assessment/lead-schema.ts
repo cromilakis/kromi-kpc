@@ -51,3 +51,29 @@ export const diagnosisLeadSchema = z
   });
 
 export type DiagnosisLeadInput = z.infer<typeof diagnosisLeadSchema>;
+
+/**
+ * Registro del embudo público de pago: los MISMOS datos del lead + contraseña
+ * para crear la cuenta antes de pagar. `panorama` (opcional) viaja para
+ * persistir el resumen visible en el portal; se valida laxo (jsonb).
+ */
+export const registrationLeadSchema = z
+  .strictObject({
+    ...identificationSchema.shape,
+    ...classificationSchema.shape,
+    ...complexitySchema.shape,
+    diagnosis: z.strictObject({
+      riskLevel: z.enum(DIAGNOSIS_RISK_LEVELS),
+      totalBreaches: z.number().int().min(0).max(1000),
+    }),
+    password: z.string().min(8).max(200),
+    panorama: z.unknown().optional(),
+    website: z.string().max(200).optional(),
+  })
+  .refine((data) => Boolean(data.contactEmail || data.contactPhone), {
+    message: "contact_required",
+    path: ["contactEmail"],
+  })
+  .refine((data) => !isDummyRut(data.rut), { message: "dummy_rut", path: ["rut"] });
+
+export type RegistrationLeadInput = z.infer<typeof registrationLeadSchema>;
