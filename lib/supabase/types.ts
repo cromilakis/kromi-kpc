@@ -1006,6 +1006,7 @@ export type Database = {
       }
       self_assessments: {
         Row: {
+          amount_clp: number | null
           answers: Json
           contact_email: string | null
           contact_name: string | null
@@ -1013,11 +1014,15 @@ export type Database = {
           created_at: string
           estimated_tier: string | null
           id: string
+          paid_at: string | null
+          payment_status: string
           risk_factors: string[]
           sector_code: string | null
           size_tier: Database["public"]["Enums"]["company_size_tier"] | null
+          stripe_session_id: string | null
         }
         Insert: {
+          amount_clp?: number | null
           answers?: Json
           contact_email?: string | null
           contact_name?: string | null
@@ -1025,11 +1030,15 @@ export type Database = {
           created_at?: string
           estimated_tier?: string | null
           id?: string
+          paid_at?: string | null
+          payment_status?: string
           risk_factors?: string[]
           sector_code?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+          stripe_session_id?: string | null
         }
         Update: {
+          amount_clp?: number | null
           answers?: Json
           contact_email?: string | null
           contact_name?: string | null
@@ -1037,9 +1046,12 @@ export type Database = {
           created_at?: string
           estimated_tier?: string | null
           id?: string
+          paid_at?: string | null
+          payment_status?: string
           risk_factors?: string[]
           sector_code?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+          stripe_session_id?: string | null
         }
         Relationships: []
       }

@@ -3,8 +3,8 @@ import "server-only";
 import type { ComplexityFactor, SizeTier } from "./schema";
 
 /**
- * DPC Complexity Score del ALTA DE EMPRESA — SOLO SERVIDOR (doctrina D7,
- * misma frontera que lib/self-assessment/scoring.server.ts): los pesos finos
+ * DPC Complexity Score del ALTA DE EMPRESA — SOLO SERVIDOR (doctrina D7):
+ * los pesos finos
  * (puntos por factor, base por tamaño, bono de volumen y umbrales de tramo)
  * no viajan en el bundle del cliente; `import "server-only"` rompe el build
  * si un módulo cliente llega a importarlos. Por eso el wizard NO muestra un
@@ -26,9 +26,8 @@ import type { ComplexityFactor, SizeTier } from "./schema";
  */
 
 /**
- * Puntos por factor — mismos pesos que el autoevaluador
- * (lib/self-assessment/scoring.server.ts) para que lead y alta cuenten la
- * misma historia; low_maturity es exclusivo del alta (RFC §14.3 "madurez
+ * Puntos por factor del alta de empresa; low_maturity es exclusivo del alta
+ * (RFC §14.3 "madurez
  * inicial: partir de cero implica mayor esfuerzo"), calibrado como
  * critical_providers (6 pts, prototipo).
  */

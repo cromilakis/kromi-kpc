@@ -95,11 +95,62 @@ async function findPayment(
   return null;
 }
 
+/** Concilia el pago del lead público del diagnóstico (/self-assessment): marca
+ * self_assessments.payment_status = 'paid'. Idempotente por el filtro
+ * `eq('payment_status','pending')`. La Checkout Session la crea
+ * lib/actions/self-assessment.ts#startDiagnosisCheckout con metadata
+ * {kind:'diagnosis_lead', lead_id}. */
+async function reconcileDiagnosisLead(
+  session: Stripe.Checkout.Session,
+  event: Stripe.Event,
+): Promise<void> {
+  const leadId = session.metadata?.lead_id ?? null;
+  const admin = createAdminClient();
+
+  // Lookup por lead_id (metadata) o, en su defecto, por session id persistido.
+  const query = admin
+    .from("self_assessments")
+    .update({ payment_status: "paid", paid_at: new Date().toISOString() })
+    .eq("payment_status", "pending");
+  const { data: updated, error } = leadId
+    ? await query.eq("id", leadId).select("id").maybeSingle()
+    : await query.eq("stripe_session_id", session.id).select("id").maybeSingle();
+  if (error) throw new Error(`update de self_assessments falló: ${error.message}`);
+  if (!updated) return; // ya conciliado o lead desconocido: idempotente.
+
+  const { error: auditError } = await admin.from("audit_log").insert({
+    actor_id: null,
+    action: "diagnosis_lead.paid",
+    entity: "self_assessments",
+    entity_id: updated.id,
+    detail: {
+      stripe_session_id: session.id,
+      stripe_event_id: event.id,
+    } as never,
+  });
+  if (auditError) {
+    console.error(
+      `[stripe-webhook] audit_log (diagnosis_lead.paid, id=${updated.id}) falló:`,
+      auditError.message,
+    );
+  }
+}
+
 /** Concilia el pago: marca `payments`/`proposals` como pagados. Idempotente
  * — si `payments.status` ya es 'paid' (reintento de Stripe, o los eventos
  * `checkout.session.completed`/`payment_intent.succeeded` llegan ambos para
  * el mismo pago), no vuelve a mutar ni a auditar. */
 async function reconcilePayment(event: Stripe.Event): Promise<void> {
+  // El lead público del diagnóstico va por su propia tabla (self_assessments),
+  // no por payments/proposals: se distingue por metadata.kind.
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    if (session.metadata?.kind === "diagnosis_lead") {
+      await reconcileDiagnosisLead(session, event);
+      return;
+    }
+  }
+
   const lookup = extractLookup(event);
   if (!lookup) return; // tipo de evento no manejado: se ignora.
 
