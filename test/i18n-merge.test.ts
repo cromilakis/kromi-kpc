@@ -50,7 +50,7 @@ describe("deepMergeMessages (i18n del shell)", () => {
 
     const leaves = (tree: MessageTree, prefix = ""): string[] =>
       Object.entries(tree).flatMap(([key, value]) =>
-        typeof value === "string"
+        typeof value === "string" || Array.isArray(value)
           ? [`${prefix}${key}`]
           : leaves(value, `${prefix}${key}.`),
       );

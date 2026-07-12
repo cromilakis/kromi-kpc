@@ -10,8 +10,12 @@
  * colisión es un bug de namespacing entre módulos, no un caso soportado.
  */
 
-export type MessageTree = { [key: string]: string | MessageTree };
+export type MessageTree = {
+  [key: string]: string | MessageTree | Array<string | MessageTree>;
+};
 
+// Los arrays (listas ordenadas, p. ej. landing.domains.mesh.domains) se tratan
+// como HOJA: no se hace merge profundo de arrays (gana el último wholesale).
 function isMessageSubtree(value: unknown): value is MessageTree {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

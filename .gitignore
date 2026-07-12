@@ -53,3 +53,6 @@ next-env.d.ts
 # skills instaladas via 'npx skills add' (tooling local)
 .agents/
 skills-lock.json
+
+# Playwright MCP (artefactos de prueba local)
+.playwright-mcp/
