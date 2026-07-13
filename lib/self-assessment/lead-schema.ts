@@ -69,16 +69,23 @@ export const registrationLeadSchema = z
     password: z.string().min(8).max(200),
     panorama: z.unknown().optional(),
     answers: z.object({
-      screening: z.array(
-        z.strictObject({ nodeId: z.string(), value: z.string() }),
-      ),
-      deepDive: z.array(
-        z.strictObject({
-          questionId: z.string(),
-          branchId: z.string(),
-          value: z.string(),
-        }),
-      ),
+      screening: z
+        .array(
+          z.strictObject({
+            nodeId: z.string().max(200),
+            value: z.string().max(200),
+          }),
+        )
+        .max(200),
+      deepDive: z
+        .array(
+          z.strictObject({
+            questionId: z.string().max(200),
+            branchId: z.string().max(200),
+            value: z.string().max(200),
+          }),
+        )
+        .max(200),
     }),
     website: z.string().max(200).optional(),
   })
