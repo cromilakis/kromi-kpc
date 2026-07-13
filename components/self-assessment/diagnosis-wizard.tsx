@@ -248,6 +248,24 @@ export function DiagnosisWizard({ sectors }: { sectors: WizardSector[] }) {
     [result],
   );
 
+  // Respuestas crudas (screening + deep dive) para persistir el diagnóstico al
+  // registrarse (Task 4): mismas fuentes que alimentan `result`, sin duplicar
+  // el recorrido — solo se re-expone en la forma que espera el servidor.
+  const answersPayload = useMemo(() => {
+    const screening: { nodeId: string; value: string }[] = [];
+    screeningAnswers.forEach((values, nodeId) => {
+      for (const value of values) screening.push({ nodeId, value });
+    });
+    const deepDive: { questionId: string; branchId: string; value: string }[] =
+      [];
+    ddAnswers.forEach((entry, questionId) => {
+      for (const value of entry.values) {
+        deepDive.push({ questionId, branchId: entry.branchId, value });
+      }
+    });
+    return { screening, deepDive };
+  }, [screeningAnswers, ddAnswers]);
+
   // ── Focus management ────────────────────────────────────────────────
   useEffect(() => {
     questionRef.current?.focus();
@@ -377,6 +395,7 @@ export function DiagnosisWizard({ sectors }: { sectors: WizardSector[] }) {
             totalBreaches: result.totalBreaches,
           }}
           panorama={panorama!}
+          answers={answersPayload}
           onBack={() => setShowLead(false)}
         />
       );

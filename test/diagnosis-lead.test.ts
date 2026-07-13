@@ -73,6 +73,12 @@ describe("registrationLeadSchema", () => {
     factors: ["sensitive_data"],
     diagnosis: { riskLevel: "critico" as const, totalBreaches: 9 },
     password: "supersecreta",
+    answers: {
+      screening: [{ nodeId: "S-001", value: "micro" }],
+      deepDive: [
+        { questionId: "DD-001", branchId: "sensitive_data", value: "si" },
+      ],
+    },
   };
 
   it("acepta un registro válido con contraseña", () => {
@@ -86,6 +92,12 @@ describe("registrationLeadSchema", () => {
   it("rechaza cuando falta la contraseña", () => {
     const { password, ...rest } = base;
     void password;
+    expect(registrationLeadSchema.safeParse(rest).success).toBe(false);
+  });
+
+  it("rechaza cuando faltan las respuestas del cuestionario (answers)", () => {
+    const { answers, ...rest } = base;
+    void answers;
     expect(registrationLeadSchema.safeParse(rest).success).toBe(false);
   });
 });

@@ -68,6 +68,18 @@ export const registrationLeadSchema = z
     }),
     password: z.string().min(8).max(200),
     panorama: z.unknown().optional(),
+    answers: z.object({
+      screening: z.array(
+        z.strictObject({ nodeId: z.string(), value: z.string() }),
+      ),
+      deepDive: z.array(
+        z.strictObject({
+          questionId: z.string(),
+          branchId: z.string(),
+          value: z.string(),
+        }),
+      ),
+    }),
     website: z.string().max(200).optional(),
   })
   .refine((data) => Boolean(data.contactEmail || data.contactPhone), {

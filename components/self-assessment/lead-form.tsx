@@ -50,6 +50,11 @@ export interface DiagnosisLeadFormProps {
   diagnosis: { riskLevel: RiskLevel; totalBreaches: number };
   /** Panorama preliminar (calculado por el wizard) para el registro previo al pago. */
   panorama: PreliminaryPanorama;
+  /** Respuestas crudas del cuestionario (screening + deep dive) para persistir el diagnóstico al registrarse. */
+  answers: {
+    screening: { nodeId: string; value: string }[];
+    deepDive: { questionId: string; branchId: string; value: string }[];
+  };
   onBack: () => void;
 }
 
@@ -68,6 +73,7 @@ export function DiagnosisLeadForm({
   sectorCode,
   diagnosis,
   panorama,
+  answers,
   onBack,
 }: DiagnosisLeadFormProps) {
   const t = useTranslations("diagnosis.lead");
@@ -192,6 +198,7 @@ export function DiagnosisLeadForm({
           ...payload,
           password,
           panorama,
+          answers,
         });
         if (res.ok) {
           // Redirige a la página de pago alojada por Stripe.
