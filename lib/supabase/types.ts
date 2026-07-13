@@ -285,6 +285,57 @@ export type Database = {
           },
         ]
       }
+      company_diagnoses: {
+        Row: {
+          answers: Json
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          risk_level: string
+          source: string
+          status: string
+          total_breaches: number
+        }
+        Insert: {
+          answers: Json
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          risk_level: string
+          source: string
+          status?: string
+          total_breaches?: number
+        }
+        Update: {
+          answers?: Json
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          risk_level?: string
+          source?: string
+          status?: string
+          total_breaches?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_diagnoses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_diagnoses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_members: {
         Row: {
           company_id: string
@@ -452,6 +503,65 @@ export type Database = {
             columns: ["domain_id"]
             isOneToOne: false
             referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnosis_breaches: {
+        Row: {
+          area: string
+          area_label: string
+          articles: string[]
+          breach_code: string
+          created_at: string
+          description: string
+          diagnosis_id: string
+          dimension: number | null
+          fine_max_utm: number | null
+          fine_min_utm: number | null
+          id: string
+          resolution_status: string
+          resolved_at: string | null
+          severity: string
+        }
+        Insert: {
+          area: string
+          area_label: string
+          articles?: string[]
+          breach_code: string
+          created_at?: string
+          description: string
+          diagnosis_id: string
+          dimension?: number | null
+          fine_max_utm?: number | null
+          fine_min_utm?: number | null
+          id?: string
+          resolution_status?: string
+          resolved_at?: string | null
+          severity: string
+        }
+        Update: {
+          area?: string
+          area_label?: string
+          articles?: string[]
+          breach_code?: string
+          created_at?: string
+          description?: string
+          diagnosis_id?: string
+          dimension?: number | null
+          fine_max_utm?: number | null
+          fine_min_utm?: number | null
+          id?: string
+          resolution_status?: string
+          resolved_at?: string | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnosis_breaches_diagnosis_id_fkey"
+            columns: ["diagnosis_id"]
+            isOneToOne: false
+            referencedRelation: "company_diagnoses"
             referencedColumns: ["id"]
           },
         ]
