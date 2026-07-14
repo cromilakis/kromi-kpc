@@ -36,10 +36,11 @@ const legendClasses = "text-[13px] font-semibold text-ink";
  * en /app/companies/new). Dos fases en estado local:
  * 1) `identity` — razón social, RUT y contacto (lo que la encuesta NO cubre).
  * 2) `survey` — cuestionario de diagnóstico completo (`DiagnosisQuestionnaire`);
- *    al terminar, muestra el panorama (`DiagnosisResultPanel`, reusado tal
- *    cual del autodiagnóstico público) y persiste todo junto
- *    (`createCompanyWithDiagnosis`): empresa + clasificación derivada +
- *    diagnóstico, en una sola confirmación del consultor.
+ *    al terminar, muestra el panorama (`DiagnosisResultPanel`, reusado del
+ *    autodiagnóstico público pero SIN su CTA — se omite `onGetFullDiagnosis`
+ *    para que el panel no renderice ese bloque) y persiste todo junto
+ *    (`createCompanyWithDiagnosis`) mediante el único botón "Guardar
+ *    diagnóstico" (deshabilitado durante `isPending`), evitando doble-submit.
  */
 export function AssistedDiagnosisFlow() {
   const t = useTranslations("app.companies.assistedDiagnosis");
@@ -243,10 +244,7 @@ function SurveyPhase({ identity }: { identity: Identity }) {
     <DiagnosisQuestionnaire
       renderComplete={({ result, answers }) => (
         <>
-          <DiagnosisResultPanel
-            result={result}
-            onGetFullDiagnosis={() => handleSave(answers)}
-          />
+          <DiagnosisResultPanel result={result} />
           {error && (
             <p
               role="alert"
