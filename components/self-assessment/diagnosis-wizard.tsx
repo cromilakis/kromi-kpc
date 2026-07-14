@@ -200,27 +200,34 @@ export function DiagnosisWizard({ sectors }: { sectors: WizardSector[] }) {
       : currentStep.question.id
     : null;
 
+  // Respuestas crudas (screening + deep dive), fuente única: se recorren los
+  // Maps una sola vez acá y tanto `result` como la persistencia del lead
+  // (Task 4) derivan de esta misma lista, sin volver a recorrer los Maps.
+  const answersPayload = useMemo(() => {
+    const screening: ScreeningAnswer[] = [];
+    screeningAnswers.forEach((values, nodeId) => {
+      for (const value of values) screening.push({ nodeId, value });
+    });
+    const deepDive: DeepDiveAnswer[] = [];
+    ddAnswers.forEach((entry, questionId) => {
+      for (const value of entry.values) {
+        deepDive.push({ questionId, branchId: entry.branchId, value });
+      }
+    });
+    return { screening, deepDive };
+  }, [screeningAnswers, ddAnswers]);
+
   // ── Resultado completo ──────────────────────────────────────────────
   const result = useMemo(() => {
     if (!isComplete) return null;
-    const sAnswers: ScreeningAnswer[] = [];
-    screeningAnswers.forEach((values, nodeId) => {
-      for (const value of values) sAnswers.push({ nodeId, value });
-    });
-    const walked = walkScreening(SCREENING_NODES, sAnswers);
-    const ddList: DeepDiveAnswer[] = [];
-    ddAnswers.forEach((entry, questionId) => {
-      for (const value of entry.values) {
-        ddList.push({ questionId, branchId: entry.branchId, value });
-      }
-    });
+    const walked = walkScreening(SCREENING_NODES, answersPayload.screening);
     return computeFullDiagnosis(
       walked,
       INFERENCE_RULES,
       DEEP_DIVE_BRANCHES,
-      ddList,
+      answersPayload.deepDive,
     );
-  }, [isComplete, screeningAnswers, ddAnswers]);
+  }, [isComplete, answersPayload]);
 
   // Tamaño, factores y rubro YA respondidos en el cuestionario → se derivan del
   // diagnóstico (no se re-piden en el formulario del lead).
@@ -377,6 +384,7 @@ export function DiagnosisWizard({ sectors }: { sectors: WizardSector[] }) {
             totalBreaches: result.totalBreaches,
           }}
           panorama={panorama!}
+          answers={answersPayload}
           onBack={() => setShowLead(false)}
         />
       );

@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { provisionCompany } from "@/lib/companies/provision.server";
+import { persistDiagnosis } from "@/lib/diagnosis/persist.server";
 import { formatRut } from "@/lib/companies/rut";
 import type { SizeTier } from "@/lib/companies/schema";
 import {
@@ -352,6 +353,22 @@ export async function registerAndStartCheckout(
       console.error("[register] company_members:", memberError.message);
       await cleanupAuthUser(admin, authUserId);
       return { ok: false, error: "unavailable" };
+    }
+
+    // 3b) Persiste el diagnóstico (brechas recomputadas en servidor desde
+    // `data.answers`, validado por registrationLeadSchema). No bloqueante del
+    // cobro: si falla, se loggea y se sigue (el lead/empresa ya existen; el
+    // diagnóstico se puede re-persistir después).
+    const persisted = await persistDiagnosis(
+      prov.companyId,
+      data.answers,
+      "self_service",
+    );
+    if (!persisted.ok) {
+      console.error(
+        "[register] persistDiagnosis falló para company",
+        prov.companyId,
+      );
     }
 
     // 4) Inserta el lead vinculado (reusa buildLeadRow + company_id + amount).
