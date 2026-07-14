@@ -12,6 +12,25 @@
       "home": "Inicio",
       "evaluations": "Evaluaciones"
     },
+    "evaluations": {
+      "title": "Evaluaciones",
+      "description": "Detalle de las brechas de cumplimiento detectadas en tu diagnóstico.",
+      "locked": {
+        "title": "Completa tu pago para ver tus evaluaciones",
+        "body": "Tus evaluaciones estarán disponibles apenas se confirme el pago de tu diagnóstico.",
+        "payCta": "Ir a mi portal"
+      },
+      "empty": "Aún no tenemos evaluaciones registradas para tu empresa.",
+      "findingLabel": "Hallazgo",
+      "fineLabel": "Multa",
+      "detail": {
+        "whatWeFound": "Qué encontramos",
+        "whyRisk": "Por qué es un riesgo para tu empresa",
+        "whatLawSays": "Qué dice la ley",
+        "articlesLabel": "Artículos relacionados",
+        "back": "Volver a Evaluaciones"
+      }
+    },
     "home": {
       "title": "Bienvenido/a, {company}",
       "description": "Tu panel de cumplimiento estará disponible aquí.",
