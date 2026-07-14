@@ -1,4 +1,4 @@
-import type { ElementType, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { cn } from "./cn";
 
 /**
@@ -26,8 +26,12 @@ export interface SectionHeadingProps {
   eyebrow?: ReactNode;
   /** Párrafo de apoyo bajo el título (16px Metal). */
   description?: ReactNode;
-  /** Nivel semántico del heading; el tamaño visual lo controla `size`. */
-  as?: ElementType;
+  /**
+   * Nivel semántico del heading (solo etiquetas h1–h6); el tamaño visual lo
+   * controla `size`. Acotado a headings a propósito: evita que sea polimórfico
+   * sobre todos los intrinsics (que rompe el tipado de `children`).
+   */
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   size?: SectionHeadingSize;
   align?: "left" | "center";
   className?: string;

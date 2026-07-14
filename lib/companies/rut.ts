@@ -44,6 +44,24 @@ export function isValidRut(raw: string): boolean {
 }
 
 /**
+ * ¿Es un RUT "de relleno"/falso obvio? Detecta cuerpos con todos los dígitos
+ * iguales (11111111, 22222222, 7777777…) y secuencias (12345678, 87654321),
+ * que a veces pasan el dígito verificador pero nunca son RUT reales. Se usa
+ * como validación preventiva en el formulario del lead público.
+ */
+export function isDummyRut(raw: string): boolean {
+  const body = normalizeRut(raw).slice(0, -1);
+  if (!RUT_BODY_PATTERN.test(body)) return false;
+  if (/^(\d)\1+$/.test(body)) return true; // todos iguales
+  return "0123456789".includes(body) || "9876543210".includes(body); // secuencia
+}
+
+/** RUT válido Y no de relleno (uso público, anti-abuso). */
+export function isRealRut(raw: string): boolean {
+  return isValidRut(raw) && !isDummyRut(raw);
+}
+
+/**
  * Formato canónico de persistencia/UI: "76.421.905-K" (mismo formato que el
  * seed demo). Precondición: isValidRut(raw) === true; si no, devuelve el
  * input normalizado tal cual (nunca lanza — el llamador valida antes).

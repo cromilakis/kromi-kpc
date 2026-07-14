@@ -1,54 +1,79 @@
 import { z } from "zod";
-import { RISK_FACTORS, SECTOR_CODES, SIZE_TIERS } from "./estimate";
+import {
+  classificationSchema,
+  complexitySchema,
+  identificationSchema,
+} from "@/lib/companies/schema";
+import { isDummyRut } from "@/lib/companies/rut";
 
 /**
- * Validación ESTRICTA (Zod, en servidor) del payload del autoevaluador
- * público. Vive fuera del archivo "use server" porque esos módulos solo
- * pueden exportar funciones async (Next); así el schema es testeable e
- * importable sin la acción.
+ * Contrato del lead del diagnóstico público (/self-assessment). Vive fuera del
+ * archivo "use server" (esos módulos solo exportan funciones async) para ser
+ * testeable e importable desde el cliente (validación por paso, UX) y desde la
+ * server action (revalidación TOTAL en servidor — jamás se confía en el cliente).
  *
- * Contacto: los tres campos son opcionales, pero para que el lead sea
- * contactable se exige al menos correo o teléfono (minimización N4: no se
- * pide nada más que lo necesario para responder la cotización).
+ * Reúne los MISMOS contratos del alta de empresa (identificación +
+ * clasificación + factores) más un resumen del diagnóstico, y exige al menos un
+ * canal de contacto (correo o teléfono) para que el lead sea contactable
+ * (minimización: no se pide nada más que lo necesario para responder).
  *
- * Anti-abuso: strictObject + max length en cada string + riskFactors acotado
- * limitan el tamaño del payload; `website` es el honeypot del formulario (una
- * persona nunca lo completa — la acción descarta el envío si llega con valor).
- * Rate limiting real por IP → Vercel Firewall en Connect (ver init.md
- * pendientes).
+ * `website` es el honeypot anti-bots del formulario: una persona nunca lo
+ * completa; la acción descarta el envío si llega con valor.
  */
 
-/** Dígitos suficientes y solo caracteres telefónicos habituales. */
-const PHONE_PATTERN = /^\+?[0-9()\s-]{7,20}$/;
-const MIN_PHONE_DIGITS = 7;
+/** Niveles de riesgo del diagnóstico (espejo de RiskLevel en lib/legal). */
+export const DIAGNOSIS_RISK_LEVELS = [
+  "bajo",
+  "medio",
+  "alto",
+  "critico",
+] as const;
 
-export const leadSubmissionSchema = z
+export const diagnosisLeadSchema = z
   .strictObject({
-    sizeTier: z.enum(SIZE_TIERS),
-    sectorCode: z.enum(SECTOR_CODES),
-    riskFactors: z.array(z.enum(RISK_FACTORS)).max(RISK_FACTORS.length),
-    contactName: z.string().trim().min(2).max(120).optional(),
-    contactEmail: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .max(160)
-      .pipe(z.email())
-      .optional(),
-    contactPhone: z
-      .string()
-      .trim()
-      .regex(PHONE_PATTERN)
-      .refine(
-        (value) => (value.match(/\d/g)?.length ?? 0) >= MIN_PHONE_DIGITS,
-      )
-      .optional(),
-    /** Honeypot anti-bots: campo oculto en el form; siempre vacío en humanos. */
+    ...identificationSchema.shape,
+    ...classificationSchema.shape,
+    ...complexitySchema.shape,
+    diagnosis: z.strictObject({
+      riskLevel: z.enum(DIAGNOSIS_RISK_LEVELS),
+      totalBreaches: z.number().int().min(0).max(1000),
+    }),
     website: z.string().max(200).optional(),
   })
   .refine((data) => Boolean(data.contactEmail || data.contactPhone), {
     message: "contact_required",
     path: ["contactEmail"],
+  })
+  // Anti-relleno: rechaza RUTs falsos obvios (11111111-1, 12345678-5, etc.).
+  .refine((data) => !isDummyRut(data.rut), {
+    message: "dummy_rut",
+    path: ["rut"],
   });
 
-export type LeadSubmission = z.infer<typeof leadSubmissionSchema>;
+export type DiagnosisLeadInput = z.infer<typeof diagnosisLeadSchema>;
+
+/**
+ * Registro del embudo público de pago: los MISMOS datos del lead + contraseña
+ * para crear la cuenta antes de pagar. `panorama` (opcional) viaja para
+ * persistir el resumen visible en el portal; se valida laxo (jsonb).
+ */
+export const registrationLeadSchema = z
+  .strictObject({
+    ...identificationSchema.shape,
+    ...classificationSchema.shape,
+    ...complexitySchema.shape,
+    diagnosis: z.strictObject({
+      riskLevel: z.enum(DIAGNOSIS_RISK_LEVELS),
+      totalBreaches: z.number().int().min(0).max(1000),
+    }),
+    password: z.string().min(8).max(200),
+    panorama: z.unknown().optional(),
+    website: z.string().max(200).optional(),
+  })
+  .refine((data) => Boolean(data.contactEmail || data.contactPhone), {
+    message: "contact_required",
+    path: ["contactEmail"],
+  })
+  .refine((data) => !isDummyRut(data.rut), { message: "dummy_rut", path: ["rut"] });
+
+export type RegistrationLeadInput = z.infer<typeof registrationLeadSchema>;

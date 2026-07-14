@@ -222,6 +222,7 @@ export type Database = {
       }
       companies: {
         Row: {
+          client_ready_at: string | null
           complexity_score: number | null
           contact: Json
           created_at: string
@@ -231,12 +232,15 @@ export type Database = {
           name: string
           notes: string | null
           phase: Database["public"]["Enums"]["company_phase"]
+          preliminary_panorama: Json | null
           rut: string | null
           sector_id: string | null
+          service_paid_at: string | null
           size_tier: Database["public"]["Enums"]["company_size_tier"] | null
           updated_at: string
         }
         Insert: {
+          client_ready_at?: string | null
           complexity_score?: number | null
           contact?: Json
           created_at?: string
@@ -246,12 +250,15 @@ export type Database = {
           name: string
           notes?: string | null
           phase?: Database["public"]["Enums"]["company_phase"]
+          preliminary_panorama?: Json | null
           rut?: string | null
           sector_id?: string | null
+          service_paid_at?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
           updated_at?: string
         }
         Update: {
+          client_ready_at?: string | null
           complexity_score?: number | null
           contact?: Json
           created_at?: string
@@ -261,8 +268,10 @@ export type Database = {
           name?: string
           notes?: string | null
           phase?: Database["public"]["Enums"]["company_phase"]
+          preliminary_panorama?: Json | null
           rut?: string | null
           sector_id?: string | null
+          service_paid_at?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
           updated_at?: string
         }
@@ -1006,42 +1015,72 @@ export type Database = {
       }
       self_assessments: {
         Row: {
+          amount_clp: number | null
           answers: Json
+          company_id: string | null
           contact_email: string | null
           contact_name: string | null
           contact_phone: string | null
           created_at: string
           estimated_tier: string | null
           id: string
+          paid_at: string | null
+          payment_status: string
           risk_factors: string[]
           sector_code: string | null
           size_tier: Database["public"]["Enums"]["company_size_tier"] | null
+          stripe_session_id: string | null
         }
         Insert: {
+          amount_clp?: number | null
           answers?: Json
+          company_id?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           estimated_tier?: string | null
           id?: string
+          paid_at?: string | null
+          payment_status?: string
           risk_factors?: string[]
           sector_code?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+          stripe_session_id?: string | null
         }
         Update: {
+          amount_clp?: number | null
           answers?: Json
+          company_id?: string | null
           contact_email?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           estimated_tier?: string | null
           id?: string
+          paid_at?: string | null
+          payment_status?: string
           risk_factors?: string[]
           sector_code?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
+          stripe_session_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "self_assessments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_assessments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_client_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       share_links: {
         Row: {
@@ -1143,33 +1182,42 @@ export type Database = {
     Views: {
       company_client_view: {
         Row: {
+          client_ready_at: string | null
           contact: Json | null
           created_at: string | null
           id: string | null
           name: string | null
           phase: Database["public"]["Enums"]["company_phase"] | null
+          preliminary_panorama: Json | null
           rut: string | null
           sector_id: string | null
+          service_paid_at: string | null
           size_tier: Database["public"]["Enums"]["company_size_tier"] | null
         }
         Insert: {
+          client_ready_at?: string | null
           contact?: Json | null
           created_at?: string | null
           id?: string | null
           name?: string | null
           phase?: Database["public"]["Enums"]["company_phase"] | null
+          preliminary_panorama?: Json | null
           rut?: string | null
           sector_id?: string | null
+          service_paid_at?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
         }
         Update: {
+          client_ready_at?: string | null
           contact?: Json | null
           created_at?: string | null
           id?: string | null
           name?: string | null
           phase?: Database["public"]["Enums"]["company_phase"] | null
+          preliminary_panorama?: Json | null
           rut?: string | null
           sector_id?: string | null
+          service_paid_at?: string | null
           size_tier?: Database["public"]["Enums"]["company_size_tier"] | null
         }
         Relationships: [
