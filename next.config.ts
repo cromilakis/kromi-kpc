@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/**": ["./messages/app/*.json"],
   },
+  serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium"],
   ...(isGitHubPages
     ? {
         output: "export" as const,
