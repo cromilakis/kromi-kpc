@@ -6,6 +6,7 @@
       "summaryTitle": "Resumen",
       "riskLabel": "Nivel de riesgo",
       "riskLevels": {
+        "critico": "Crítico",
         "alto": "Alto",
         "medio": "Medio",
         "bajo": "Bajo"
