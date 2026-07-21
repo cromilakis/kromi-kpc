@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { DownloadReportButton } from "@/components/documents/download-report-button";
 import { cn } from "@/components/ui";
+import { getTemplate } from "@/lib/documents/templates/registry";
 import { getBreachContent } from "@/lib/legal/breach-content";
+import { getBreachMitigation } from "@/lib/legal/breach-mitigation";
 import { formatFineClp } from "@/lib/legal/fine";
 import { loadClientBreach } from "@/lib/portal/load-diagnosis.server";
 import { severityTagClass } from "@/lib/portal/severity-tag";
@@ -35,6 +38,11 @@ export default async function EvaluationDetailPage({
 
   const content = getBreachContent(breach.breachCode);
   const fine = formatFineClp(breach.fineMinUtm, breach.fineMaxUtm);
+  // Mitigación (sub-proyecto #5): pasos + documentos tipo descargables.
+  const mitigation = getBreachMitigation(breach.breachCode);
+  const templates = (mitigation?.templateIds ?? [])
+    .map((id) => getTemplate(id))
+    .filter((template) => template !== null);
 
   return (
     <div>
@@ -107,6 +115,53 @@ export default async function EvaluationDetailPage({
                       className="rounded-tags bg-ash px-8 py-[2px] text-caption font-medium text-carbon"
                     >
                       {article}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        {/* Mitigación (sub-proyecto #5): pasos en orden + documentos tipo
+            personalizados descargables (generados on-demand con la infra #4). */}
+        {mitigation ? (
+          <section>
+            <h2 className="mb-8 text-body-sm font-semibold text-ink">
+              {t("howToMitigate")}
+            </h2>
+            <ol className="max-w-[70ch] list-decimal space-y-8 pl-20 text-body leading-[1.55] text-carbon">
+              {mitigation.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+
+            {templates.length > 0 ? (
+              <div className="mt-24">
+                <p className="text-body-sm font-semibold text-ink">
+                  {t("documentsTitle")}
+                </p>
+                <p className="mt-4 max-w-[70ch] text-caption leading-[1.5] text-carbon">
+                  {t("documentsHint")}
+                </p>
+                <ul className="mt-12 flex flex-col gap-12">
+                  {templates.map((template) => (
+                    <li
+                      key={template.id}
+                      className="flex flex-wrap items-center justify-between gap-16 rounded-cards border border-stone bg-white p-16"
+                    >
+                      <div className="min-w-0 max-w-[52ch]">
+                        <p className="text-body-sm font-semibold text-ink">
+                          {template.title}
+                        </p>
+                        <p className="mt-2 text-caption leading-[1.5] text-carbon">
+                          {template.summary}
+                        </p>
+                      </div>
+                      <DownloadReportButton
+                        href={`/portal/documentos/${template.id}`}
+                        label={t("downloadTemplate")}
+                      />
                     </li>
                   ))}
                 </ul>

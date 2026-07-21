@@ -21,6 +21,7 @@
         "payCta": "Ir a mi portal"
       },
       "empty": "Aún no tenemos evaluaciones registradas para tu empresa.",
+      "downloadMitigationPlan": "Descargar plan de mitigación",
       "findingLabel": "Hallazgo",
       "fineLabel": "Multa",
       "detail": {
@@ -28,7 +29,11 @@
         "whyRisk": "Por qué es un riesgo para tu empresa",
         "whatLawSays": "Qué dice la ley",
         "articlesLabel": "Artículos relacionados",
-        "back": "Volver a Evaluaciones"
+        "back": "Volver a Evaluaciones",
+        "howToMitigate": "Cómo se mitiga",
+        "documentsTitle": "Documentos tipo para esta mitigación",
+        "documentsHint": "Se descargan personalizados con los datos de tu empresa; los espacios en blanco se completan al firmar. Son borradores estándar: revísalos frente a tu operación antes de usarlos.",
+        "downloadTemplate": "Descargar documento"
       }
     },
     "home": {

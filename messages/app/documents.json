@@ -26,6 +26,26 @@
       "empty": "No se detectaron brechas en tu diagnóstico.",
       "generatedLabel": "Generado el",
       "footerNote": "Documento generado automáticamente por la plataforma DPC. Refleja el diagnóstico vigente al momento de su emisión."
+    },
+    "template": {
+      "brand": "DPC · Data Protection Compliance",
+      "generatedLabel": "Generado el {date}"
+    },
+    "mitigation": {
+      "title": "Plan de mitigación",
+      "brand": "DPC · Data Protection Compliance",
+      "generatedLabel": "Generado el {date}",
+      "intro": "Este plan resume, para cada brecha detectada en el diagnóstico vigente, los pasos de mitigación sugeridos y los documentos tipo disponibles en el portal. Los pasos son una base estándar: el alcance definitivo se ajusta con el consultor.",
+      "severityLabels": {
+        "critico": "Crítico",
+        "alto": "Alto",
+        "medio": "Medio",
+        "bajo": "Bajo"
+      },
+      "stepsTitle": "Pasos sugeridos",
+      "documentsTitle": "Documentos tipo disponibles",
+      "empty": "No se detectaron brechas en tu diagnóstico; no hay mitigaciones pendientes.",
+      "footerNote": "Documento generado automáticamente por la plataforma DPC. Refleja el diagnóstico vigente al momento de su emisión; su contenido es una base estándar sujeta a revisión del consultor."
     }
   }
 }

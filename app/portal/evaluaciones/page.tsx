@@ -49,8 +49,12 @@ export default async function EvaluationsPage() {
         </Card>
       ) : (
         <>
-          <div className="mb-16 flex justify-end">
+          <div className="mb-16 flex flex-wrap justify-end gap-10">
             <DownloadReportButton href="/portal/evaluaciones/informe" />
+            <DownloadReportButton
+              href="/portal/evaluaciones/plan-mitigacion"
+              label={t("downloadMitigationPlan")}
+            />
           </div>
           <ul className="flex flex-col gap-12">
             {breaches.map((breach) => {

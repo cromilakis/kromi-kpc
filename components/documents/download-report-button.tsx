@@ -22,9 +22,12 @@ function filenameFromDisposition(header: string | null): string | null {
 export function DownloadReportButton({
   href,
   variant = "secondary",
+  label,
 }: {
   href: string;
   variant?: "primary" | "secondary";
+  /** Etiqueta del botón; por defecto la del informe (common.downloadReport). */
+  label?: string;
 }) {
   const t = useTranslations("common.downloadReport");
   const [loading, setLoading] = useState(false);
@@ -69,7 +72,7 @@ export function DownloadReportButton({
   return (
     <div className="flex flex-col gap-8">
       <Button variant={variant} onClick={onClick} disabled={loading}>
-        {loading ? t("downloading") : t("label")}
+        {loading ? t("downloading") : (label ?? t("label"))}
       </Button>
       {error ? (
         <p role="alert" className="text-caption leading-caption text-danger-red">
