@@ -59,11 +59,20 @@ describe("registro de documentos tipo", () => {
 });
 
 describe("mapa brecha → mitigación", () => {
-  it("TODA brecha del catálogo tiene mitigación con pasos y control DPC", () => {
+  it("TODA brecha del catálogo tiene un plan concreto y trazable", () => {
     for (const code of Object.keys(SCREENING_BREACHES)) {
       const mitigation = BREACH_MITIGATION[code];
       expect(mitigation, `falta mitigación para ${code}`).toBeDefined();
-      expect(mitigation!.steps.length, code).toBeGreaterThanOrEqual(2);
+      expect(mitigation!.objective.length, `${code}: objetivo`).toBeGreaterThan(40);
+      expect(mitigation!.actions.length, `${code}: acciones`).toBeGreaterThanOrEqual(2);
+      for (const action of mitigation!.actions) {
+        expect(action.title.length, `${code}: título de acción`).toBeGreaterThan(5);
+        expect(action.detail.length, `${code}: detalle de acción`).toBeGreaterThan(20);
+        expect(action.evidence.length, `${code}: evidencia de acción`).toBeGreaterThan(10);
+      }
+      expect(["alta", "media", "baja"]).toContain(mitigation!.priority);
+      expect(["bajo", "medio", "alto"]).toContain(mitigation!.effort);
+      expect(mitigation!.estimatedWeeks, `${code}: plazo`).toBeGreaterThan(0);
       expect(mitigation!.controlCode, code).toMatch(/^DPC-[A-Z]{3}-\d{3}$/);
     }
   });

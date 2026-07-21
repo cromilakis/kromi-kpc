@@ -17,7 +17,11 @@ const nextConfig: NextConfig = {
   // módulo): se declaran aquí para que el file tracing de `next build` los
   // incluya en el server bundle (el import estático de es.json ya se tracea).
   outputFileTracingIncludes: {
-    "/**": ["./messages/app/*.json"],
+    // messages/app/*.json: i18n runtime (fs). content/mitigations/*.md:
+    // propuestas de mitigación authoreadas en markdown (sub-proyecto detalle
+    // premium 2026-07-21), leídas por fs en la ruta de descarga → deben
+    // tracearse en el server bundle.
+    "/**": ["./messages/app/*.json", "./content/mitigations/*.md"],
   },
   serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium"],
   ...(isGitHubPages

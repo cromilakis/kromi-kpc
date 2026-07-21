@@ -52,7 +52,17 @@ const STYLES = `
   .doc-brand { font-size: 11px; letter-spacing: 0.4px; color: #5b6570; text-transform: uppercase; }
   .doc-title { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
   .doc-meta { font-size: 10px; color: #5b6570; text-align: right; }
+  .doc-body h1 { font-size: 18px; font-weight: 600; margin: 26px 0 10px; }
   .doc-body h2 { font-size: 14px; font-weight: 600; margin: 24px 0 10px; }
+  .doc-body h3 { font-size: 12px; font-weight: 700; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.3px; color: #5b6570; }
+  .doc-body p { margin: 0 0 10px; }
+  .doc-body ul, .doc-body ol { margin: 0 0 12px; padding-left: 20px; }
+  .doc-body li { margin: 0 0 5px; }
+  .doc-body a { color: #1b1f24; text-decoration: underline; }
+  .doc-body strong { font-weight: 700; }
+  .doc-body blockquote { margin: 0 0 12px; padding: 8px 14px; border-left: 3px solid #1b1f24; background: #f6f7f8; font-style: italic; }
+  .doc-body hr { border: none; border-top: 1px solid #e3e6ea; margin: 20px 0; }
+  .doc-body code { font-family: "Courier New", monospace; font-size: 11px; background: #f3f4f6; padding: 1px 4px; border-radius: 3px; }
   .doc-summary { display: flex; gap: 28px; margin-bottom: 8px; }
   .doc-summary .item { }
   .doc-summary .label { font-size: 10px; color: #5b6570; text-transform: uppercase; letter-spacing: 0.4px; }

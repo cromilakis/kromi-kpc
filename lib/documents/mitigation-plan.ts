@@ -15,7 +15,9 @@ export interface MitigationDict {
   title: string;
   intro: string;
   severityLabels: Record<string, string>;
+  objectiveLabel: string;
   stepsTitle: string;
+  evidenceLabel: string;
   documentsTitle: string;
   empty: string;
   footerNote: string;
@@ -32,8 +34,14 @@ export function buildMitigationPlanHtml(data: ReportData, dict: MitigationDict):
       if (!mitigation) return "";
 
       const severity = dict.severityLabels[breach.severity] ?? breach.severity;
-      const steps = mitigation.steps
-        .map((step) => `<li>${escapeHtml(step)}</li>`)
+      // Cada acción con su detalle y la evidencia que la respalda (modelo rico).
+      const steps = mitigation.actions
+        .map(
+          (action) =>
+            `<li><strong>${escapeHtml(action.title)}.</strong> ${escapeHtml(
+              action.detail,
+            )} <em>${escapeHtml(dict.evidenceLabel)}: ${escapeHtml(action.evidence)}</em></li>`,
+        )
         .join("");
       const documents = mitigation.templateIds
         .map((id) => getTemplate(id))
@@ -44,6 +52,7 @@ export function buildMitigationPlanHtml(data: ReportData, dict: MitigationDict):
       return `
 <h2>${index + 1}. ${escapeHtml(breach.areaLabel)} · <span class="sev sev-${escapeHtml(breach.severity)}">${escapeHtml(severity)}</span></h2>
 <p>${escapeHtml(breach.description)}</p>
+<p><strong>${escapeHtml(dict.objectiveLabel)}:</strong> ${escapeHtml(mitigation.objective)}</p>
 <p><strong>${escapeHtml(dict.stepsTitle)}</strong></p>
 <ol>${steps}</ol>
 ${documents ? `<p><strong>${escapeHtml(dict.documentsTitle)}</strong></p><ul>${documents}</ul>` : ""}`;

@@ -31,6 +31,11 @@
       "brand": "DPC · Data Protection Compliance",
       "generatedLabel": "Generado el {date}"
     },
+    "proposal": {
+      "title": "Propuesta de mitigación",
+      "brand": "DPC · Data Protection Compliance",
+      "generatedLabel": "Generado el {date}"
+    },
     "certificate": {
       "title": "Certificado DPC",
       "brand": "DPC · Data Protection Compliance",
@@ -84,7 +89,9 @@
         "medio": "Medio",
         "bajo": "Bajo"
       },
-      "stepsTitle": "Pasos sugeridos",
+      "objectiveLabel": "Meta",
+      "stepsTitle": "Acciones concretas",
+      "evidenceLabel": "Evidencia",
       "documentsTitle": "Documentos tipo disponibles",
       "empty": "No se detectaron brechas en tu diagnóstico; no hay mitigaciones pendientes.",
       "footerNote": "Documento generado automáticamente por la plataforma DPC. Refleja el diagnóstico vigente al momento de su emisión; su contenido es una base estándar sujeta a revisión del consultor."
