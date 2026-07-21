@@ -61,28 +61,30 @@ export function CitationChip({ reference }: { reference: string }) {
       </button>
 
       {open ? (
+        /* Panel oscuro (ink sobre claro, mismo tratamiento que la card del
+           certificado): se despega del contenido y se lee como overlay. */
         <span
           id={panelId}
           role="dialog"
           aria-label={citation.norm}
-          className="absolute left-0 top-[calc(100%+6px)] z-30 block w-[340px] max-w-[82vw] rounded-cards border border-stone bg-white p-16 text-left shadow-subtle-2"
+          className="absolute left-0 top-[calc(100%+6px)] z-30 block w-[340px] max-w-[82vw] rounded-cards bg-ink p-16 text-left shadow-[rgba(16,18,22,0.4)_0px_14px_36px_-12px]"
         >
-          <span className="block text-caption font-semibold leading-[1.4] text-ink">
+          <span className="block text-caption font-semibold leading-[1.4] text-white">
             {citation.norm}
           </span>
-          <span className="mt-6 block text-caption font-normal leading-[1.55] text-carbon">
+          <span className="mt-6 block text-caption font-normal leading-[1.55] text-[#b5bdc9]">
             {citation.summary}
           </span>
-          <span className="mt-8 flex items-center justify-between gap-12">
+          <span className="mt-10 flex items-center justify-between gap-12 border-t border-[#34353a] pt-10">
             <a
               href={citation.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-caption font-medium text-[#2f66c9] hover:underline"
+              className="text-caption font-semibold text-white underline decoration-[#8f99a8] underline-offset-2 hover:decoration-white"
             >
               {t("officialText")} ↗
             </a>
-            <span className="text-[11px] text-metal">{t("disclaimer")}</span>
+            <span className="text-[11px] text-[#8f99a8]">{t("disclaimer")}</span>
           </span>
         </span>
       ) : null}
