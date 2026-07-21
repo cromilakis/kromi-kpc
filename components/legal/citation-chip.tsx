@@ -72,10 +72,10 @@ export function CitationChip({ reference }: { reference: string }) {
           <span className="block text-caption font-semibold leading-[1.4] text-white">
             {citation.norm}
           </span>
-          <span className="mt-6 block text-caption font-normal leading-[1.55] text-[#b5bdc9]">
+          <span className="mt-[6px] block text-caption font-normal leading-[1.55] text-[#b5bdc9]">
             {citation.summary}
           </span>
-          <span className="mt-10 flex items-center justify-between gap-12 border-t border-[#34353a] pt-10">
+          <span className="mt-[10px] flex items-center justify-between gap-12 border-t border-[#34353a] pt-[10px]">
             <a
               href={citation.url}
               target="_blank"
