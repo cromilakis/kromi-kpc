@@ -2,7 +2,7 @@
   "common": {
     "appName": "DPC",
     "appFullName": "Data Protection Compliance",
-    "tagline": "Protección Certificada",
+    "tagline": "Adecuación Acompañada",
     "skipToContent": "Saltar al contenido principal",
     "opensInNewWindow": "(se abre en una ventana nueva)",
     "citation": {
@@ -23,21 +23,20 @@
   "landing": {
     "nav": {
       "risk": "El riesgo",
-      "domains": "El estándar (14 dominios)",
-      "cycle": "El proceso",
-      "certification": "Tu certificación",
-      "cta": "Reservar evaluación",
+      "domains": "El estándar",
+      "cycle": "Cómo funciona",
+      "cta": "Evalúa gratis",
       "menu": "Abrir menú"
     },
     "hero": {
       "lawBadge": "Ley 21.719",
       "lawNotice": "rige desde el 1 de diciembre de 2026",
-      "title": "El estándar completo de protección de datos en tus manos",
-      "subtitle": "Cumple la Ley 21.719 y cada normativa de protección de datos de tu rubro, de principio a fin, con un certificado que lo respalda.",
-      "quoteLabel": "Empieza tu evaluación",
+      "title": "Descubre gratis cómo adecuar tu empresa a la Ley 21.719",
+      "subtitle": "Haz la autoevaluación y recibe al instante un diagnóstico de tu cumplimiento y una propuesta de mitigación para cada brecha. Tuya, sin costo y sin registro.",
+      "quoteLabel": "Empieza ahora",
       "ctaSelfAssessment": "Evalúa tu empresa gratis",
       "ctaSeparator": "o",
-      "ctaWhatsApp": "Reservar evaluación"
+      "ctaWhatsApp": "Hablar con un consultor"
     },
     "stakes": {
       "title": "Qué establece la Ley 21.719",
@@ -179,7 +178,8 @@
       }
     },
     "agencies": {
-      "label": "Diseñado sobre la normativa legal vigente en Chile",
+      "label": "El estándar cubre las exigencias de los organismos que regulan el tratamiento de datos en Chile",
+      "disclaimer": "Nombres de sus respectivos titulares. DPC no está afiliada a estos organismos ni cuenta con su respaldo; los citamos porque su normativa forma parte del alcance del estándar.",
       "items": {
         "apdp": "APDP",
         "anci": "ANCI",
@@ -190,106 +190,31 @@
       }
     },
     "cycle": {
-      "eyebrow": "Ciclo de aseguramiento continuo",
-      "title": "Del diagnóstico a la renovación.",
+      "eyebrow": "Cómo funciona",
+      "title": "De la evaluación a la implementación.",
       "phases": {
+        "evaluate": {
+          "name": "Autoevaluación",
+          "description": "Responde el cuestionario guiado —unos 5 minutos—. Sin registro y sin costo."
+        },
         "diagnosis": {
-          "number": "Fase 1",
-          "name": "Diagnóstico",
-          "description": "Evaluación inicial de controles base y sectoriales, y mapeo de brechas normativas cruzadas."
+          "name": "Diagnóstico y propuesta",
+          "description": "Al instante recibes tu diagnóstico y, por cada brecha, una propuesta de mitigación: qué hacer, con qué prioridad y en qué plazo."
         },
-        "proposal": {
-          "number": "Fase 2",
-          "name": "Propuesta",
-          "description": "Soluciones parametrizadas por rubro y guía metodológica en la implementación."
-        },
-        "certification": {
-          "number": "Fase 3",
-          "name": "Certificación",
-          "description": "Auditoría sobre las evidencias, validación de controles y emisión del Certificado Privado DPC."
-        },
-        "revalidation": {
-          "number": "Fase 4",
-          "name": "Revalidación",
-          "description": "Auditoría de seguimiento periódica frente a cambios normativos o nuevas directrices."
+        "implement": {
+          "name": "Implementación",
+          "description": "Aplicas la propuesta por tu cuenta, gratis. Si quieres apoyo para implementarla, nos escribes por WhatsApp."
         }
-      }
-    },
-    "deliverable": {
-      "eyebrow": "El entregable",
-      "title": "Tu cumplimiento, documentado y en orden.",
-      "description": "Al cerrar el proceso, la organización recibe un expediente de cumplimiento completo junto con la certificación: el detalle documentado de cómo trata los datos personales, control por control, que da cuenta del cuidado de cada exigencia de la ley.",
-      "certificate": {
-        "eyebrow": "Certificado privado DPC",
-        "title": "Data Protection Compliance",
-        "subtitle": "Ley 21.719 · Verificable en línea",
-        "issued": "Certificado · 11 jul 2026",
-        "hash": "a3f9c1b7e2d49f017b3c5a8e2d4f9c1b",
-        "status": "Vigente"
-      },
-      "docs": {
-        "intro": "El expediente recoge lo que arrojó el diagnóstico y lo deja por escrito con transparencia: qué datos personales maneja tu empresa —los que podrían ser objeto de fiscalización— y con qué mecanismos protege cada uno.",
-        "docTitle": "Expediente de cumplimiento",
-        "docSubtitle": "Prueba de tratamiento · Ley 21.719",
-        "groups": [
-          {
-            "heading": "Qué datos maneja tu empresa",
-            "note": "los que podrían ser objeto de fiscalización",
-            "items": [
-              { "name": "Inventario y RAT", "desc": "el catálogo de datos personales: cuáles, de quién, dónde y para qué." },
-              { "name": "Datos sensibles", "desc": "salud, biometría u otras categorías con protección reforzada." }
-            ]
-          },
-          {
-            "heading": "Cómo trata y protege cada uno",
-            "note": "los mecanismos de cumplimiento",
-            "items": [
-              { "name": "Base de licitud y avisos", "desc": "por qué es lícito tratarlos y cómo lo informas." },
-              { "name": "Derechos ARCOP", "desc": "cómo las personas acceden, rectifican o eliminan sus datos." },
-              { "name": "Seguridad y evidencias", "desc": "medidas técnicas y respaldo versionado por control." },
-              { "name": "Plan de incidentes", "desc": "cómo respondes y notificas una brecha." }
-            ]
-          }
-        ]
-      },
-      "bullets": {
-        "backup": {
-          "title": "Respaldo ante fiscalización",
-          "text": "evidencia admisible y ordenada, disponible de inmediato."
-        },
-        "traceability": {
-          "title": "Trazabilidad total",
-          "text": "cada control respaldado, versionado y fechado."
-        },
-        "detail": {
-          "title": "Detalle del tratamiento",
-          "text": "el mapa completo de los datos personales de la organización."
-        }
-      },
-      "dossier": {
-        "title": "Expediente de cumplimiento",
-        "badge": "Certificado",
-        "docs": {
-          "rat": "Registro de Actividades de Tratamiento (RAT)",
-          "policies": "Políticas y avisos de privacidad vigentes",
-          "arcop": "Procedimiento de derechos ARCOP",
-          "incidents": "Plan de respuesta ante incidentes",
-          "inventory": "Inventario y mapeo de flujos de datos",
-          "evidence": "Evidencias por control, versionadas",
-          "certificate": "Certificado digital DPC infalsificable"
-        },
-        "certTitle": "Certificación privada DPC",
-        "certNote": "Verificable en línea"
       }
     },
     "trust": {
       "standard": {
         "title": "Estándar estructurado y trazable",
-        "text": "14 dominios alineados a los principios de la Ley 21.719 y la normativa legal vigente, con un certificado digital infalsificable."
+        "text": "14 dominios alineados a los principios de la Ley 21.719 y a la normativa legal vigente, que ordenan tu diagnóstico y tu propuesta de mitigación control por control."
       },
       "dogfooding": {
         "title": "Nuestros procesos, bajo la misma rigurosidad",
-        "text": "La información de nuestros propios clientes se resguarda bajo los mismos 14 dominios que rigen nuestro estándar, asegurando la calidad del proceso y de los resultados."
+        "text": "Aplicamos a nuestra propia operación los mismos 14 dominios y controles que exigimos: adoptamos el estándar antes de pedírtelo, para asegurar la calidad del proceso y de los resultados."
       },
       "confidentiality": {
         "title": "Tus datos seguros desde el día uno",
@@ -297,73 +222,31 @@
       }
     },
     "ctaBand": {
-      "title": "Empieza hoy tu camino al cumplimiento.",
-      "subtitle": "La Ley 21.719 rige desde el 1 de diciembre de 2026. Llega preparado, con tu cumplimiento en orden.",
-      "ctaWhatsApp": "Reservar evaluación"
+      "title": "¿Aún no sabes cómo está tu empresa?",
+      "subtitle": "La Ley 21.719 rige desde el 1 de diciembre de 2026. Haz la autoevaluación gratuita y recibe tu diagnóstico y tu propuesta de mitigación al instante.",
+      "cta": "Evalúa tu empresa gratis"
     },
     "support": {
-      "title": "Un consultor asignado en cada fase.",
-      "description": "La metodología da rigor; el consultor da criterio. Combinamos una plataforma estructurada con acompañamiento humano real.",
+      "title": "¿Prefieres que te acompañemos a implementarla?",
+      "description": "El diagnóstico y la propuesta son tuyos para aplicar por tu cuenta, gratis. Si quieres apoyo para llevarlos a la práctica, un consultor puede guiarte o hacerlo contigo. Escríbenos por WhatsApp y vemos el alcance —sin compromiso—.",
       "items": {
         "assigned": {
-          "title": "Consultor asignado",
-          "text": "Una persona responsable del proceso completo, que conoce el rubro y el contexto de cada organización de principio a fin."
+          "title": "Un consultor que responde",
+          "text": "Una persona que conoce tu rubro y acompaña la implementación de principio a fin."
         },
         "advisory": {
           "title": "Asesoría personalizada",
-          "text": "Interpretación de cómo la Ley 21.719 y sus normas complementarias aplican específicamente a cada operación."
+          "text": "Interpretamos cómo la Ley 21.719 y las normas de tu rubro aplican a tu operación concreta."
         },
         "implementation": {
-          "title": "Guía en la implementación",
-          "text": "Aplicamos cada control en la práctica, más allá de la entrega de documentos."
+          "title": "Manos a la obra",
+          "text": "Aplicamos cada acción de la propuesta en la práctica, más allá de entregar documentos."
         },
         "followUp": {
-          "title": "Seguimiento posterior",
-          "text": "Monitoreo de cambios normativos, revisiones periódicas y revalidación de la certificación para sostener el estándar."
+          "title": "Seguimiento",
+          "text": "Buenas prácticas y ajustes ante cambios normativos para sostener el cumplimiento en el tiempo."
         }
       }
-    },
-    "model": {
-      "title": "Un estándar que perdura.",
-      "description": "El servicio se estructura en dos etapas: la certificación inicial que lleva a la organización al estándar, y una suscripción que lo mantiene vigente en el tiempo.",
-      "initial": {
-        "chip": "Certificación inicial",
-        "title": "Ruta al estándar",
-        "text": "Diagnóstico, cierre de brechas y emisión de la certificación privada DPC. El alcance del trabajo se ajusta a la complejidad de cada caso."
-      },
-      "recurring": {
-        "chip": "Revalidación periódica",
-        "title": "Aseguramiento continuo",
-        "text": "Sostenemos el estándar en el tiempo: monitoreo de cambios normativos, revisiones periódicas, soporte ante incidentes y la <b>renovación de la certificación</b>.",
-        "note": "Suscripción renovable, con la periodicidad que mejor se adapte."
-      }
-    },
-    "pricing": {
-      "title": "El valor, a la medida de cada organización.",
-      "description": "Cada organización parte de un valor base accesible y acorde a su tamaño. Ese valor puede ajustarse tras el diagnóstico según la complejidad real de sus tratamientos y la presencia de datos sensibles.",
-      "from": "Desde",
-      "vat": "+ IVA",
-      "clpApprox": "≈ {amount} + IVA",
-      "baseNote": "valor base referencial",
-      "launchEyebrow": "Precio de lanzamiento · 20% de descuento para las primeras empresas",
-      "tiers": {
-        "micro": {
-          "name": "Microempresa",
-          "price": "10 UF"
-        },
-        "small": {
-          "name": "Pequeña empresa",
-          "price": "25 UF"
-        },
-        "enterprise": {
-          "name": "Mediana o grande",
-          "price": "Desde 60 UF",
-          "note": "Bajo cotización, según el alcance del diagnóstico"
-        }
-      },
-      "disclaimer": "El precio final se confirma tras el diagnóstico, según la complejidad real de los tratamientos. Descuento de lanzamiento del 20% para las primeras empresas, por tiempo limitado.",
-      "ctaSelfAssessment": "Evalúa tu empresa gratis",
-      "ctaWhatsApp": "Reservar evaluación"
     },
     "faq": {
       "title": "Resolvemos tus dudas.",
@@ -373,48 +256,44 @@
           "a": "La ley regula el tratamiento de datos personales y entra en vigencia el 1 de diciembre de 2026. Si tu organización recolecta o procesa datos de clientes, trabajadores o usuarios, queda dentro de su ámbito de aplicación. Con la autoevaluación puedes estimar tu punto de partida."
         },
         "duration": {
-          "q": "¿Cuánto demora el proceso?",
-          "a": "Depende del tamaño de la organización y de la complejidad de sus tratamientos. El alcance y los tiempos se definen tras el diagnóstico inicial."
+          "q": "¿Cuánto demora?",
+          "a": "La autoevaluación toma unos 5 minutos y el diagnóstico con su propuesta aparece al instante. Implementar las mejoras depende de tu organización; puedes hacerlo a tu ritmo."
         },
         "cost": {
-          "q": "¿Cuánto cuesta la certificación?",
-          "a": "Cada organización parte de un valor base según su tamaño: 10 UF microempresa y 25 UF pequeña empresa que, con el descuento de lanzamiento del 20%, hoy quedan en 8 UF (≈ $327.000) y 20 UF (≈ $817.000). Ese valor se ajusta tras el diagnóstico según la complejidad real; las organizaciones medianas y grandes se cotizan a la medida."
+          "q": "¿Tiene algún costo?",
+          "a": "No. La autoevaluación, el diagnóstico y la propuesta de mitigación son gratis y sin registro, y puedes aplicarlos por tu cuenta. Si quieres que te acompañemos en la implementación, conversamos el alcance por WhatsApp, sin compromiso."
         },
         "skills": {
           "q": "¿Necesito conocimientos técnicos o legales?",
-          "a": "No. Un consultor asignado interpreta cómo la ley aplica a tu operación y te guía en la implementación de cada control, fase por fase."
+          "a": "No. La propuesta explica cada acción en lenguaje simple, con qué prioridad y en qué plazo abordarla. Si necesitas apoyo para llevarla a la práctica, un consultor puede guiarte."
         },
         "deliverable": {
-          "q": "¿Qué obtengo al finalizar?",
-          "a": "Un expediente de cumplimiento completo —inventario, políticas, procedimientos y evidencias por control— junto con el certificado digital DPC, infalsificable y verificable en línea."
+          "q": "¿Qué obtengo al terminar la evaluación?",
+          "a": "Un diagnóstico de tu cumplimiento y una propuesta de mitigación por cada brecha detectada: qué hacer, con qué prioridad, esfuerzo y plazo. Es tuyo, gratis, para aplicarlo cuando quieras."
         }
       }
     },
     "whatsapp": {
-      "infoMessage": "Hola, quiero información sobre la certificación de protección de datos",
-      "quoteMessage": "Hola, quiero cotizar la certificación de protección de datos para mi organización",
-      "assistedMessage": "Hola, quiero reservar una evaluación de cumplimiento de la Ley 21.719 con un consultor"
+      "infoMessage": "Hola, quiero información sobre la adecuación a la Ley 21.719",
+      "quoteMessage": "Hola, quiero conversar sobre cómo adecuar mi empresa a la Ley 21.719",
+      "assistedMessage": "Hola, hice la autoevaluación de la Ley 21.719 y quiero apoyo para implementar la propuesta de mitigación"
     },
     "footer": {
       "brandName": "Data Protection Compliance",
       "brandDescription": "Estándar privado de cumplimiento estructurado para la Ley N° 21.719 y la normativa legal vigente en Chile.",
       "columns": {
         "framework": {
-          "title": "Marco de trabajo",
+          "title": "El estándar",
           "links": {
             "domains": "Los 14 dominios",
-            "taxonomy": "Lista de medidas de seguridad",
-            "risks": "Catálogo de riesgos",
-            "verticals": "Soluciones específicas para tu rubro"
+            "cycle": "Cómo funciona"
           }
         },
         "platform": {
-          "title": "Plataforma",
+          "title": "Empezar",
           "links": {
-            "consultantPanel": "Panel del consultor",
-            "complexityScore": "Nivel de riesgo de tu empresa",
-            "evidence": "Repositorio de evidencias",
-            "certification": "Certificación DPC"
+            "selfAssessment": "Evalúa tu empresa gratis",
+            "risk": "El riesgo"
           }
         },
         "legal": {
@@ -430,17 +309,6 @@
       "legalLine": "© 2026 DPC · Estándar privado de cumplimiento para la Ley 21.719."
     }
   },
-  "login": {
-    "title": "Ingreso del equipo",
-    "subtitle": "Herramienta interna de evaluación y certificación DPC.",
-    "userLabel": "Usuario",
-    "userPlaceholder": "usuario",
-    "passwordLabel": "Contraseña",
-    "passwordPlaceholder": "••••••",
-    "submit": "Ingresar",
-    "backToSite": "← Volver al sitio",
-    "placeholderNote": "Acceso exclusivo del equipo consultor."
-  },
   "selfAssessment": {
     "meta": {
       "title": "Diagnóstico de protección de datos — DPC",
@@ -450,47 +318,12 @@
       "backToSite": "← Volver al sitio"
     }
   },
-  "verify": {
-    "meta": {
-      "title": "Verificación de certificado — DPC",
-      "description": "Verificación pública de certificados privados DPC por código."
-    },
-    "topbar": {
-      "backToSite": "← Volver al sitio"
-    },
-    "eyebrow": "Verificación pública",
-    "title": "Verificación de certificado DPC",
-    "codeLabel": "Código consultado",
-    "valid": {
-      "title": "Certificado encontrado",
-      "companyLabel": "Organización",
-      "statusLabel": "Estado",
-      "issuedLabel": "Fecha de emisión",
-      "validUntilLabel": "Vigente hasta",
-      "note": "Certificado privado emitido bajo el Marco de trabajo DPC. No constituye una certificación gubernamental ni suplanta las potestades de la Agencia de Protección de Datos Personales."
-    },
-    "statuses": {
-      "active": "Vigente",
-      "expired": "Expirado",
-      "revoked": "Revocado",
-      "unknown": "Estado desconocido"
-    },
-    "notFound": {
-      "title": "Certificado no encontrado",
-      "text": "El código consultado no corresponde a un certificado DPC emitido. El código debe estar completo y bien escrito."
-    },
-    "unavailable": {
-      "title": "Servicio no disponible",
-      "text": "No es posible verificar certificados en este momento. Se puede intentar nuevamente en unos minutos."
-    }
-  },
   "diagnosis": {
     "splash": {
       "title": "Diagnóstico de protección de datos",
       "subtitle": "Autoevaluación de cumplimiento de la Ley 21.719: un panorama preliminar de brechas y del riesgo de multas. Sin registro, sin compromiso."
     },
-    "progress": "Pregunta {current} de {total}",
-    "progressAria": "Progreso del diagnóstico",
+    "contextDefault": "Ley 21.719",
     "loading": "Cargando…",
     "nav": {
       "back": "Anterior",
@@ -531,121 +364,28 @@
       "message": "Hola, hice el diagnóstico de protección de datos (Ley 21.719). Nivel de riesgo: {level}. {count, plural, =0 {No se detectaron brechas} one {Se detectó # brecha} other {Se detectaron # brechas}}. Quiero conversar con un consultor."
     },
     "result": {
-      "eyebrow": "Resultado de la autoevaluación",
-      "headline": "Panorama de cumplimiento",
-      "intro": "Se detectaron {count, plural, one {# vulnerabilidad} other {# vulnerabilidades}} en {areas, plural, one {# área} other {# áreas}} del tratamiento de datos de la empresa. Es un panorama preliminar; el diagnóstico completo detalla cada hallazgo y su plan de mitigación.",
-      "noBreaches": "No se detectaron brechas significativas en este panorama preliminar. El diagnóstico completo confirma el estado de cumplimiento en detalle.",
+      "headline": "Tu diagnóstico y propuesta de mitigación",
+      "download": "Descargar PDF",
+      "intro": "Detectamos {count, plural, one {# brecha} other {# brechas}} en el tratamiento de datos de tu empresa. Abajo tienes, para cada una, qué significa y cómo cerrarla, paso a paso. Es tuyo y gratis: puedes aplicarlo por tu cuenta.",
+      "noBreaches": "No detectamos brechas significativas con lo que nos contaste. Mantén tus prácticas y vuelve a evaluarte si algo cambia en tu operación.",
       "exposureLabel": "Nivel de exposición",
-      "areasTitle": "Áreas que requieren atención",
-      "areaFindings": "{count, plural, one {# hallazgo} other {# hallazgos}}",
+      "proposalTitle": "Brechas detectadas y cómo cerrarlas",
+      "proposalNote": "Cada brecha trae su plan: meta, acciones concretas, prioridad, esfuerzo y plazo estimado. Toca cada una para ver el detalle.",
+      "objectiveLabel": "Meta",
+      "actionsLabel": "Acciones",
+      "priorityLabel": "Prioridad",
+      "effortLabel": "Esfuerzo",
+      "timeframeLabel": "Plazo",
+      "evidenceLabel": "Respaldo",
+      "weeks": "{weeks, plural, one {# semana} other {# semanas}}",
+      "priorityValues": { "alta": "Alta", "media": "Media", "baja": "Baja" },
+      "effortValues": { "bajo": "Bajo", "medio": "Medio", "alto": "Alto" },
+      "noPlan": "Esta brecha se aborda de forma específica; escríbenos para revisarla en detalle.",
       "cta": {
-        "title": "Obtén el análisis detallado del diagnóstico y tu plan de mitigación de inmediato.",
-        "button": "Continuar"
+        "title": "¿Quieres apoyo para implementar esta propuesta?",
+        "body": "Puedes aplicarla tú mismo con lo que ves aquí, sin costo. Si prefieres que te acompañemos en la implementación, escríbenos por WhatsApp y lo vemos.",
+        "button": "Escribir por WhatsApp"
       }
-    },
-    "lead": {
-      "backToResult": "Volver al resultado",
-      "form": {
-        "title": "Datos de tu empresa",
-        "subtitle": "Con estos datos preparamos tu diagnóstico completo, la propuesta de mitigación y la certificación.",
-        "identificationLegend": "Identificación",
-        "nameLabel": "Razón social",
-        "namePlaceholder": "Empresa S.A.",
-        "rutLabel": "RUT",
-        "rutPlaceholder": "76.543.210-K",
-        "contactLegend": "Contacto",
-        "contactNameLabel": "Nombre de contacto",
-        "contactNamePlaceholder": "Nombre y apellido",
-        "contactEmailLabel": "Correo electrónico",
-        "contactEmailPlaceholder": "nombre@empresa.cl",
-        "contactPhoneLabel": "Teléfono",
-        "contactPhonePlaceholder": "12345678",
-        "passwordLabel": "Contraseña",
-        "passwordPlaceholder": "Mínimo 8 caracteres",
-        "passwordHint": "Con esta contraseña entrarás a tu portal",
-        "sectorLegend": "Rubro",
-        "sectorHint": "Elige el que mejor describe tu operación.",
-        "sizeLegend": "Tamaño de la empresa",
-        "sizeHint": "Según la clasificación chilena por número de personas.",
-        "factorsLegend": "Factores de complejidad",
-        "factorsHint": "Marca los que apliquen (opcional). Ayudan a ajustar el alcance.",
-        "sizeTiers": {
-          "micro": "Microempresa",
-          "small": "Pequeña empresa",
-          "enterprise": "Mediana o grande"
-        },
-        "sizeTierSubs": {
-          "micro": "Hasta 9 personas",
-          "small": "10 a 49 personas",
-          "enterprise": "50 o más personas"
-        },
-        "factors": {
-          "sensitive_data": "Datos sensibles (salud, biométricos, financieros)",
-          "international_transfers": "Transferencias internacionales de datos",
-          "automated_decisions": "Decisiones automatizadas / IA",
-          "multi_site": "Opera en más de una sede",
-          "critical_providers": "Proveedores externos tratan datos por ti",
-          "low_maturity": "Partimos casi de cero"
-        },
-        "continue": "Continuar",
-        "errors": {
-          "name": "Ingresa la razón social.",
-          "rut": "Ingresa un RUT válido.",
-          "contactName": "Ingresa un nombre de contacto.",
-          "contactEmail": "Ingresa un correo o teléfono de contacto.",
-          "contactPhone": "Ingresa los 8 dígitos del teléfono.",
-          "password": "Elige una contraseña de al menos 8 caracteres.",
-          "sectorCode": "Elige un rubro.",
-          "sizeTier": "Elige el tamaño."
-        }
-      },
-      "confirm": {
-        "title": "Confirma tu servicio",
-        "subtitle": "Esto es lo que solicitas al obtener tu diagnóstico completo.",
-        "companyLabel": "Empresa",
-        "serviceTitle": "Qué incluye",
-        "serviceMapping": "Levantamiento del mapa de tratamientos: inventario de datos, sistemas y canales de recepción.",
-        "serviceDiagnosis": "Diagnóstico completo: cada brecha con su base legal.",
-        "serviceMitigation": "Propuesta de mitigación paso a paso.",
-        "serviceCertification": "Certificación final, automática tras validar las mitigaciones.",
-        "priceTitle": "Valor del servicio",
-        "listLabel": "Precio normal:",
-        "launchBadge": "−20% lanzamiento",
-        "amountClp": "≈ {amount} · pago único, IVA incluido",
-        "priceNote": "Descuento de lanzamiento del 20% por tiempo limitado. Considera tu tamaño y la complejidad detectada en el diagnóstico.",
-        "priceNoteQuote": "Bajo cotización, según el alcance del diagnóstico. El descuento de lanzamiento del 20% se aplica sobre el valor final.",
-        "priceFrom": "Desde",
-        "submit": "Confirmar y solicitar",
-        "payButton": "Pagar ahora",
-        "submitting": "Procesando…",
-        "back": "Volver",
-        "error": "No pudimos procesar tu solicitud. Inténtalo nuevamente o escríbenos por WhatsApp.",
-        "accountExists": "Ya existe una cuenta con ese correo. Inicia sesión para continuar."
-      },
-      "done": {
-        "title": "Recibimos tu solicitud",
-        "text": "Un consultor te contactará a la brevedad para coordinar tu diagnóstico completo.",
-        "restart": "Volver al inicio"
-      },
-      "offer": {
-        "from": "Desde",
-        "vat": "+ IVA",
-        "tiers": {
-          "micro": "10 UF",
-          "small": "25 UF",
-          "enterprise": "Desde 60 UF"
-        }
-      }
-    },
-    "pay": {
-      "successTitle": "¡Pago recibido!",
-      "successText": "Gracias. Un consultor se pondrá en contacto para coordinar el inicio de tu diagnóstico completo y la certificación.",
-      "processingTitle": "Estamos confirmando tu pago",
-      "processingText": "Esto puede tardar unos segundos. Si el cobro se completó, recibirás la confirmación en breve.",
-      "cancelTitle": "Pago cancelado",
-      "cancelText": "No se realizó ningún cobro. Puedes retomar el proceso cuando quieras.",
-      "backToDiagnosis": "Volver al diagnóstico",
-      "backToSite": "Ir al inicio"
     }
   }
 }

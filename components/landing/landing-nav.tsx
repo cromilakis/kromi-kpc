@@ -1,23 +1,23 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Logo } from "@/components/ui";
+import { Logo, buttonClasses } from "@/components/ui";
 import { NAV_LINKS } from "./data";
 import { MenuIcon } from "./icons";
-import { WhatsAppButton } from "./whatsapp-button";
 
 /**
  * NAV sticky de la landing (prototipo isLanding §NAV): fondo blanco
  * translúcido con blur, borde Stone, 64px de alto. A la derecha, los anchors
- * de sección (solo desktop) + un CTA "Reservar evaluación" primario SIEMPRE visible
- * (también en móvil) que abre WhatsApp con el mensaje de cotización — camino
- * de conversión persistente durante todo el scroll (cambio 2026-07-04).
+ * de sección (solo desktop) + un botón "Ingreso" SIEMPRE visible (también en
+ * móvil) que lleva a /login (cambio 2026-07-21: ya existe el portal del
+ * cliente). El ruteo por rol resuelve el destino: consultor → /app, cliente
+ * → /portal (rebote en app/app/layout.tsx). La captación (WhatsApp +
+ * autoevaluación) vive en hero, la banda intermedia y pricing.
  * Excepción de marca del lockup logo+tagline: serif Newsreader 17px medium
  * (registrada en .kromi/design.md); la regla "serif >= 28px" rige el resto.
  */
 export async function LandingNav() {
   const t = await getTranslations("landing.nav");
   const tCommon = await getTranslations("common");
-  const tWhatsApp = await getTranslations("landing.whatsapp");
 
   return (
     <header className="sticky top-0 z-50 border-b border-stone bg-white/85 backdrop-blur-[12px]">
@@ -46,17 +46,20 @@ export async function LandingNav() {
               </a>
             ))}
           </nav>
-          <WhatsAppButton
-            message={tWhatsApp("assistedMessage")}
-            className="ml-[6px] px-[14px] py-[8px] max-sm:ml-0"
+          <Link
+            href="/self-assessment"
+            className={buttonClasses(
+              "primary",
+              "ml-[6px] px-[18px] py-[12px] max-sm:ml-0",
+            )}
           >
             {t("cta")}
-          </WhatsAppButton>
+          </Link>
           {/* Menú móvil sin JS (CSS-only <details>): recupera los anchors de
               sección en teléfono, que antes solo existían en desktop. */}
           <details className="relative md:hidden">
             <summary
-              className="flex h-[38px] w-[38px] cursor-pointer list-none items-center justify-center rounded-buttons border border-slate text-ink [&::-webkit-details-marker]:hidden"
+              className="flex h-44 w-44 cursor-pointer list-none items-center justify-center rounded-buttons border border-slate text-ink [&::-webkit-details-marker]:hidden"
               aria-label={t("menu")}
             >
               <MenuIcon />

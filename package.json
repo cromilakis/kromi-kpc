@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "test:rls": "docker exec -i supabase_db_kromi-dpc psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < supabase/tests/client_rls_test.sql",
     "typecheck": "tsc --noEmit",
-    "seed:consultant": "node scripts/create-consultant.mjs"
+    "seed:consultant": "node scripts/create-consultant.mjs",
+    "seed:client": "node scripts/create-client.mjs"
   },
   "dependencies": {
     "@deepgram/sdk": "^5.5.0",
@@ -31,7 +32,6 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "server-only": "^0.0.1",
-    "stripe": "^22.3.0",
     "three": "^0.185.1",
     "zod": "^4.4.3"
   },

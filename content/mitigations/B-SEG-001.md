@@ -44,15 +44,21 @@ seguridad que el equipo conoce y aplica.
 ### Acción 1 — Consolidar los datos en un repositorio con acceso controlado
 
 Migrar las planillas y documentos dispersos a un único repositorio con
-permisos por rol. Opciones habituales para una pyme:
+permisos por rol. Opciones concretas para una pyme en Chile, según el caso:
 
-- Una unidad compartida de **Google Workspace** o **Microsoft 365 Business**
-  con carpetas por área y permisos por persona.
-- El módulo de datos de un **sistema de gestión** (ERP/CRM) que ya se use.
+- **Si ya usan una suite de correo/oficina:** unidad compartida corporativa
+  con permisos por persona — *Google Workspace* (Unidades compartidas de
+  Drive) o *Microsoft 365 Business* (SharePoint / OneDrive corporativo).
+- **Si los datos son sobre todo de clientes/ventas:** el módulo de un
+  *CRM/ERP* que centralice y controle el acceso — por ejemplo *Defontana*,
+  *Nubox*, *Bsale* o *Softland* (gestión chilena), o *HubSpot* / *Zoho CRM*.
+- **Si hay fichas clínicas u otro dato sensible:** un sistema especializado
+  del rubro con control por perfil (evitar Excel/Drive para esos datos).
 
-Una vez migrados, **eliminar las copias sueltas** de escritorios y correos.
+Una vez migrados, **eliminar las copias sueltas** de escritorios, correos y
+pendrives.
 
-*Evidencia a subir:* captura del repositorio mostrando la estructura de
+*Respaldo a conservar:* captura del repositorio mostrando la estructura de
 carpetas y la configuración de permisos.
 
 ### Acción 2 — Cuentas individuales con mínimo privilegio
@@ -66,20 +72,26 @@ usuario accede solo a lo que su función necesita:
 | Ventas / atención | Datos de contacto de clientes |
 | Gerencia | Vista general, sin edición operativa |
 
-Activar **verificación en dos pasos** en todas las cuentas que lo permitan.
+Activar **verificación en dos pasos** en todas las cuentas que lo permitan,
+con una app de autenticación como *Google Authenticator*, *Microsoft
+Authenticator* o *Authy*.
 
-*Evidencia a subir:* listado de usuarios con su nivel de acceso y captura de
-la verificación en dos pasos activa.
+*Respaldo a conservar:* listado de usuarios con su nivel de acceso y captura
+de la verificación en dos pasos activa.
 
 ### Acción 3 — Respaldo y trazabilidad
 
 - Configurar **respaldos periódicos** (idealmente diarios) y probar al menos
-  una vez que se puede restaurar.
+  una vez que se puede restaurar. La propia nube corporativa ya lo ofrece
+  (historial de versiones de Google Workspace o Microsoft 365); como respaldo
+  adicional, un servicio como *Backblaze* o un disco cifrado externo.
+- Cifrar los equipos que acceden a los datos: *BitLocker* (Windows Pro) o
+  *FileVault* (Mac), ambos incluidos en el sistema operativo.
 - Donde el sistema lo permita, activar el **registro de accesos** (quién
   consultó o modificó cada dato).
 
-*Evidencia a subir:* configuración del respaldo (frecuencia) y muestra de la
-bitácora de accesos.
+*Respaldo a conservar:* configuración del respaldo (frecuencia) y muestra de
+la bitácora de accesos.
 
 ### Acción 4 — Política de seguridad y capacitación
 
@@ -89,18 +101,20 @@ contraseñas robustas, prohibición de cuentas de nube personales para datos de
 la empresa, escritorio limpio y revocación de accesos al término de funciones.
 Capacitar al equipo en su aplicación.
 
-*Evidencia a subir:* política firmada y registro de la capacitación.
+*Respaldo a conservar:* política firmada y registro de la capacitación.
 
 ## 4. Documentos tipo disponibles en su portal
 
 - **Política de Seguridad de la Información y Control de Accesos** — base
   lista para personalizar y firmar.
 
-## 5. Cómo se verifica el cierre
+## 5. Cómo dar por abordada esta brecha
 
-La brecha se marca como resuelta cuando estén subidas las evidencias de las
-cuatro acciones. Su consultor DPC revisa cada evidencia antes de considerarla
-válida para la certificación.
+Cuando su equipo haya ejecutado las cuatro acciones, marque la brecha como
+**abordada** en el portal. Es un registro para su propio seguimiento: DPC
+entrega el análisis y esta propuesta; la ejecución y el resguardo de la
+evidencia quedan a cargo de su empresa. Conserve los respaldos indicados en
+cada acción para su propio archivo y ante una eventual fiscalización.
 
 ---
 

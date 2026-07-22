@@ -22,17 +22,19 @@ export async function Hero() {
       <div className="relative">
         <HeroCipher />
         <div className="relative z-10">
-          {/* Pill de urgencia — Ley 21.719 vigente */}
-          <p className="mb-28 inline-flex flex-wrap items-center justify-center gap-x-[9px] gap-y-4 rounded-full border border-danger-red/25 bg-[#f6e9e8] py-[5px] pl-[10px] pr-[14px] text-caption font-semibold text-danger-red">
+          {/* Pill de vigencia — Ley 21.719. Tratamiento sobrio (2026-07-21): el
+              deadline es un hecho, no una alarma; sin rojo de severidad ni
+              parpadeo (regla de marca: apoyo, no amenaza; color solo semántico).
+              La urgencia la comunica el texto de la fecha, no el color. */}
+          <p className="mb-28 inline-flex flex-wrap items-center justify-center gap-x-[9px] gap-y-4 rounded-full border border-stone bg-ash py-[5px] pl-[10px] pr-[14px] text-caption font-semibold text-carbon">
             {/* Dot + badge agrupados: nunca se separan; en móvil el aviso baja a
                 una 2ª línea limpia sin dejar el dot huérfano. */}
             <span className="inline-flex items-center gap-[9px]">
-              {/* motion-safe: sin parpadeo bajo prefers-reduced-motion. */}
               <span
                 aria-hidden="true"
-                className="h-8 w-8 rounded-full bg-danger-red motion-safe:animate-dpc-blink"
+                className="h-8 w-8 rounded-full bg-carbon"
               />
-              <span className="inline-flex items-center rounded-full bg-danger-red px-[9px] py-[2px] text-white">
+              <span className="inline-flex items-center rounded-full bg-ink px-[9px] py-[2px] text-white">
                 {t("hero.lawBadge")}
               </span>
             </span>
@@ -60,22 +62,23 @@ export async function Hero() {
           {/* En móvil los CTAs se apilan en columna con el "o" centrado (antes
               quedaba huérfano a la derecha del botón primario en 390px). */}
           <div className="flex flex-wrap items-center justify-center gap-[10px] max-sm:flex-col">
-            <WhatsAppButton
-              message={t("whatsapp.assistedMessage")}
-              className="px-[22px] py-[13px] text-body"
-            >
-              {t("hero.ctaWhatsApp")}
-            </WhatsAppButton>
-            <span className="text-body-sm font-medium text-carbon">
-              {t("hero.ctaSeparator")}
-            </span>
             <Link
               href="/self-assessment"
-              className={buttonClasses("secondary", "gap-[9px] px-[18px] py-[11px]")}
+              className={buttonClasses("primary", "gap-[9px] px-[22px] py-[13px] text-body")}
             >
               <DocumentIcon className="shrink-0" />
               {t("hero.ctaSelfAssessment")}
             </Link>
+            <span className="text-body-sm font-medium text-carbon">
+              {t("hero.ctaSeparator")}
+            </span>
+            <WhatsAppButton
+              variant="secondary"
+              message={t("whatsapp.assistedMessage")}
+              className="px-[18px] py-[11px]"
+            >
+              {t("hero.ctaWhatsApp")}
+            </WhatsAppButton>
           </div>
         </div>
       </div>

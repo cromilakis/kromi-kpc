@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui";
+import { Button, cn } from "@/components/ui";
 import {
   SCREENING_NODES,
   DEEP_DIVE_BRANCHES,
@@ -10,6 +10,7 @@ import {
   getNextScreeningNode,
   walkScreening,
   computeFullDiagnosis,
+  QUESTION_HELP,
   type DeepDiveAnswer,
   type DeepDiveBranch,
   type DeepDiveQuestion,
@@ -24,12 +25,13 @@ import type { DiagnosisAnswers } from "@/lib/diagnosis/snapshot";
 // ---------------------------------------------------------------------------
 
 const optionCardClasses =
-  "group flex cursor-pointer flex-col gap-[2px] rounded-buttons border border-slate bg-white px-16 py-[13px] transition-colors hover:border-carbon " +
-  "has-[:checked]:border-ink has-[:checked]:bg-ink " +
+  "group flex cursor-pointer items-center gap-12 rounded-buttons border border-slate bg-white px-16 py-[15px] transition-all duration-150 " +
+  "hover:border-carbon hover:bg-haze " +
+  "has-[:checked]:border-ink has-[:checked]:bg-ash " +
   "has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-focus-blue/40";
 
 const optionLabelClasses =
-  "text-body-sm font-medium text-ink group-has-[:checked]:text-white";
+  "text-body-sm font-medium leading-[1.35] text-ink group-has-[:checked]:text-ink";
 
 // ---------------------------------------------------------------------------
 // Secuencia unificada (screening + profundización intercalada)
@@ -76,29 +78,28 @@ export function DiagnosisQuestionnaire({
     new Map(),
   );
   const [customText, setCustomText] = useState<Map<string, string>>(new Map());
-  // IDs de preguntas con "Continuar" ya confirmadas.
-  const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
+  // Índice de la pregunta visible. Navegación explícita (Anterior / Siguiente);
+  // ninguna pregunta auto-avanza. El valor steps.length significa "terminado".
+  const [cursor, setCursor] = useState(0);
   const questionRef = useRef<HTMLDivElement>(null);
 
-  // Una pregunta usa botón "Continuar" (no auto-avanza) si es multi o admite
-  // texto libre: en ambos casos el usuario necesita componer su respuesta.
-  const screeningUsesContinue = (node: ScreeningNode) =>
-    Boolean(node.multiple || node.allowCustom);
-  const deepDiveUsesContinue = (q: DeepDiveQuestion) =>
-    Boolean(q.multiple || q.allowCustom);
-
+  // Una pregunta está respondida si tiene al menos una opción marcada o —cuando
+  // admite texto libre— si el campo libre tiene contenido.
   const isStepAnswered = useCallback(
     (step: Step): boolean => {
-      if (step.kind === "screening") {
-        return screeningUsesContinue(step.node)
-          ? confirmed.has(step.node.id)
-          : (screeningAnswers.get(step.node.id)?.length ?? 0) > 0;
-      }
-      return deepDiveUsesContinue(step.question)
-        ? confirmed.has(step.question.id)
-        : (ddAnswers.get(step.question.id)?.values.length ?? 0) > 0;
+      const id = step.kind === "screening" ? step.node.id : step.question.id;
+      const values =
+        step.kind === "screening"
+          ? screeningAnswers.get(id)
+          : ddAnswers.get(id)?.values;
+      if ((values?.length ?? 0) > 0) return true;
+      const allowsCustom =
+        step.kind === "screening"
+          ? step.node.allowCustom
+          : step.question.allowCustom;
+      return Boolean(allowsCustom && customText.get(id)?.trim());
     },
-    [screeningAnswers, ddAnswers, confirmed],
+    [screeningAnswers, ddAnswers, customText],
   );
 
   // ── Secuencia intercalada ───────────────────────────────────────────
@@ -131,9 +132,9 @@ export function DiagnosisQuestionnaire({
       result.push({ kind: "screening", node });
 
       const vals = screeningAnswers.get(node.id) ?? [];
-      const answered = screeningUsesContinue(node)
-        ? confirmed.has(node.id)
-        : vals.length > 0;
+      const answered =
+        vals.length > 0 ||
+        Boolean(node.allowCustom && customText.get(node.id)?.trim());
       if (!answered) break;
 
       for (const val of vals) {
@@ -158,15 +159,14 @@ export function DiagnosisQuestionnaire({
     }
 
     return result;
-  }, [screeningAnswers, confirmed]);
+  }, [screeningAnswers, customText]);
 
-  const currentIndex = useMemo(
-    () => steps.findIndex((s) => !isStepAnswered(s)),
-    [steps, isStepAnswered],
-  );
-  const currentStep = currentIndex === -1 ? null : steps[currentIndex];
-  const isComplete = steps.length > 0 && currentIndex === -1;
-  const canGoBack = currentIndex > 0;
+  // Cursor acotado al rango válido: steps puede crecer o encogerse al cambiar
+  // respuestas previas. cursor >= steps.length ⇒ "terminado".
+  const allAnswered = steps.length > 0 && steps.every(isStepAnswered);
+  const isComplete = allAnswered && cursor >= steps.length;
+  const currentStep = cursor < steps.length ? steps[cursor] : null;
+  const canGoBack = cursor > 0;
 
   const currentId = currentStep
     ? currentStep.kind === "screening"
@@ -174,22 +174,32 @@ export function DiagnosisQuestionnaire({
       : currentStep.question.id
     : null;
 
-  // Respuestas crudas (screening + deep dive), fuente única: se recorren los
-  // Maps una sola vez acá y tanto `result` como la persistencia del lead
-  // (Task 4) derivan de esta misma lista, sin volver a recorrer los Maps.
+  // Respuestas crudas (screening + deep dive) SOLO de las preguntas que están
+  // en el camino actual (`steps`): así, si el usuario vuelve atrás y cambia una
+  // respuesta que desactiva una rama, las respuestas viejas de esa rama quedan
+  // fuera del resultado. Fuente única para `result` y la persistencia del lead.
   const answersPayload = useMemo<DiagnosisAnswers>(() => {
     const screening: ScreeningAnswer[] = [];
-    screeningAnswers.forEach((values, nodeId) => {
-      for (const value of values) screening.push({ nodeId, value });
-    });
     const deepDive: DeepDiveAnswer[] = [];
-    ddAnswers.forEach((entry, questionId) => {
-      for (const value of entry.values) {
-        deepDive.push({ questionId, branchId: entry.branchId, value });
+    for (const step of steps) {
+      if (step.kind === "screening") {
+        const vals = screeningAnswers.get(step.node.id) ?? [];
+        for (const value of vals) screening.push({ nodeId: step.node.id, value });
+      } else {
+        const entry = ddAnswers.get(step.question.id);
+        if (entry) {
+          for (const value of entry.values) {
+            deepDive.push({
+              questionId: step.question.id,
+              branchId: entry.branchId,
+              value,
+            });
+          }
+        }
       }
-    });
+    }
     return { screening, deepDive };
-  }, [screeningAnswers, ddAnswers]);
+  }, [steps, screeningAnswers, ddAnswers]);
 
   // ── Resultado completo ──────────────────────────────────────────────
   const result = useMemo(() => {
@@ -203,10 +213,16 @@ export function DiagnosisQuestionnaire({
     );
   }, [isComplete, answersPayload]);
 
-  // ── Focus management ────────────────────────────────────────────────
+  // ── Focus management + clamp del cursor ─────────────────────────────
   useEffect(() => {
     questionRef.current?.focus();
-  }, [currentIndex]);
+  }, [cursor]);
+
+  // Si steps se encoge por debajo del cursor (cambio de respuesta previa),
+  // reacota el cursor para no quedar fuera de rango.
+  useEffect(() => {
+    if (cursor > steps.length) setCursor(steps.length);
+  }, [steps.length, cursor]);
 
   const currentValues = useMemo<string[]>(() => {
     if (!currentStep) return [];
@@ -224,8 +240,6 @@ export function DiagnosisQuestionnaire({
       if (currentStep.kind === "screening") {
         const { id } = currentStep.node;
         setScreeningAnswers((prev) => new Map(prev).set(id, [value]));
-        // Selección única sin "Continuar" avanza sola.
-        if (!screeningUsesContinue(currentStep.node)) return;
       } else {
         const { question, branch } = currentStep;
         setDdAnswers((prev) =>
@@ -271,48 +285,22 @@ export function DiagnosisQuestionnaire({
     [currentId],
   );
 
-  const confirmStep = useCallback(() => {
-    if (!currentId) return;
-    if (currentValues.length === 0 && !currentCustom.trim()) return;
-    setConfirmed((prev) => new Set(prev).add(currentId));
-  }, [currentId, currentValues, currentCustom]);
+  // Navegación explícita: Anterior no borra respuestas (se conservan al volver);
+  // Siguiente solo avanza si la pregunta actual está respondida.
+  const goPrev = useCallback(() => {
+    setCursor((c) => Math.max(0, c - 1));
+  }, []);
 
-  const goBack = useCallback(() => {
-    if (currentIndex <= 0) return;
-    const prev = steps[currentIndex - 1];
-    const id = prev.kind === "screening" ? prev.node.id : prev.question.id;
-    setConfirmed((set) => {
-      if (!set.has(id)) return set;
-      const next = new Set(set);
-      next.delete(id);
-      return next;
-    });
-    setCustomText((map) => {
-      if (!map.has(id)) return map;
-      const next = new Map(map);
-      next.delete(id);
-      return next;
-    });
-    if (prev.kind === "screening") {
-      setScreeningAnswers((map) => {
-        const next = new Map(map);
-        next.delete(prev.node.id);
-        return next;
-      });
-    } else {
-      setDdAnswers((map) => {
-        const next = new Map(map);
-        next.delete(prev.question.id);
-        return next;
-      });
-    }
-  }, [currentIndex, steps]);
+  const goNext = useCallback(() => {
+    if (!currentStep || !isStepAnswered(currentStep)) return;
+    setCursor((c) => c + 1);
+  }, [currentStep, isStepAnswered]);
 
   const restart = useCallback(() => {
     setScreeningAnswers(new Map());
     setDdAnswers(new Map());
     setCustomText(new Map());
-    setConfirmed(new Set());
+    setCursor(0);
   }, []);
 
   // ── Result screen ───────────────────────────────────────────────────
@@ -336,10 +324,6 @@ export function DiagnosisQuestionnaire({
     currentStep.kind === "screening"
       ? Boolean(currentStep.node.allowCustom)
       : Boolean(currentStep.question.allowCustom);
-  const usesContinue =
-    currentStep.kind === "screening"
-      ? screeningUsesContinue(currentStep.node)
-      : deepDiveUsesContinue(currentStep.question);
   const questionText =
     currentStep.kind === "screening"
       ? currentStep.node.question
@@ -353,29 +337,87 @@ export function DiagnosisQuestionnaire({
       ? `q-${currentStep.node.id}`
       : `dd-${currentStep.branch.id}-${currentStep.question.id}`;
 
+  const contextLabel =
+    currentStep.kind === "deepdive" ? currentStep.branch.name : t("contextDefault");
+  const helpText = currentId ? (QUESTION_HELP[currentId] ?? null) : null;
+
+  const legendId = `q-legend-${currentId}`;
+  const canProceed = isStepAnswered(currentStep);
+  // "Ver resultado" solo cuando ya no quedan preguntas por delante: todas
+  // respondidas (⇒ la cadena está construida completa) y estamos en la última.
+  const isLastStep = allAnswered && cursor === steps.length - 1;
+
   return (
-    <div className="mx-auto w-full max-w-[640px]">
+    <div className="mx-auto w-full max-w-[720px]">
       <div
         ref={questionRef}
         tabIndex={-1}
-        className="rounded-xl border border-stone bg-white p-[30px] outline-none max-sm:p-20"
+        className="rounded-xl border border-stone bg-white p-40 outline-none max-sm:p-24"
       >
-        <fieldset>
-          {currentStep.kind === "deepdive" && (
-            <p className="mb-8 text-caption font-semibold uppercase tracking-[0.4px] text-metal">
-              {currentStep.branch.name}
-            </p>
-          )}
-          <legend className="mb-4 text-[15px] font-semibold leading-[1.4] text-ink">
-            {questionText}
-          </legend>
+        <fieldset aria-labelledby={legendId}>
+          {/* Encabezado: ícono "?" que abarca TODO el alto del bloque de la
+              derecha (SVG que se estira con items-stretch); a la derecha, en
+              orden, la ley asociada (chica), la pregunta y una descripción muy
+              breve de qué aporta al diagnóstico. */}
+          <div className="flex items-stretch gap-20 max-sm:gap-16">
+            <div className="relative w-[64px] shrink-0 self-stretch max-sm:w-[48px]">
+              <svg
+                aria-hidden
+                viewBox="0 0 54 76"
+                preserveAspectRatio="xMidYMid meet"
+                className="absolute inset-0 h-full w-full text-lead"
+              >
+                <text
+                  x="27"
+                  y="70"
+                  textAnchor="middle"
+                  className="font-serif"
+                  fontSize="96"
+                  fontWeight="500"
+                  fill="currentColor"
+                >
+                  ?
+                </text>
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-caption font-semibold uppercase tracking-[0.4px] text-carbon">
+                {contextLabel}
+              </p>
+              <p
+                id={legendId}
+                className="mt-4 text-balance text-[22px] font-semibold leading-[1.3] tracking-[-0.3px] text-ink max-sm:text-[19px]"
+              >
+                {questionText}
+              </p>
+              {helpText && (
+                <p className="mt-4 max-w-[60ch] text-body-sm leading-[1.5] text-metal">
+                  {helpText}
+                </p>
+              )}
+            </div>
+          </div>
+
           {isMulti && (
-            <p className="mb-4 text-caption text-metal">{t("multiHint")}</p>
+            <p className="mt-12 text-caption text-metal">{t("multiHint")}</p>
           )}
 
-          <div className="mt-16 grid gap-8">
-            {options.map((option) => (
-              <label key={option.value} className={optionCardClasses}>
+          {/* Línea divisoria entre la pregunta y las opciones. */}
+          <div className="mt-24 border-t border-stone" />
+
+          {/* Opciones en grilla (no barras estiradas). Con número impar de
+              opciones, la última ocupa el ancho completo para no dejar un hueco. */}
+          <div className="mt-20 grid gap-10 sm:grid-cols-2">
+            {options.map((option, i) => (
+              <label
+                key={option.value}
+                className={cn(
+                  optionCardClasses,
+                  options.length % 2 === 1 && i === options.length - 1
+                    ? "sm:col-span-2"
+                    : "",
+                )}
+              >
                 <input
                   type={isMulti ? "checkbox" : "radio"}
                   name={groupName}
@@ -386,6 +428,33 @@ export function DiagnosisQuestionnaire({
                   }
                   className="sr-only"
                 />
+                <span
+                  aria-hidden
+                  className={cn(
+                    "mt-[1px] flex size-[18px] shrink-0 items-center justify-center border border-slate bg-white transition-colors group-has-[:checked]:border-ink group-has-[:checked]:bg-ink",
+                    isMulti ? "rounded-[5px]" : "rounded-full",
+                  )}
+                >
+                  {isMulti ? (
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="text-white opacity-0 group-has-[:checked]:opacity-100"
+                    >
+                      <path
+                        d="M20 6L9 17l-5-5"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    <span className="size-[7px] rounded-full bg-white opacity-0 group-has-[:checked]:opacity-100" />
+                  )}
+                </span>
                 <span className={optionLabelClasses}>{option.label}</span>
               </label>
             ))}
@@ -410,25 +479,31 @@ export function DiagnosisQuestionnaire({
             </div>
           )}
 
-          {usesContinue && (
-            <Button
-              onClick={confirmStep}
-              disabled={currentValues.length === 0 && !currentCustom.trim()}
-              className="mt-16 w-full px-24 py-12"
-            >
-              {t("nav.continue")}
-            </Button>
-          )}
         </fieldset>
-      </div>
 
-      {canGoBack && (
-        <div className="mt-20">
-          <Button variant="ghost" onClick={goBack}>
-            {t("nav.back")}
+        {/* Navegación explícita entre preguntas. La primera pregunta no muestra
+            "Anterior" (un spacer mantiene "Siguiente" a la derecha). */}
+        <div className="mt-24 flex items-center justify-between gap-12 border-t border-ash pt-20">
+          {canGoBack ? (
+            <Button
+              variant="ghost"
+              onClick={goPrev}
+              className="px-0 hover:bg-transparent hover:underline"
+            >
+              ← {t("nav.back")}
+            </Button>
+          ) : (
+            <span aria-hidden />
+          )}
+          <Button
+            onClick={goNext}
+            disabled={!canProceed}
+            className="px-24 py-12 disabled:pointer-events-none disabled:opacity-40"
+          >
+            {isLastStep ? t("nav.seeResult") : t("nav.next")}
           </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

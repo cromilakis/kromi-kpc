@@ -17,7 +17,7 @@ export interface PublicTopbarProps {
 
 export function PublicTopbar({ logoAlt, tagline, backLabel }: PublicTopbarProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-stone bg-white/85 backdrop-blur-[12px]">
+    <header className="sticky top-0 z-50 border-b border-stone bg-white/85 backdrop-blur-[12px] print:hidden">
       <div className="mx-auto flex h-[64px] w-full max-w-[1080px] items-center justify-between px-32 max-sm:px-16">
         <Link href="/" className="flex items-center gap-[10px]">
           <Logo alt={logoAlt} height={36} priority />

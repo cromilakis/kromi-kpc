@@ -34,6 +34,16 @@ export { DEEP_DIVE_BRANCHES } from "./deep-dive-branches";
 
 export { INFERENCE_RULES } from "./inference-rules";
 
+export { QUESTION_HELP } from "./question-help";
+
+export { getBreachMitigation, BREACH_MITIGATION } from "./breach-mitigation";
+export type {
+  BreachMitigation,
+  MitigationAction,
+  MitigationPriority,
+  MitigationEffort,
+} from "./breach-mitigation";
+
 export {
   walkScreening,
   getNextScreeningNode,

@@ -44,16 +44,20 @@ export async function LandingFooter() {
             <div className="mb-[14px] text-body-sm font-medium text-white">
               {t(`columns.${column.key}.title`)}
             </div>
-            <ul className="flex flex-col gap-[10px]">
+            <ul className="flex flex-col gap-[2px]">
               {column.links.map((link) => {
                 const label = t(`columns.${column.key}.links.${link.key}`);
+                // Área de tap ≥36px (AA 2.5.8 pide ≥24px; los links de footer
+                // eran ~20px). inline-flex + min-h da la altura sin inflar el gap.
                 const linkClass =
-                  "text-body-sm text-overcast transition-colors hover:text-white";
+                  "inline-flex min-h-[36px] items-center text-body-sm text-overcast transition-colors hover:text-white";
                 const hidden = isStaticDemo && link.href === "/login";
                 if (!link.href || hidden) {
                   return (
                     <li key={link.key}>
-                      <span className="text-body-sm text-metal">{label}</span>
+                      <span className="inline-flex min-h-[36px] items-center text-body-sm text-metal">
+                        {label}
+                      </span>
                     </li>
                   );
                 }

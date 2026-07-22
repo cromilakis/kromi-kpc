@@ -13,16 +13,6 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const isGitHubPages = process.env.GITHUB_PAGES === "1";
 
 const nextConfig: NextConfig = {
-  // i18n/request.ts lee messages/app/*.json vía fs en runtime (deep-merge por
-  // módulo): se declaran aquí para que el file tracing de `next build` los
-  // incluya en el server bundle (el import estático de es.json ya se tracea).
-  outputFileTracingIncludes: {
-    // messages/app/*.json: i18n runtime (fs). content/mitigations/*.md:
-    // propuestas de mitigación authoreadas en markdown (sub-proyecto detalle
-    // premium 2026-07-21), leídas por fs en la ruta de descarga → deben
-    // tracearse en el server bundle.
-    "/**": ["./messages/app/*.json", "./content/mitigations/*.md"],
-  },
   serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium"],
   ...(isGitHubPages
     ? {
@@ -32,28 +22,12 @@ const nextConfig: NextConfig = {
         trailingSlash: true,
       }
     : {
-        // Rutas públicas/internas renombradas ES→EN: 301 permanentes para
-        // preservar enlaces existentes (no aplican en output:export).
+        // Enlace público en español → ruta canónica (no aplica en output:export).
         async redirects() {
           return [
             {
               source: "/autoevaluacion",
               destination: "/self-assessment",
-              permanent: true,
-            },
-            {
-              source: "/verificar/:code",
-              destination: "/verify/:code",
-              permanent: true,
-            },
-            {
-              source: "/app/empresas",
-              destination: "/app/companies",
-              permanent: true,
-            },
-            {
-              source: "/app/empresas/:path*",
-              destination: "/app/companies/:path*",
               permanent: true,
             },
           ];

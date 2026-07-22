@@ -4,6 +4,22 @@ Propuesta de Negocio y Diseño del Marco de Trabajo Multilaboral y Sectorial
 
 *Protección Certificada.*
 
+> ## ⚠️ Alcance actual (pivote 2026-07-22) — LEER PRIMERO
+>
+> Este RFC describe la visión completa (cara pública + plataforma interna + certificación +
+> precios). **El producto en código hoy está reducido a la cara pública**: una **landing** y una
+> **autoevaluación gratuita** que entrega **diagnóstico + propuesta de mitigación completa**
+> (pantalla + PDF). **No se cobra por nada en el sitio y no se habla de dinero**; el único gancho
+> es **WhatsApp** (+56945131427) para pedir apoyo en la implementación, donde recién se estima
+> la prestación.
+>
+> Se eliminó del código la **plataforma interna** (portal, app de consultor, certificación,
+> `/verify`, login, Supabase, Stripe); la app quedó en `/` y `/self-assessment`. Todo lo que
+> este RFC describe sobre la **intranet, la certificación y los precios en UF queda DIFERIDO**
+> y se reconstruirá más adelante, con clientes y una forma de trabajo definida. Se conserva como
+> especificación de referencia. Ante conflicto, manda este aviso y la memoria del proyecto
+> (`modelo-negocio-servicio-no-info`).
+
 ---
 
 **Versión: 0.4 (Documento de Especificación Ampliado — Arquitectura por Principios, Modelo Comercial y Embudo)**

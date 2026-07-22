@@ -13,11 +13,11 @@ export async function CycleSection() {
   return (
     <section
       id="ciclo"
-      className="scroll-mt-[64px] border-y border-ash bg-[#fbfbfc]"
+      className="scroll-mt-[64px] border-y border-ash bg-haze"
     >
       <div className="mx-auto w-full max-w-[1180px] px-32 py-80 max-sm:px-16 max-sm:py-60">
         <SectionHeading
-          align="center"
+          align="left"
           eyebrow={t("eyebrow")}
           title={t("title")}
           className="mb-48"

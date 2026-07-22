@@ -4,10 +4,8 @@ import {
   AGENCIES,
   COMPLEMENTARY_DOMAINS,
   CYCLE_PHASES,
-  DOSSIER_DOCS,
   FOOTER_COLUMNS,
   NAV_LINKS,
-  PRICING_TIERS,
   PRINCIPLE_DOMAINS,
   STAKES,
   SUPPORT_ITEMS,
@@ -36,15 +34,12 @@ describe('landing i18n — el catálogo cubre la data estructurada', () => {
     }
   })
 
-  it('sanciones, fases, expediente, acompañamiento y agencias tienen textos', () => {
+  it('sanciones, fases, acompañamiento y agencias tienen textos', () => {
     for (const stake of STAKES) {
       expect(asRecord(es.landing.stakes.items)[stake.key]).toBeDefined()
     }
     for (const phase of CYCLE_PHASES) {
       expect(asRecord(es.landing.cycle.phases)[phase]).toBeDefined()
-    }
-    for (const doc of DOSSIER_DOCS) {
-      expect(asRecord(es.landing.deliverable.dossier.docs)[doc]).toBeTruthy()
     }
     for (const item of SUPPORT_ITEMS) {
       expect(asRecord(es.landing.support.items)[item]).toBeDefined()
@@ -55,12 +50,9 @@ describe('landing i18n — el catálogo cubre la data estructurada', () => {
     for (const link of NAV_LINKS) {
       expect(asRecord(es.landing.nav)[link.key]).toBeTruthy()
     }
-    for (const tier of PRICING_TIERS) {
-      expect(asRecord(es.landing.pricing.tiers)[tier.key]).toBeDefined()
-    }
   })
 
-  it('el footer tiene columnas completas y el acceso discreto al panel', () => {
+  it('el footer tiene columnas completas con enlaces con texto', () => {
     for (const column of FOOTER_COLUMNS) {
       const col = asRecord(asRecord(es.landing.footer.columns)[column.key])
       expect(col).toBeDefined()
@@ -69,14 +61,9 @@ describe('landing i18n — el catálogo cubre la data estructurada', () => {
         expect(links[link.key], `link ${column.key}.${link.key}`).toBeTruthy()
       }
     }
-    const panelLink = FOOTER_COLUMNS.flatMap((c) => c.links).find(
-      (l) => l.key === 'consultantPanel',
-    )
-    expect(panelLink?.href).toBe('/login')
   })
 
-  it('el expediente usa la nomenclatura ARCOP del RFC (no ARSOP)', () => {
-    expect(es.landing.deliverable.dossier.docs.arcop).toContain('ARCOP')
+  it('la landing usa la nomenclatura ARCOP del RFC (no ARSOP)', () => {
     expect(JSON.stringify(es.landing)).not.toContain('ARSOP')
   })
 

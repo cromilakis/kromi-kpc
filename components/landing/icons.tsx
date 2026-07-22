@@ -142,6 +142,50 @@ export function ShieldCheckIcon({ size = 22, className }: IconProps) {
   );
 }
 
+/** Persona (consultor asignado — acompañamiento). */
+export function UserIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" />
+    </svg>
+  );
+}
+
+/** Ciclo/actualización (seguimiento periódico). */
+export function RefreshIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M20 11a8 8 0 0 0-14-5l-2 2" />
+      <path d="M4 5v3h3" />
+      <path d="M4 13a8 8 0 0 0 14 5l2-2" />
+      <path d="M20 19v-3h-3" />
+    </svg>
+  );
+}
+
 /** Menú hamburguesa (nav móvil de la landing). */
 export function MenuIcon({ size = 20, className }: IconProps) {
   return (

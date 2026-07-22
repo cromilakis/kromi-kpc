@@ -24,7 +24,7 @@ export async function StakesSection() {
     >
       {/* Banda de contexto: sanciones de la Ley 21.719 (UTM / CLP) como dato. */}
       <div className="overflow-hidden rounded-xl border border-stone bg-white text-left shadow-[rgba(28,40,64,0.08)_0px_8px_24px_-12px]">
-        <div className="flex flex-wrap items-center justify-between gap-16 border-b border-ash bg-[#fbfbfc] px-24 py-[18px]">
+        <div className="flex flex-wrap items-center justify-between gap-16 border-b border-ash bg-haze px-24 py-[18px]">
           <span className="text-[13px] font-semibold tracking-[-0.1px] text-ink">
             {t("stakes.title")}
           </span>
@@ -66,7 +66,7 @@ export async function StakesSection() {
           ))}
         </div>
         {/* Cierre: encuadre de apoyo — cumplir es abordable y te acompañamos. */}
-        <div className="border-t border-ash bg-[#fbfbfc] px-24 py-[18px]">
+        <div className="border-t border-ash bg-haze px-24 py-[18px]">
           <p className="text-[13px] leading-[1.55] text-carbon">
             <b className="font-semibold text-ink">{t("stakes.supportLead")}</b>{" "}
             {t("stakes.support")}
@@ -77,7 +77,7 @@ export async function StakesSection() {
       {/* "¿Alguna te suena?" — preguntas de reconocimiento: el lector se ve
           reflejado en situaciones cotidianas y el cierre reencuadra en apoyo
           (nunca en amenaza) con los dos caminos de conversión. */}
-      <div className="mt-16 rounded-xl border border-stone bg-[#fbfbfc] px-32 py-40 max-sm:px-20">
+      <div className="mt-16 rounded-xl border border-stone bg-haze px-32 py-40 max-sm:px-20">
         <p className="text-center text-caption font-semibold uppercase tracking-[0.4px] text-carbon">
           {t("stakes.everyday.label")}
         </p>

@@ -1,14 +1,11 @@
 import { AgenciesCloud } from "@/components/landing/agencies-cloud";
 import { CtaBand } from "@/components/landing/cta-band";
 import { CycleSection } from "@/components/landing/cycle-section";
-import { DeliverableSection } from "@/components/landing/deliverable-section";
 import { DomainsSection } from "@/components/landing/domains-section";
 import { FaqSection } from "@/components/landing/faq-section";
 import { Hero } from "@/components/landing/hero";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { ModelSection } from "@/components/landing/model-section";
-import { PricingSection } from "@/components/landing/pricing-section";
 import { SmoothScrollProvider } from "@/components/landing/smooth-scroll-provider";
 import { StakesSection } from "@/components/landing/stakes-section";
 import { SupportSection } from "@/components/landing/support-section";
@@ -36,12 +33,9 @@ export default function LandingPage() {
         <DomainsSection />
         <AgenciesCloud />
         <CycleSection />
-        <DeliverableSection />
-        <CtaBand />
         <SupportSection />
-        <ModelSection />
         <FaqSection />
-        <PricingSection />
+        <CtaBand />
       </main>
       <LandingFooter />
     </div>

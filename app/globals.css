@@ -8,6 +8,7 @@
 @theme {
   /* Colors */
   --color-white: #ffffff;
+  --color-haze: #fbfbfc; /* superficie tenue (bandas y cards de sección) */
   --color-ash: #f3f4f6;
   --color-stone: #e4e7ec;
   --color-slate: #d3d8df;

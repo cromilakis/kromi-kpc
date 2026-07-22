@@ -3,21 +3,8 @@
  * El número sale de NEXT_PUBLIC_WHATSAPP_NUMBER (inlined en build por Next).
  */
 
-// Fallback del prototipo -- pendiente número real
-const FALLBACK_WHATSAPP_NUMBER = "56900000000";
-
-// Aviso único a nivel módulo (solo servidor): en producción sin número real,
-// todos los CTAs de WhatsApp quedan apuntando al placeholder del prototipo.
-if (
-  typeof window === "undefined" &&
-  process.env.NODE_ENV === "production" &&
-  !process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
-) {
-  console.warn(
-    "[whatsapp] NEXT_PUBLIC_WHATSAPP_NUMBER no está definido: los CTAs de " +
-      `WhatsApp apuntan al número placeholder ${FALLBACK_WHATSAPP_NUMBER}.`,
-  );
-}
+// Número real de DPC (fallback si no se define NEXT_PUBLIC_WHATSAPP_NUMBER).
+const FALLBACK_WHATSAPP_NUMBER = "56945131427";
 
 /** URL de WhatsApp con mensaje prellenado (los mensajes viven en es.json). */
 export function whatsappUrl(message: string): string {

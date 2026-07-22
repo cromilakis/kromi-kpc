@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { WhatsAppButton } from "./whatsapp-button";
+import { DocumentIcon } from "./icons";
 
 /**
  * CTA intermedio (cambio 2026-07-04): banda de cierre a mitad de página, tras
@@ -10,7 +11,6 @@ import { WhatsAppButton } from "./whatsapp-button";
  */
 export async function CtaBand() {
   const t = await getTranslations("landing.ctaBand");
-  const tWhatsApp = await getTranslations("landing.whatsapp");
 
   return (
     <section className="mx-auto w-full max-w-[1180px] px-32 py-40 max-sm:px-16">
@@ -28,13 +28,13 @@ export async function CtaBand() {
             banda de recuperación a mitad de página un solo botón fuerte es más
             contundente que el par; la autoevaluación reaparece en el cierre. */}
         <div className="mt-28 flex justify-center">
-          <WhatsAppButton
-            inverted
-            message={tWhatsApp("assistedMessage")}
-            className="px-[22px] py-[13px] text-body"
+          <Link
+            href="/self-assessment"
+            className="inline-flex items-center justify-center gap-[9px] rounded-buttons bg-white px-[22px] py-[13px] text-body font-medium text-ink transition-opacity hover:opacity-90"
           >
-            {t("ctaWhatsApp")}
-          </WhatsAppButton>
+            <DocumentIcon className="shrink-0" />
+            {t("cta")}
+          </Link>
         </div>
       </div>
     </section>

@@ -227,19 +227,19 @@ export const BREACH_MITIGATION: Record<string, BreachMitigation> = {
       {
         title: "Consolidar los datos en un repositorio con acceso controlado",
         detail:
-          "Migrar las planillas Excel y los documentos dispersos en computadores locales a un sistema de gestión o carpeta corporativa con permisos por rol; retirar las copias sueltas una vez migradas.",
+          "Migrar las planillas Excel y documentos sueltos a una unidad corporativa con permisos por rol (Google Workspace o Microsoft 365 Business) o al módulo de un ERP/CRM de gestión (Defontana, Nubox, Bsale, o un CRM como HubSpot/Zoho); retirar las copias sueltas una vez migradas.",
         evidence: "Captura del repositorio con la estructura de carpetas y la configuración de permisos.",
       },
       {
         title: "Crear cuentas individuales con mínimo privilegio",
         detail:
-          "Reemplazar los usuarios compartidos por una cuenta por persona, con acceso solo a lo que su función requiere; activar verificación en dos pasos donde el sistema lo permita.",
+          "Reemplazar los usuarios compartidos por una cuenta por persona, con acceso solo a lo que su función requiere; activar verificación en dos pasos (Google/Microsoft Authenticator o Authy) donde el sistema lo permita.",
         evidence: "Listado de usuarios y sus niveles de acceso; captura de la verificación en dos pasos activa.",
       },
       {
         title: "Habilitar respaldo y bitácora",
         detail:
-          "Configurar respaldos periódicos probados y, donde el sistema lo permita, el registro de quién accede o modifica los datos.",
+          "Aprovechar el respaldo e historial de versiones de la nube corporativa (o un servicio como Backblaze), cifrar los equipos con BitLocker/FileVault y, donde el sistema lo permita, activar el registro de quién accede o modifica los datos.",
         evidence: "Configuración del respaldo (frecuencia) y muestra de la bitácora de accesos.",
       },
       {
@@ -268,7 +268,7 @@ export const BREACH_MITIGATION: Record<string, BreachMitigation> = {
       {
         title: "Endurecer el acceso",
         detail:
-          "Activar verificación en dos pasos para todas las cuentas y cifrado en los dispositivos que acceden a los datos.",
+          "Activar verificación en dos pasos (Google/Microsoft Authenticator o Authy) para todas las cuentas y cifrado en los dispositivos que acceden (BitLocker en Windows, FileVault en Mac).",
         evidence: "Captura de la verificación en dos pasos y del cifrado del dispositivo.",
       },
       {
@@ -488,7 +488,7 @@ export const BREACH_MITIGATION: Record<string, BreachMitigation> = {
       {
         title: "Definir y publicar el canal de derechos",
         detail:
-          "Habilitar un canal único (correo o formulario) para recibir solicitudes de derechos y publicarlo en la política de tratamiento y en el sitio.",
+          "Habilitar un canal único —un correo dedicado (p. ej. privacidad@tuempresa.cl) o un formulario (Google Forms, Microsoft Forms, Typeform)— para recibir solicitudes de derechos y publicarlo en la política de tratamiento y en el sitio.",
         evidence: "Canal publicado (URL o correo) y mención en la política.",
       },
       {
@@ -523,7 +523,7 @@ export const BREACH_MITIGATION: Record<string, BreachMitigation> = {
       {
         title: "Migrar a un sistema con perfiles y trazabilidad",
         detail:
-          "Llevar los registros clínicos a un sistema que controle el acceso por perfil y registre quién consulta cada ficha (Art. 12-15 Ley 20.584).",
+          "Llevar los registros clínicos a un sistema de ficha clínica electrónica que controle el acceso por perfil y registre quién consulta cada ficha (por ejemplo Rayen, Medilink, Nubimed o Agendapro), en vez de Excel o Drive (Art. 12-15 Ley 20.584).",
         evidence: "Captura del sistema con control por perfil y registro de accesos.",
       },
       {
@@ -581,7 +581,7 @@ export const BREACH_MITIGATION: Record<string, BreachMitigation> = {
       {
         title: "Ofrecer alternativa no biométrica",
         detail:
-          "Habilitar una opción sin biometría (tarjeta o PIN) para quien no consienta, sin consecuencias; el consentimiento en contexto laboral debe ser libre (dictámenes DT).",
+          "Habilitar una opción sin biometría (tarjeta o PIN) para quien no consienta, sin consecuencias; muchos sistemas de control horario chilenos la permiten (Geovictoria, Talana, BUK). El consentimiento en contexto laboral debe ser libre (dictámenes DT).",
         evidence: "Constancia de la alternativa disponible y de quiénes la usan.",
       },
       {
@@ -674,7 +674,7 @@ export const BREACH_MITIGATION: Record<string, BreachMitigation> = {
       {
         title: "Gestionar cookies con consentimiento",
         detail:
-          "Implementar un banner de cookies que permita aceptar o rechazar las de terceros antes de instalarlas.",
+          "Implementar un banner de cookies que permita aceptar o rechazar las de terceros antes de instalarlas (Cookiebot, Complianz o CookieYes; si el sitio es WordPress, hay plugins directos).",
         evidence: "Captura del banner de cookies con opción de rechazo.",
       },
     ],
@@ -755,7 +755,7 @@ export const BREACH_MITIGATION: Record<string, BreachMitigation> = {
       {
         title: "Restringir el acceso a datos laborales",
         detail:
-          "Limitar el acceso a carpetas personales y remuneraciones solo a quienes lo necesitan por su función.",
+          "Limitar el acceso a carpetas personales y remuneraciones solo a quienes lo necesitan por su función; una plataforma de RRHH (Talana, BUK, Rex) permite el control por rol en vez de carpetas compartidas.",
         evidence: "Matriz de accesos a datos de personal.",
       },
       {

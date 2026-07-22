@@ -558,7 +558,7 @@ export function DomainsMesh({
                 type="button"
                 onClick={() => setActive(on ? null : i)}
                 className={
-                  "flex w-full items-center gap-8 rounded-buttons border px-12 py-8 text-left text-body-sm transition-colors max-lg:whitespace-nowrap " +
+                  "flex w-full items-center gap-8 rounded-buttons border px-12 py-8 text-left text-body-sm transition-colors max-lg:whitespace-nowrap max-lg:py-[12px] " +
                   (on
                     ? "border-ink bg-ink text-white"
                     : "border-stone bg-white text-carbon hover:border-carbon")
@@ -576,11 +576,46 @@ export function DomainsMesh({
 
       <div
         ref={wrap}
-        className="relative min-h-[560px] overflow-hidden rounded-cards border border-stone bg-[#fbfbfc]"
+        className={
+          "relative overflow-hidden rounded-cards border border-stone bg-haze " +
+          (reduced ? "min-h-[360px]" : "min-h-[560px]")
+        }
       >
+        {/* Fallback estático (reduced-motion): en vez de un vacío con "elige un
+            dominio", el mismo detalle del dominio activo que muestra la esfera,
+            en un panel legible. */}
         {reduced ? (
-          <div className="flex h-full min-h-[560px] items-center justify-center text-caption text-carbon">
-            {emptyPrompt}
+          <div className="flex h-full flex-col justify-center gap-8 p-24 max-sm:p-16">
+            {active !== null ? (
+              <>
+                <span className="tabular-nums text-caption font-semibold text-carbon">
+                  {String(active + 1).padStart(2, "0")}
+                </span>
+                <h3 className="font-serif text-[24px] font-medium leading-[1.15] tracking-[-0.4px] text-ink max-sm:text-[19px]">
+                  {domains[active].title}
+                </h3>
+                <span
+                  aria-hidden
+                  className="block h-[3px] w-40 rounded-full"
+                  style={{ backgroundColor: ACCENT }}
+                />
+                <p className="max-w-[72ch] text-body-sm leading-[1.5] text-carbon">
+                  {domains[active].expansion && (
+                    <span className="max-sm:hidden">
+                      {domains[active].expansion}{" "}
+                    </span>
+                  )}
+                  {domains[active].desc}
+                </p>
+              </>
+            ) : (
+              <h3 className="font-serif text-[26px] font-medium tracking-[-0.4px] text-carbon">
+                {emptyPrompt}
+              </h3>
+            )}
+            <p className="mt-8 text-caption leading-[1.5] text-carbon">
+              {phrase}
+            </p>
           </div>
         ) : inView ? (
           <Canvas
@@ -616,8 +651,11 @@ export function DomainsMesh({
           </div>
         )}
 
-        {/* Dominio seleccionado: título + subrayado de color + descripción */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-[#fbfbfc]/95 to-transparent p-24 max-sm:p-16">
+        {/* Dominio seleccionado: título + subrayado de color + descripción.
+            Solo en la vista con esfera; el fallback reduced-motion ya lo muestra. */}
+        {!reduced && (
+        <>
+        <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-haze/95 to-transparent p-24 max-sm:p-16">
           {active !== null ? (
             <>
               <h3 className="font-serif text-[24px] font-medium leading-[1.15] tracking-[-0.4px] text-ink max-sm:text-[19px]">
@@ -646,9 +684,11 @@ export function DomainsMesh({
           )}
         </div>
 
-        <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#fbfbfc]/90 to-transparent px-24 pb-20 pt-24 text-center text-caption leading-[1.5] text-carbon max-sm:px-16">
+        <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-haze/90 to-transparent px-24 pb-20 pt-24 text-center text-caption leading-[1.5] text-carbon max-sm:px-16">
           {phrase}
         </p>
+        </>
+        )}
       </div>
     </div>
   );

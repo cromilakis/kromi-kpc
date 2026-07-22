@@ -1,5 +1,24 @@
 # Inicialización del proyecto — kromi-dpc
 
+> ## ⚠️ Alcance actual (pivote 2026-07-22) — LEER PRIMERO
+>
+> El proyecto se **redujo a la cara pública**: (1) **landing informativa** y (2) **autoevaluación
+> gratuita** que entrega un **diagnóstico + propuesta de mitigación completa** como entregable
+> (en pantalla y descargable a PDF vía impresión del navegador). **No hay dinero ni pago en el
+> sitio**; no se cobra por nada de lo que se hace en la página. El único gancho comercial es el
+> **contacto por WhatsApp** (`NEXT_PUBLIC_WHATSAPP_NUMBER`, +56945131427) para pedir apoyo en la
+> implementación de la propuesta; la estimación/cotización ocurre ahí, fuera del sitio.
+>
+> Se **eliminó del código** toda la **plataforma interna**: portal del cliente (`/portal`), app
+> de consultor (`/app`), certificación y verificación pública (`/verify`), autenticación/login,
+> Supabase server/client y Stripe. La app quedó en **dos rutas**: `/` y `/self-assessment`.
+>
+> La **intranet se reconstruirá más adelante**, cuando haya clientes y se defina la forma de
+> trabajo. Hasta entonces, **todo lo que este documento (y `RFC.md`) describe sobre la plataforma
+> interna, la certificación y los precios en UF queda DIFERIDO** y se conserva solo como
+> especificación de referencia para esa reconstrucción. Ante cualquier conflicto, este aviso
+> manda. Detalle del pivote en la memoria del proyecto (`modelo-negocio-servicio-no-info`).
+
 ## Estado
 
 Wizard completado (Momento 1) con contrato funcional derivado de `RFC.md` (v0.4, julio 2026)

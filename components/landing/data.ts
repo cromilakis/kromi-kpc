@@ -50,23 +50,7 @@ export const STAKES: StakeRef[] = [
 ];
 
 /** Ciclo de servicio: 4 fases (landing.cycle.phases). */
-export const CYCLE_PHASES = [
-  "diagnosis",
-  "proposal",
-  "certification",
-  "revalidation",
-] as const;
-
-/** Documentos del expediente de cumplimiento (landing.deliverable.dossier.docs). */
-export const DOSSIER_DOCS = [
-  "rat",
-  "policies",
-  "arcop",
-  "incidents",
-  "inventory",
-  "evidence",
-  "certificate",
-] as const;
+export const CYCLE_PHASES = ["evaluate", "diagnosis", "implement"] as const;
 
 /** Cards de acompañamiento consultor (landing.support.items). */
 export const SUPPORT_ITEMS = [
@@ -95,13 +79,14 @@ export const NAV_LINKS = [
   { key: "risk", href: "#riesgo" },
   { key: "domains", href: "#dominios" },
   { key: "cycle", href: "#ciclo" },
-  { key: "certification", href: "#certificacion" },
 ] as const;
 
 /**
- * Columnas del footer (landing.footer.columns). Solo "Panel del consultor"
- * navega (→ /login, acceso discreto según RFC §11); el resto son entradas
- * informativas sin destino todavía (fiel al prototipo).
+ * Columnas del footer (landing.footer.columns) como sitemap real: anchors de
+ * sección existentes (#dominios, #ciclo, #certificacion, #riesgo), páginas
+ * reales (/self-assessment, /login → acceso discreto del consultor, RFC §11) y
+ * los textos oficiales de las leyes. Se retiraron (2026-07-21) las entradas sin
+ * destino del prototipo para no mostrar arquitectura de información vacía.
  */
 export interface FooterColumnRef {
   key: string;
@@ -116,18 +101,14 @@ export const FOOTER_COLUMNS: FooterColumnRef[] = [
     key: "framework",
     links: [
       { key: "domains", href: "#dominios" },
-      { key: "taxonomy" },
-      { key: "risks" },
-      { key: "verticals" },
+      { key: "cycle", href: "#ciclo" },
     ],
   },
   {
     key: "platform",
     links: [
-      { key: "consultantPanel", href: "/login" },
-      { key: "complexityScore" },
-      { key: "evidence" },
-      { key: "certification" },
+      { key: "selfAssessment", href: "/self-assessment" },
+      { key: "risk", href: "#riesgo" },
     ],
   },
   {
@@ -152,11 +133,4 @@ export const FAQ_ITEMS = [
   "cost",
   "skills",
   "deliverable",
-] as const;
-
-/** Tiers de precios base (landing.pricing.tiers) — ancla honesta "desde". */
-export const PRICING_TIERS = [
-  { key: "micro", hasBasePrice: true, inverted: false },
-  { key: "small", hasBasePrice: true, inverted: false },
-  { key: "enterprise", hasBasePrice: false, inverted: true },
 ] as const;

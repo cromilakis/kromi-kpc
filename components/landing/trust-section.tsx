@@ -13,7 +13,7 @@ export async function TrustSection() {
 
   return (
     <section className="mx-auto w-full max-w-[1180px] px-32 pb-40 max-sm:px-16">
-      <div className="grid grid-cols-1 gap-32 rounded-xl border border-stone bg-[#fbfbfc] p-32 md:grid-cols-3 max-sm:p-20">
+      <div className="grid grid-cols-1 gap-32 rounded-xl border border-stone bg-haze p-32 md:grid-cols-3 max-sm:p-20">
         <div className="flex items-start gap-16">
           <span className="flex h-44 w-44 shrink-0 items-center justify-center rounded-buttons bg-ink text-white">
             <DocumentIcon />

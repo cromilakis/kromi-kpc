@@ -18,6 +18,8 @@ export interface WhatsAppButtonProps {
   className?: string;
   /** Invertido para fondos oscuros: blanco sobre ink en vez de ink sobre blanco. */
   inverted?: boolean;
+  /** En fondo claro: "primary" (ink) o "secondary" (borde + blanco + ink). */
+  variant?: "primary" | "secondary";
 }
 
 export async function WhatsAppButton({
@@ -25,6 +27,7 @@ export async function WhatsAppButton({
   children,
   className,
   inverted = false,
+  variant = "primary",
 }: WhatsAppButtonProps) {
   const tCommon = await getTranslations("common");
 
@@ -37,7 +40,9 @@ export async function WhatsAppButton({
         "inline-flex items-center justify-center gap-[9px] rounded-buttons",
         inverted
           ? "border border-white bg-white text-ink"
-          : "border border-ink bg-ink text-white",
+          : variant === "secondary"
+            ? "border border-slate bg-white text-ink hover:bg-ash"
+            : "border border-ink bg-ink text-white",
         "px-[18px] py-[11px] text-body-sm leading-body-sm tracking-body-sm font-medium",
         "transition-opacity hover:opacity-90",
         className,
