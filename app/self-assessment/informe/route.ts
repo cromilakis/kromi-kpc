@@ -10,8 +10,8 @@ import { renderPdf } from "@/lib/documents/render.server";
 /**
  * POST /self-assessment/informe — genera el PDF del diagnóstico (portada +
  * una brecha por página) a partir del resultado calculado en el cliente y lo
- * devuelve como descarga. Requiere servidor (puppeteer/Chromium): funciona en
- * Vercel, NO en el export estático de GitHub Pages.
+ * devuelve como descarga. Requiere servidor (puppeteer-core + @sparticuz/chromium-min):
+ * funciona en Vercel con CHROMIUM_REMOTE_EXEC_PATH, NO en el export estático de GitHub Pages.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

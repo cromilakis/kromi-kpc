@@ -19,7 +19,7 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@sentry/nextjs": "^10.63.0",
-    "@sparticuz/chromium": "^149.0.0",
+    "@sparticuz/chromium-min": "^149.0.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.0",
     "gsap": "^3.15.0",
