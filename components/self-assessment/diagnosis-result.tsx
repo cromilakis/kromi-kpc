@@ -198,7 +198,7 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-8">
+            <div className="flex flex-col items-end gap-8 sm:flex-row sm:items-center sm:gap-10">
               <input
                 type="text"
                 value={companyName}
@@ -244,7 +244,7 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
           <p className="mb-16 max-w-[62ch] text-caption leading-[1.5] text-metal">
             {t("proposalNote")}
           </p>
-          <ul className="space-y-10">
+          <ul className="space-y-6">
             {breaches.map((breach) => (
               <li key={breach.id}>
                 <details className="group rounded-cards border border-stone bg-white [&_summary::-webkit-details-marker]:hidden">
