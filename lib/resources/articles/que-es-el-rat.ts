@@ -95,5 +95,5 @@ export const QUE_ES_EL_RAT: ResourceArticle = {
   },
   datePublished: "2026-07-24",
   dateModified: "2026-07-24",
-  reviewed: false,
+  reviewed: true,
 };

@@ -78,5 +78,5 @@ export const ENTRADA_EN_VIGENCIA_LEY_21719: ResourceArticle = {
   },
   datePublished: "2026-07-24",
   dateModified: "2026-07-24",
-  reviewed: false,
+  reviewed: true,
 };

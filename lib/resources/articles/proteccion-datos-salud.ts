@@ -86,5 +86,5 @@ export const PROTECCION_DATOS_SALUD: ResourceArticle = {
   },
   datePublished: "2026-07-24",
   dateModified: "2026-07-24",
-  reviewed: false,
+  reviewed: true,
 };
