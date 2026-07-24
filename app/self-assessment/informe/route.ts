@@ -41,7 +41,6 @@ const breachSchema = z.object({
 });
 
 const payloadSchema = z.object({
-  companyName: z.string().trim().max(120).optional(),
   riskLabel: z.string().max(40),
   totalBreaches: z.number().int().min(0).max(200),
   breaches: z.array(breachSchema).min(1).max(60),
@@ -72,7 +71,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const contactUrl = whatsappUrl(
-      "Hola KPC. Hice la autoevaluación y quiero implementar las mitigaciones de mi diagnóstico con ustedes.",
+      "Hola KPC. Hice la autoevaluación y quiero implementar el plan de mitigación de mi diagnóstico con ustedes.",
     );
     const contactQrDataUri = await QRCode.toDataURL(contactUrl, {
       margin: 1,

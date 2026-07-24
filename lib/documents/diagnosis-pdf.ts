@@ -4,7 +4,7 @@
  *   - Página 1: PORTADA (oscura, de marca).
  *   - Índice de brechas (hasta 10 por página; el resto continúa en páginas nuevas).
  *   - PRESENTACIÓN (alcance y objetivo).
- *   - Una BRECHA por página con su propuesta de mitigación.
+ *   - Una BRECHA por página con su plan de mitigación.
  * CSS inline (no depende del pipeline Tailwind). Paleta monocroma KPC; el rojo
  * solo marca severidad crítica (color con significado).
  */
@@ -45,8 +45,6 @@ export interface DiagnosisPdfData {
   totalBreaches: number;
   /** Data URI (base64) del logo KPC para el header de las páginas claras. */
   logoDataUri: string;
-  /** Nombre de la empresa diagnosticada (opcional). */
-  companyName?: string;
   /** Enlace de contacto (WhatsApp) para la invitación de cierre. */
   contactUrl?: string;
   /** Data URI (PNG) del código QR que abre el mismo chat de WhatsApp. */
@@ -242,9 +240,6 @@ function severityTag(b: PdfBreach, extraClass: string): string {
 }
 
 function coverPage(d: DiagnosisPdfData): string {
-  const company = d.companyName?.trim()
-    ? `<p class="cover-company"><span>Preparado para</span><strong>${escapeHtml(d.companyName.trim())}</strong></p>`
-    : "";
   return `
   <section class="page cover">
     <div class="dots"></div>
@@ -259,7 +254,6 @@ function coverPage(d: DiagnosisPdfData): string {
     <div class="cover-mid">
       <p class="cover-eyebrow">Informe de autoevaluación</p>
       <h1 class="serif cover-title">Diagnóstico de protección de datos</h1>
-      ${company}
     </div>
     <p class="cover-sub cover-sub-bottom">Ley 21.719 · Kromi Privacy Center</p>
     <div class="cover-foot">
@@ -303,16 +297,13 @@ function indexPages(d: DiagnosisPdfData, firstBreachPage: number): string {
 }
 
 function presentationPage(d: DiagnosisPdfData): string {
-  const forWho = d.companyName?.trim()
-    ? ` de <strong>${escapeHtml(d.companyName.trim())}</strong>`
-    : "";
   return `
   <section class="page pres">
     ${header(d.logoDataUri, "Presentación")}
     <h2 class="serif page-h">Sobre este informe</h2>
-    <p>Este informe resume el diagnóstico de cumplimiento${forWho} frente a la Ley 21.719 de Protección de Datos Personales, generado a partir de las respuestas entregadas durante la autoevaluación en el Privacy Center.</p>
+    <p>Este informe resume el diagnóstico de cumplimiento frente a la Ley 21.719 de Protección de Datos Personales, generado a partir de las respuestas entregadas durante la autoevaluación en el Privacy Center. La autoevaluación es anónima: no se guardan las respuestas ni el resultado.</p>
     <p><strong>Alcance y objetivo.</strong> Es un panorama preliminar y referencial, basado en las respuestas entregadas; no constituye una auditoría ni una asesoría legal formal. Su propósito es mostrar, de forma clara y accionable, qué brechas existen y cómo cerrarlas.</p>
-    <p>En las páginas siguientes se detalla, para cada brecha detectada, su propuesta de mitigación: la meta de cierre, las acciones concretas, la prioridad, el esfuerzo y el plazo estimado. Cada propuesta puede aplicarse de forma autónoma; si se requiere acompañamiento en la implementación, el equipo de Kromi Privacy Center está disponible.</p>
+    <p>En las páginas siguientes se detalla, para cada brecha detectada, su severidad, el fundamento legal que incumple, la meta de cierre y las acciones concretas —con el respaldo que evidencia el cumplimiento—. Cada plan puede aplicarse de forma autónoma; si se requiere acompañamiento en la implementación, el equipo de Kromi Privacy Center está disponible.</p>
     <div class="box">
       <div><div class="k">Brechas detectadas</div><div class="v">${d.totalBreaches}</div></div>
       <div><div class="k">Nivel de exposición</div><div class="v">${escapeHtml(d.riskLabel)}</div></div>
@@ -400,7 +391,7 @@ function closingPage(d: DiagnosisPdfData): string {
     <p class="close-eyebrow">Paso siguiente · opcional</p>
     <h2 class="serif page-h close-h">Este diagnóstico es tuyo, gratis y sin compromiso</h2>
     <p class="close-lead">
-      Todo lo que contiene este informe —el diagnóstico y la propuesta de mitigación
+      Todo lo que contiene este informe —el diagnóstico y el plan de mitigación
       de cada brecha— es gratuito y sin ninguna obligación. Puedes implementarlo por tu
       cuenta, a tu ritmo, siguiendo las acciones y los respaldos que aquí se detallan.
     </p>
@@ -412,7 +403,7 @@ function closingPage(d: DiagnosisPdfData): string {
     <div class="close-card">
       <p class="close-card-h">Implementarlo con nosotros incluye</p>
       <ul class="close-list">
-        <li><strong>Implementación guiada de cada mitigación</strong>, con los documentos y las configuraciones que exige la Ley 21.719.</li>
+        <li><strong>Implementación guiada de cada acción del plan</strong>, con los documentos y las configuraciones que exige la Ley 21.719.</li>
         <li><strong>Auditoría y verificación</strong> del cierre de todas las brechas detectadas en este informe.</li>
         <li><strong>Documentación de cumplimiento personalizada</strong>: qué datos personales maneja tu empresa y cómo cumple cada norma, caso a caso.</li>
         <li><strong>Constancia final de cumplimiento</strong> que respalda tu diligencia ante la Agencia de Protección de Datos y ante tus clientes.</li>

@@ -22,24 +22,98 @@
   },
   "landing": {
     "nav": {
-      "risk": "El riesgo",
+      "report": "El informe",
       "domains": "El estándar",
       "cycle": "Cómo funciona",
       "resources": "Recursos",
-      "cta": "Evalúa gratis",
+      "cta": "Obtén tu informe gratis",
       "menu": "Abrir menú"
     },
     "hero": {
       "lawBadge": "Ley 21.719",
       "lawNotice": "rige desde el 1 de diciembre de 2026",
-      "title": "Descubre gratis cómo adecuar tu empresa a la Ley 21.719",
-      "subtitle": "Haz la autoevaluación y recibe al instante un diagnóstico de tu cumplimiento y una propuesta de mitigación para cada brecha. Tuya, sin costo y sin registro.",
+      "title": "Recibe gratis un completo informe de cumplimiento de la Ley 21.719 en tu empresa.",
+      "subtitle": "Responde un cuestionario anónimo sobre cómo opera tu empresa y, al instante, tienes tu diagnóstico: cada brecha frente a la ley, la norma que incumple y el plan para cerrarla. Es tuyo.",
       "quoteLabel": "Empieza ahora",
-      "ctaSelfAssessment": "Evalúa tu empresa gratis",
-      "ctaSeparator": "o",
-      "ctaWhatsApp": "Hablar con un consultor"
+      "ctaSelfAssessment": "Obtén tu informe gratis",
+      "ctaSecondary": "Ver qué incluye el informe",
+      "noContact": "Lo recibes al instante, sin registro ni formularios."
+    },
+    "manifesto": {
+      "eyebrow": "Nuestra postura",
+      "title": "Creamos una herramienta para que cualquier empresa sepa cómo está frente a la ley de protección de datos.",
+      "body1": "En unos minutos puedes revisar el estado de tu empresa frente a la Ley 21.719: qué te falta, qué normas involucra y cómo resolverlo.",
+      "body2": "El resultado es un informe completo, tuyo desde el primer minuto, para avanzar por tu cuenta y a tu ritmo.",
+      "body3": "Y si quieres llevarlo a la práctica con apoyo, estamos para acompañarte.",
+      "closing": "Simple, gratis y sin compromiso."
+    },
+    "report": {
+      "eyebrow": "El entregable",
+      "title": "Esto es lo que recibes. Completo, hoy, gratis.",
+      "intro": "Tu diagnóstico y tu plan de adecuación, detallados y listos para ejecutar.",
+      "items": {
+        "exposure": {
+          "title": "Tu nivel de exposición",
+          "text": "Qué tan expuesta está tu empresa hoy frente a la Ley 21.719."
+        },
+        "breaches": {
+          "title": "Cada brecha, en lenguaje claro",
+          "text": "Qué te falta por corregir, explicado sin jerga legal."
+        },
+        "legal": {
+          "title": "El fundamento legal",
+          "text": "La norma y el artículo exacto que incumple cada brecha."
+        },
+        "plan": {
+          "title": "La meta y las acciones",
+          "text": "Qué hacer para cerrar cada brecha, paso a paso."
+        },
+        "evidence": {
+          "title": "La evidencia requerida",
+          "text": "Qué documento o respaldo necesitas para demostrar el cumplimiento."
+        },
+        "pdf": {
+          "title": "En PDF, y es tuyo",
+          "text": "Descárgalo y llévatelo. Sin registro, con o sin nosotros."
+        }
+      },
+      "anchorValue": "Cada punto viene con su fundamento legal y con la evidencia que necesitas generar.",
+      "cta": "Obtén tu informe gratis",
+      "mock": {
+        "eyebrow": "Vista del informe",
+        "breachLabel": "Brecha 3 de 7",
+        "breachTitle": "Guardas datos de clientes en planillas y cuentas personales (Gmail/Drive).",
+        "severity": "Alta",
+        "legalLabel": "Fundamento legal",
+        "legal": "Ley 21.719, Art. 14 — principio de seguridad.",
+        "objectiveLabel": "Meta",
+        "objective": "Trasladar los datos a un entorno controlado, con acceso restringido y respaldo.",
+        "actionsLabel": "Acciones",
+        "action1": "Migrar los archivos a una cuenta corporativa con control de acceso.",
+        "action2": "Restringir quién puede ver y editar cada carpeta.",
+        "evidenceLabel": "Respaldo",
+        "evidence": "Captura de la configuración de permisos."
+      }
+    },
+    "recognition": {
+      "label": "¿Alguna te suena?",
+      "items": [
+        "¿Envías promociones o recordatorios al WhatsApp o correo de tus clientes sin haberles pedido consentimiento?",
+        "¿Guardas los datos de tus clientes en planillas Excel o en un Drive de cuenta personal (Gmail)?",
+        "¿Recibes carnets, contratos u otros documentos personales de tus clientes por WhatsApp?",
+        "¿Tienes cámaras de seguridad sin un letrero que avise ni claridad sobre quién puede ver las grabaciones?",
+        "¿Tus trabajadores o clientes marcan asistencia o acceden usando su huella digital o su rostro?",
+        "Si un cliente te pidiera borrar todos sus datos hoy, ¿sabrías dónde están y cómo eliminarlos por completo?"
+      ],
+      "closeLead": "Situaciones así de cotidianas pueden constituir infracciones bajo la nueva ley,",
+      "closeSupport": "y cada una tiene un lugar en tu informe — con su solución.",
+      "question": "Averigua gratis cómo está tu empresa hoy.",
+      "cta": "Obtén tu informe gratis"
     },
     "stakes": {
+      "sectionEyebrow": "Por qué esto importa",
+      "sectionTitle": "Esto es lo que está en juego.",
+      "sectionLead": "Las sanciones varían según la gravedad de la infracción; estos son los tramos que contempla la ley.",
       "title": "Qué establece la Ley 21.719",
       "note": "Rige desde el 1 de diciembre de 2026",
       "supportLead": "Cumplir es abordable.",
@@ -60,33 +134,18 @@
           "utm": "10.001 – 20.000 UTM",
           "clp": "hasta ≈ $1.360M"
         }
-      },
-      "everyday": {
-        "label": "¿Alguna te suena?",
-        "items": [
-          "¿Envías promociones o recordatorios al WhatsApp o correo de tus clientes sin haberles pedido consentimiento?",
-          "¿Guardas los datos de tus clientes en planillas Excel o en un Drive de cuenta personal (Gmail)?",
-          "¿Recibes carnets, contratos u otros documentos personales de tus clientes por WhatsApp?",
-          "¿Tienes cámaras de seguridad sin un letrero que avise ni claridad sobre quién puede ver las grabaciones?",
-          "¿Tus trabajadores o clientes marcan asistencia o acceden usando su huella digital o su rostro?",
-          "Si un cliente te pidiera borrar todos sus datos hoy, ¿sabrías dónde están y cómo eliminarlos por completo?"
-        ],
-        "closeLead": "Situaciones así de cotidianas pueden constituir infracciones bajo la nueva ley,",
-        "closeSupport": "y todas tienen solución si se corrigen a tiempo.",
-        "question": "Averigua gratis cómo está tu empresa hoy.",
-        "ctaSelfAssessment": "Haz tu autoevaluación"
       }
     },
     "domains": {
       "eyebrow": "Arquitectura del marco de trabajo",
-      "title": "Los 14 dominios del estándar KPC.",
+      "title": "Tu informe revisa las 14 áreas que exige la ley.",
       "description": "Catorce dominios forman la malla que resguarda tu información: ocho principios de la Ley 21.719 y seis dominios complementarios. Elige uno para explorarlo.",
       "groups": {
         "principles": "Principios de la Ley 21.719",
         "operational": "Obligaciones operativas"
       },
       "mesh": {
-        "phrase": "Tu autoevaluación revisa cada uno de estos dominios.",
+        "phrase": "Tu informe revisa cada uno de estos dominios.",
         "emptyPrompt": "Elige un dominio",
         "domains": [
           { "label": "Licitud y Lealtad", "title": "Licitud y Lealtad", "desc": "Cada dato que tratas necesita una base legal —consentimiento, contrato u otra causa—; sin ella, el tratamiento queda expuesto." },
@@ -191,46 +250,58 @@
     },
     "cycle": {
       "eyebrow": "Cómo funciona",
-      "title": "De la evaluación a la implementación.",
+      "title": "De la evaluación a la decisión.",
       "phases": {
         "evaluate": {
-          "name": "Autoevaluación",
-          "description": "Responde el cuestionario guiado —unos 5 minutos—. Sin registro y sin costo."
+          "name": "Responde el cuestionario",
+          "description": "Unas preguntas guiadas sobre tu empresa —unos 5 minutos—. Anónimo, sin registro y sin costo."
         },
         "diagnosis": {
-          "name": "Diagnóstico y propuesta",
-          "description": "Al instante recibes tu diagnóstico y, por cada brecha, una propuesta de mitigación: qué hacer, con qué prioridad y en qué plazo."
+          "name": "Recibe tu informe al instante",
+          "description": "Tu diagnóstico y, por cada brecha, el plan para cerrarla: qué hacer, la norma que incumple y la evidencia que necesitas."
         },
         "implement": {
-          "name": "Implementación",
-          "description": "Aplicas la propuesta por tu cuenta, gratis. Si quieres apoyo para implementarla, nos escribes por WhatsApp."
+          "name": "Tú decides",
+          "description": "Aplica el plan por tu cuenta, gratis. O, si prefieres, pídenos que lo implementemos contigo por WhatsApp."
         }
       }
     },
     "ctaBand": {
-      "title": "¿Aún no sabes cómo está tu empresa?",
-      "subtitle": "En unos minutos lo sabes: qué te falta y cómo resolverlo, sin costo.",
-      "cta": "Comienza tu autoevaluación"
+      "title": "Tu informe está a cinco minutos.",
+      "subtitle": "Es tuyo, decidas lo que decidas: qué te falta y cómo resolverlo, sin costo y sin registro.",
+      "cta": "Obtén tu informe gratis"
     },
-    "support": {
-      "title": "¿Prefieres que te acompañemos a implementarla?",
-      "description": "El diagnóstico y la propuesta son tuyos para aplicar por tu cuenta, gratis. Si quieres apoyo para llevarlos a la práctica, un consultor puede guiarte o hacerlo contigo. Escríbenos por WhatsApp y vemos el alcance —sin compromiso—.",
-      "items": {
-        "assigned": {
-          "title": "Un consultor que responde",
-          "text": "Una persona que conoce tu rubro y acompaña la implementación de principio a fin."
-        },
-        "advisory": {
-          "title": "Asesoría personalizada",
-          "text": "Interpretamos cómo la Ley 21.719 y las normas de tu rubro aplican a tu operación concreta."
-        },
-        "implementation": {
-          "title": "Manos a la obra",
-          "text": "Aplicamos cada acción de la propuesta en la práctica, más allá de entregar documentos."
-        },
-        "followUp": {
-          "title": "Seguimiento",
-          "text": "Buenas prácticas y ajustes ante cambios normativos para sostener el cumplimiento en el tiempo."
+    "fork": {
+      "eyebrow": "Con tu informe en mano",
+      "title": "Tienes dos caminos, igual de válidos.",
+      "pathA": {
+        "badge": "Por tu cuenta · gratis",
+        "title": "Hazlo tú mismo",
+        "text": "Tu informe trae todo lo necesario: qué hacer, en qué orden y qué evidencia generar. Muchas empresas lo implementan por su cuenta, a su ritmo."
+      },
+      "pathB": {
+        "badge": "Con acompañamiento",
+        "title": "Que lo implementemos contigo",
+        "text": "Si prefieres que alguien lo lleve a la práctica —interpretar tu caso, aplicar cada acción y dejar tu cumplimiento documentado y verificable—, un consultor te acompaña de principio a fin. Escríbenos por WhatsApp y vemos el alcance, sin compromiso.",
+        "cta": "Escríbenos por WhatsApp",
+        "itemsLabel": "El acompañamiento incluye",
+        "items": {
+          "assigned": {
+            "title": "Un consultor que responde",
+            "text": "Una persona que conoce tu rubro y acompaña la implementación de principio a fin."
+          },
+          "advisory": {
+            "title": "Asesoría personalizada",
+            "text": "Interpretamos cómo la Ley 21.719 y las normas de tu rubro aplican a tu operación concreta."
+          },
+          "implementation": {
+            "title": "Manos a la obra",
+            "text": "Aplicamos cada acción del plan en la práctica, más allá de entregar documentos."
+          },
+          "followUp": {
+            "title": "Seguimiento",
+            "text": "Buenas prácticas y ajustes ante cambios normativos para sostener el cumplimiento en el tiempo."
+          }
         }
       }
     },
@@ -243,34 +314,46 @@
         },
         "duration": {
           "q": "¿Cuánto demora?",
-          "a": "La autoevaluación toma unos 5 minutos y el diagnóstico con su propuesta aparece al instante. Implementar las mejoras depende de tu organización; puedes hacerlo a tu ritmo."
+          "a": "La autoevaluación toma unos 5 minutos y el diagnóstico con su plan aparece al instante. Implementar las mejoras depende de tu organización; puedes hacerlo a tu ritmo."
         },
         "cost": {
           "q": "¿Tiene algún costo?",
-          "a": "No. La autoevaluación, el diagnóstico y la propuesta de mitigación son gratis y sin registro, y puedes aplicarlos por tu cuenta. Si quieres que te acompañemos en la implementación, conversamos el alcance por WhatsApp, sin compromiso."
+          "a": "No. La autoevaluación, el diagnóstico y el plan de mitigación son gratis y sin registro, y puedes aplicarlos por tu cuenta. Si quieres que te acompañemos en la implementación, conversamos el alcance por WhatsApp, sin compromiso."
         },
         "skills": {
           "q": "¿Necesito conocimientos técnicos o legales?",
-          "a": "No. La propuesta explica cada acción en lenguaje simple, con qué prioridad y en qué plazo abordarla. Si necesitas apoyo para llevarla a la práctica, un consultor puede guiarte."
+          "a": "No. El informe explica cada acción en lenguaje simple, paso a paso. Si necesitas apoyo para llevarla a la práctica, un consultor puede guiarte."
         },
         "deliverable": {
           "q": "¿Qué obtengo al terminar la evaluación?",
-          "a": "Un diagnóstico de tu cumplimiento y una propuesta de mitigación por cada brecha detectada: qué hacer, con qué prioridad, esfuerzo y plazo. Es tuyo, gratis, para aplicarlo cuando quieras."
+          "a": "Un informe con tu diagnóstico y, por cada brecha detectada, el plan para cerrarla: qué hacer, la norma que incumple y la evidencia que necesitas generar. Es tuyo, gratis y descargable, para aplicarlo cuando quieras."
+        },
+        "whyFree": {
+          "q": "¿Por qué es gratis?",
+          "a": "Para que cualquier empresa pueda revisar su situación frente a la ley sin barreras de entrada. El informe es tuyo para usarlo como quieras; si más adelante quieres apoyo para implementarlo, ahí lo conversamos."
+        },
+        "privacy": {
+          "q": "¿Qué pasa con la información que les doy?",
+          "a": "La autoevaluación es anónima. No te pedimos correo ni teléfono, no guardamos tus respuestas ni tu resultado, y nada queda asociado a tu empresa: el informe se genera en el momento y es solo tuyo."
         }
       }
     },
     "whatsapp": {
+      "fabLabel": "Escríbenos por WhatsApp",
+      "fabText": "¡Hablemos!",
       "infoMessage": "Hola, quiero información sobre la adecuación a la Ley 21.719",
       "quoteMessage": "Hola, quiero conversar sobre cómo adecuar mi empresa a la Ley 21.719",
-      "assistedMessage": "Hola, hice la autoevaluación de la Ley 21.719 y quiero apoyo para implementar la propuesta de mitigación"
+      "assistedMessage": "Hola, hice la autoevaluación de la Ley 21.719 y quiero apoyo para implementar el plan de mitigación"
     },
     "footer": {
       "brandName": "Kromi Privacy Center",
       "brandDescription": "Estándar privado de cumplimiento estructurado para la Ley N° 21.719 y la normativa legal vigente en Chile.",
+      "brandManifesto": "Revisa gratis cómo está tu empresa frente a la Ley 21.719, de forma simple y sin compromiso.",
       "columns": {
         "framework": {
           "title": "El estándar",
           "links": {
+            "report": "El informe",
             "domains": "Los 14 dominios",
             "cycle": "Cómo funciona"
           }
@@ -278,8 +361,8 @@
         "platform": {
           "title": "Empezar",
           "links": {
-            "selfAssessment": "Autoevaluación gratis",
-            "risk": "El riesgo",
+            "selfAssessment": "Obtén tu informe",
+            "risk": "El contexto legal",
             "resources": "Recursos"
           }
         },
@@ -299,7 +382,7 @@
   "selfAssessment": {
     "meta": {
       "title": "Diagnóstico de protección de datos — KPC",
-      "description": "Diagnóstico de cumplimiento de la Ley 21.719: detecta brechas en el tratamiento de datos y estima el riesgo de multas. Sin registro, sin compromiso."
+      "description": "Diagnóstico de cumplimiento de la Ley 21.719: detecta brechas en el tratamiento de datos y estima el riesgo de multas. Anónimo, sin registro y sin compromiso."
     },
     "topbar": {
       "backToSite": "← Volver al sitio"
@@ -308,7 +391,7 @@
   "diagnosis": {
     "splash": {
       "title": "Diagnóstico de protección de datos",
-      "subtitle": "Autoevaluación de cumplimiento de la Ley 21.719: un panorama preliminar de brechas y del riesgo de multas. Sin registro, sin compromiso."
+      "subtitle": "Autoevaluación de cumplimiento de la Ley 21.719: un panorama preliminar de brechas y del riesgo de multas. Anónima y sin registro: no guardamos tus respuestas."
     },
     "contextDefault": "Ley 21.719",
     "loading": "Cargando…",
@@ -345,32 +428,27 @@
         "bajo": "{count, plural, one {leve} other {leves}}"
       }
     },
-    "breach": {
-      "fine": "Multa: {min} – {max} UTM",
-      "mitigation": "Mitigación: ~{weeks} semanas"
-    },
     "whatsapp": {
       "message": "Hola, hice el diagnóstico de protección de datos (Ley 21.719). Nivel de riesgo: {level}. {count, plural, =0 {No se detectaron brechas} one {Se detectó # brecha} other {Se detectaron # brechas}}. Quiero conversar con un consultor."
     },
     "result": {
-      "headline": "Tu diagnóstico y propuesta de mitigación",
+      "headline": "Tu diagnóstico y plan de mitigación",
       "download": "Descargar PDF",
       "downloading": "Generando PDF…",
       "downloadError": "No se pudo generar el PDF. Inténtalo de nuevo.",
       "intro": "Detectamos {count, plural, one {# brecha} other {# brechas}} en el tratamiento de datos de tu empresa. Abajo tienes, para cada una, qué significa y cómo cerrarla, paso a paso. Es tuyo y gratis: puedes aplicarlo por tu cuenta.",
-      "noBreaches": "No detectamos brechas significativas con lo que nos contaste. Mantén tus prácticas y vuelve a evaluarte si algo cambia en tu operación.",
+      "noBreaches": "No detectamos brechas significativas según tus respuestas. Mantén tus prácticas y vuelve a evaluarte si algo cambia en tu operación.",
       "exposureLabel": "Nivel de exposición",
       "proposalTitle": "Brechas detectadas y cómo cerrarlas",
       "proposalNote": "Cada brecha trae su plan: la meta de cierre y las acciones concretas para lograrla. Despliega cada una para ver el detalle.",
-      "companyLabel": "Nombre de la empresa para el informe",
-      "companyPlaceholder": "Nombre de tu empresa (opcional)",
+      "privacyNote": "Esta autoevaluación es anónima. No guardamos tus respuestas ni tu resultado.",
       "objectiveLabel": "Meta",
       "actionsLabel": "Acciones",
       "evidenceLabel": "Respaldo",
       "noPlan": "Esta brecha se aborda de forma específica; escríbenos para revisarla en detalle.",
       "cta": {
-        "title": "¿Quieres apoyo para implementar esta propuesta?",
-        "body": "Puedes aplicarla tú mismo con lo que ves aquí, sin costo. Si prefieres que te acompañemos en la implementación, escríbenos por WhatsApp y lo vemos.",
+        "title": "¿Quieres apoyo para implementar este plan?",
+        "body": "Puedes aplicarlo tú mismo con lo que ves aquí, sin costo. Si prefieres que te acompañemos en la implementación, escríbenos por WhatsApp y lo vemos.",
         "button": "Escribir por WhatsApp"
       }
     }

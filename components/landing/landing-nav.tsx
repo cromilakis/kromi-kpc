@@ -5,13 +5,11 @@ import { NAV_LINKS } from "./data";
 import { MenuIcon } from "./icons";
 
 /**
- * NAV sticky de la landing (prototipo isLanding §NAV): fondo blanco
- * translúcido con blur, borde Stone, 64px de alto. A la derecha, los anchors
- * de sección (solo desktop) + un botón "Ingreso" SIEMPRE visible (también en
- * móvil) que lleva a /login (cambio 2026-07-21: ya existe el portal del
- * cliente). El ruteo por rol resuelve el destino: consultor → /app, cliente
- * → /portal (rebote en app/app/layout.tsx). La captación (WhatsApp +
- * autoevaluación) vive en hero, la banda intermedia y pricing.
+ * NAV sticky de la landing: fondo blanco translúcido con blur, borde Stone,
+ * 64px de alto. A la derecha, los anchors de sección (solo desktop; en móvil
+ * bajan al menú <details>) + el CTA único "Obtén tu informe gratis" SIEMPRE
+ * visible → /self-assessment (positioning.md §6: un solo CTA persistente, sin
+ * WhatsApp en el nav). Anchors: el informe → estándar → cómo funciona → recursos.
  * Excepción de marca del lockup logo+tagline: serif Newsreader 17px medium
  * (registrada en .kromi/design.md); la regla "serif >= 28px" rige el resto.
  */
