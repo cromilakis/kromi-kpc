@@ -17,10 +17,22 @@ export interface PdfAction {
   evidence: string;
 }
 
+/** Norma/artículo infringido por una brecha (para el fundamento legal). */
+export interface PdfLegalRef {
+  /** Nombre completo de la norma y artículo. Ej: "Ley 21.719, Art. 14 ter". */
+  norm: string;
+  /** Resumen referencial de qué exige el artículo (por qué es una brecha). */
+  summary: string;
+  /** URL del texto oficial (Ley Chile/BCN u organismo). */
+  url?: string;
+}
+
 export interface PdfBreach {
   description: string;
   severity: PdfSeverity;
   severityLabel: string;
+  /** Normas/artículos que la brecha infringe. Vacío si no hay citas mapeadas. */
+  legalRefs: PdfLegalRef[];
   /** Meta de cierre. Vacío si la brecha no tiene plan mapeado. */
   objective: string;
   actions: PdfAction[];
@@ -164,7 +176,19 @@ const STYLES = `
   .act-title { color: #1c1d1f; font-weight: 600; }
   .act-detail { color: #3a3d42; margin-top: 2px; }
   .act-ev { color: #6b6f76; font-size: 11px; margin-top: 4px; }
+  .act-ev strong { color: #3a3d42; font-weight: 600; }
   .noplan { color: #6b6f76; margin-top: 8px; }
+
+  /* ---------- Fundamento legal de la brecha ---------- */
+  .legal-note { color: #6b6f76; margin-top: 6px; font-size: 11px; }
+  ul.legal { list-style: none; margin-top: 10px; }
+  ul.legal li { padding: 9px 0; border-bottom: 1px solid #eeeeef; }
+  ul.legal li:last-child { border-bottom: none; }
+  .legal-norm { display: block; font-size: 11.5px; font-weight: 600; color: #1c1d1f; }
+  .legal-norm a { color: #1c1d1f; text-decoration: none;
+                  border-bottom: 1px solid #c9ccd1; }
+  .legal-sum { display: block; font-size: 11px; color: #3a3d42;
+               margin-top: 3px; line-height: 1.5; }
 `;
 
 function header(logo: string, right: string): string {
@@ -259,6 +283,26 @@ function presentationPage(d: DiagnosisPdfData): string {
   </section>`;
 }
 
+function legalSection(refs: PdfLegalRef[]): string {
+  if (refs.length === 0) return "";
+  const items = refs
+    .map((r) => {
+      const norm = r.url
+        ? `<a href="${escapeHtml(r.url)}">${escapeHtml(r.norm)}</a>`
+        : escapeHtml(r.norm);
+      return `
+        <li>
+          <span class="legal-norm">${norm}</span>
+          <span class="legal-sum">${escapeHtml(r.summary)}</span>
+        </li>`;
+    })
+    .join("");
+  return `
+    <p class="sec">Fundamento legal</p>
+    <p class="legal-note">Esta brecha representa un incumplimiento de las siguientes normas:</p>
+    <ul class="legal">${items}</ul>`;
+}
+
 function breachPage(b: PdfBreach, index: number, total: number, logo: string): string {
   const body =
     b.actions.length > 0
@@ -275,7 +319,7 @@ function breachPage(b: PdfBreach, index: number, total: number, logo: string): s
               <div>
                 <div class="act-title">${escapeHtml(a.title)}</div>
                 <div class="act-detail">${escapeHtml(a.detail)}</div>
-                <div class="act-ev">Respaldo: ${escapeHtml(a.evidence)}</div>
+                <div class="act-ev"><strong>Cómo evidenciar el cumplimiento:</strong> ${escapeHtml(a.evidence)}</div>
               </div>
             </li>`,
             )
@@ -289,6 +333,7 @@ function breachPage(b: PdfBreach, index: number, total: number, logo: string): s
     <p class="b-index">Brecha ${index}</p>
     <h2 class="serif b-title">${escapeHtml(b.description)}</h2>
     ${severityTag(b, "tag")}
+    ${legalSection(b.legalRefs)}
     ${body}
   </section>`;
 }

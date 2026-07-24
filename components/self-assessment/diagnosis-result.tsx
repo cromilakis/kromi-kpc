@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/components/ui";
 import {
   getBreachMitigation,
+  getCitation,
   RISK_LEVEL_LABELS,
   type BreachMitigation,
   type FullDiagnosisResult,
@@ -33,12 +34,36 @@ const SEVERITY: Record<Severity, { text: string; tag: string; fill: string }> = 
 
 const LEVEL_ORDER: RiskLevel[] = ["bajo", "medio", "alto", "critico"];
 
+/** Norma/artículo infringido, resuelto desde el catálogo de citas. */
+interface LegalRef {
+  norm: string;
+  summary: string;
+  url?: string;
+}
+
 /** Brecha del resultado con su plan de mitigación (si existe en el catálogo). */
 interface BreachWithPlan {
   id: string;
   description: string;
   severity: Severity;
+  /** Normas infringidas (resueltas desde los artículos de la brecha). */
+  legalRefs: LegalRef[];
   plan: BreachMitigation | null;
+}
+
+/** Resuelve los artículos de una brecha a citas legales, deduplicadas por norma. */
+function resolveLegalRefs(articles: readonly string[]): LegalRef[] {
+  const byNorm = new Map<string, LegalRef>();
+  for (const ref of articles) {
+    const citation = getCitation(ref);
+    if (!citation || byNorm.has(citation.norm)) continue;
+    byNorm.set(citation.norm, {
+      norm: citation.norm,
+      summary: citation.summary,
+      url: citation.url,
+    });
+  }
+  return [...byNorm.values()];
 }
 
 export interface DiagnosisResultPanelProps {
@@ -71,6 +96,7 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
         id: b.id,
         description: b.description,
         severity: b.severity,
+        legalRefs: resolveLegalRefs(b.articles),
         plan: getBreachMitigation(b.id),
       });
     }
@@ -103,6 +129,7 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
           description: b.description,
           severity: b.severity,
           severityLabel: tLabel(b.severity),
+          legalRefs: b.legalRefs,
           objective: b.plan?.objective ?? t("noPlan"),
           actions: b.plan
             ? b.plan.actions.map((a) => ({
