@@ -1,4 +1,4 @@
-import { absoluteUrl, ORG_NAME } from "@/lib/site";
+import { absoluteUrl } from "@/lib/site";
 import type { ResourceArticle } from "./types";
 
 /** @graph con Article + FAQPage + BreadcrumbList para una página de recurso. */
