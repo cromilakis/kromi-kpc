@@ -167,6 +167,9 @@ const STYLES = `
   .tag { display: inline-block; margin-top: 10px; font-size: 10px; font-weight: 700;
          letter-spacing: .3px; text-transform: uppercase; padding: 3px 9px;
          border-radius: 999px; }
+  /* Pill de severidad a continuación del título (misma línea que el texto). */
+  .tag-inline { margin-top: 0; margin-left: 8px; vertical-align: middle;
+                white-space: nowrap; }
   .sec { font-size: 10px; letter-spacing: .4px; text-transform: uppercase;
          color: #6b6f76; font-weight: 600; margin-top: 15px; }
   .obj { color: #3a3d42; margin-top: 5px; }
@@ -335,8 +338,7 @@ function breachPage(b: PdfBreach, index: number, total: number, logo: string): s
   <section class="page breach">
     ${header(logo, `Brecha ${index} de ${total}`)}
     <p class="b-index">Brecha ${index}</p>
-    <h2 class="serif b-title">${escapeHtml(b.description)}</h2>
-    ${severityTag(b, "tag")}
+    <h2 class="serif b-title">${escapeHtml(b.description)}${severityTag(b, "tag tag-inline")}</h2>
     ${legalSection(b.legalRefs)}
     ${body}
   </section>`;
