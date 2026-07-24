@@ -23,10 +23,17 @@ const actionSchema = z.object({
   evidence: z.string().max(1500),
 });
 
+const legalRefSchema = z.object({
+  norm: z.string().max(200),
+  summary: z.string().max(1500),
+  url: z.string().url().max(500).optional(),
+});
+
 const breachSchema = z.object({
   description: z.string().max(1200),
   severity: z.enum(["critico", "alto", "medio", "bajo"]),
   severityLabel: z.string().max(40),
+  legalRefs: z.array(legalRefSchema).max(12).default([]),
   objective: z.string().max(3000),
   actions: z.array(actionSchema).max(20),
 });
