@@ -49,10 +49,23 @@ export const STAKES: StakeRef[] = [
   { key: "severe", level: 3 },
 ];
 
-/** Ciclo de servicio: 4 fases (landing.cycle.phases). */
+/** Ciclo de servicio: 3 pasos (landing.cycle.phases). */
 export const CYCLE_PHASES = ["evaluate", "diagnosis", "implement"] as const;
 
-/** Cards de acompañamiento consultor (landing.support.items). */
+/** Componentes del entregable ("El Informe", landing.report.items). */
+export const REPORT_ITEMS = [
+  "exposure",
+  "breaches",
+  "legal",
+  "plan",
+  "evidence",
+  "pdf",
+] as const;
+
+/**
+ * Cards del acompañamiento (landing.fork.pathB.items): las 4 formas de apoyo en
+ * la implementación, ahora dentro del camino B de la bifurcación.
+ */
 export const SUPPORT_ITEMS = [
   "assigned",
   "advisory",
@@ -71,12 +84,13 @@ export const AGENCIES = [
 ] as const;
 
 /**
- * Anchors de la navegación de la landing (landing.nav). Orden narrativo del
- * "paseo de información" (spec UX 2026-07-20): riesgo → estándar → proceso →
- * certificación, cerrando en el CTA "Reservar evaluación".
+ * Anchors de la navegación de la landing (landing.nav). Orden narrativo
+ * (positioning.md §7): el informe (protagonista) → estándar → proceso, con el
+ * CTA único "Obtén tu informe gratis" siempre visible. El contexto legal
+ * (#riesgo) queda fuera del nav: es contexto, no gancho.
  */
 export const NAV_LINKS = [
-  { key: "risk", href: "#riesgo" },
+  { key: "report", href: "#informe" },
   { key: "domains", href: "#dominios" },
   { key: "cycle", href: "#ciclo" },
   { key: "resources", href: "/recursos" },
@@ -101,6 +115,7 @@ export const FOOTER_COLUMNS: FooterColumnRef[] = [
   {
     key: "framework",
     links: [
+      { key: "report", href: "#informe" },
       { key: "domains", href: "#dominios" },
       { key: "cycle", href: "#ciclo" },
     ],
@@ -135,4 +150,6 @@ export const FAQ_ITEMS = [
   "cost",
   "skills",
   "deliverable",
+  "whyFree",
+  "privacy",
 ] as const;

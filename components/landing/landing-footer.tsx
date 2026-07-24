@@ -30,6 +30,11 @@ export async function LandingFooter() {
           <p className="max-w-[280px] text-[13px] leading-[1.6] text-overcast">
             {t("brandDescription")}
           </p>
+          {/* Línea del manifiesto (positioning.md §2): deja la marca anclada en
+              la postura, no en un CTA. */}
+          <p className="mt-16 max-w-[280px] font-serif text-[15px] leading-[1.45] text-slate">
+            {t("brandManifesto")}
+          </p>
         </div>
         {FOOTER_COLUMNS.map((column) => (
           <div key={column.key}>

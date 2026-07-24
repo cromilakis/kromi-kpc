@@ -42,7 +42,7 @@ describe('landing i18n — el catálogo cubre la data estructurada', () => {
       expect(asRecord(es.landing.cycle.phases)[phase]).toBeDefined()
     }
     for (const item of SUPPORT_ITEMS) {
-      expect(asRecord(es.landing.support.items)[item]).toBeDefined()
+      expect(asRecord(es.landing.fork.pathB.items)[item]).toBeDefined()
     }
     for (const agency of AGENCIES) {
       expect(asRecord(es.landing.agencies.items)[agency]).toBeTruthy()

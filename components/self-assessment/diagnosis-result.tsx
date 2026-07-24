@@ -81,7 +81,6 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
   const t = useTranslations("diagnosis.result");
   const tLabel = useTranslations("diagnosis.severity.label");
   const tWa = useTranslations("diagnosis.whatsapp");
-  const [companyName, setCompanyName] = useState("");
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState(false);
 
@@ -122,7 +121,6 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
     setDownloading(true);
     try {
       const payload = {
-        companyName: companyName.trim() || undefined,
         riskLabel: RISK_LEVEL_LABELS[result.riskLevel],
         totalBreaches: result.totalBreaches,
         breaches: breaches.map((b) => ({
@@ -174,6 +172,10 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
             ? t("intro", { count: result.totalBreaches })
             : t("noBreaches")}
         </p>
+        {/* Nota de anonimato: no se guardan respuestas ni resultado. */}
+        <p className="mt-10 text-caption leading-[1.5] text-metal">
+          {t("privacyNote")}
+        </p>
 
         {hasBreaches && (
           <div className="mt-24 flex flex-wrap items-end justify-between gap-x-24 gap-y-16">
@@ -199,15 +201,6 @@ export function DiagnosisResultPanel({ result }: DiagnosisResultPanelProps) {
               </div>
             </div>
             <div className="flex flex-col items-end gap-8 sm:flex-row sm:items-center sm:gap-10">
-              <input
-                type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder={t("companyPlaceholder")}
-                aria-label={t("companyLabel")}
-                maxLength={120}
-                className="w-[240px] rounded-buttons border border-slate bg-white px-12 py-[7px] text-body-sm text-ink placeholder:text-metal focus:border-carbon focus:outline-none max-sm:w-full"
-              />
               <button
                 type="button"
                 onClick={handleDownload}

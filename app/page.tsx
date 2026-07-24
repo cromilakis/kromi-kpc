@@ -5,19 +5,28 @@ import { CtaBand } from "@/components/landing/cta-band";
 import { CycleSection } from "@/components/landing/cycle-section";
 import { DomainsSection } from "@/components/landing/domains-section";
 import { FaqSection } from "@/components/landing/faq-section";
+import { ForkSection } from "@/components/landing/fork-section";
 import { Hero } from "@/components/landing/hero";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
+import { LegalContextSection } from "@/components/landing/legal-context-section";
+import { ManifestoSection } from "@/components/landing/manifesto-section";
+import { RecognitionSection } from "@/components/landing/recognition-section";
+import { ReportSection } from "@/components/landing/report-section";
 import { SmoothScrollProvider } from "@/components/landing/smooth-scroll-provider";
-import { StakesSection } from "@/components/landing/stakes-section";
-import { SupportSection } from "@/components/landing/support-section";
+import { WhatsAppFab } from "@/components/landing/whatsapp-fab";
 
 /**
- * Landing pública KPC — réplica de la sección isLanding del prototipo
- * (design/prototype.dc.html), en el orden exacto de sus secciones:
- * nav sticky → hero + banda Ley 21.719 → 14 dominios → logo cloud →
- * ciclo de servicio → entregable → confianza → CTA intermedio →
- * acompañamiento → modelo de servicio → FAQ → inversión/CTA final → footer Abyss.
+ * Landing pública KPC — orden narrativo de positioning.md §7 (reposicionamiento
+ * 2026-07-24): generosidad primero, miedo después. El informe es el protagonista
+ * y el manifiesto declara la postura antes de cualquier detalle de producto:
+ *
+ *   nav → hero (el regalo) → manifiesto (la postura) → el informe (entregable) →
+ *   ¿alguna te suena? (espejo) → el estándar (14 dominios + organismos) →
+ *   contexto legal (sanciones, reencuadrado) → cómo funciona → la bifurcación
+ *   (implementación) → FAQ → CTA final → footer. La diferenciación es implícita
+ *   (manifiesto + informe + bifurcación), no una sección comparativa.
+ *
  * Todo server components; los textos salen de messages/es.json (next-intl).
  */
 export const metadata: Metadata = {
@@ -26,7 +35,15 @@ export const metadata: Metadata = {
 
 // Claves del FAQ (messages/es.json → landing.faq.items) para el JSON-LD FAQPage,
 // que habilita el resultado enriquecido de preguntas frecuentes en Google.
-const FAQ_KEYS = ["obligation", "duration", "cost", "skills", "deliverable"];
+const FAQ_KEYS = [
+  "obligation",
+  "duration",
+  "cost",
+  "skills",
+  "deliverable",
+  "whyFree",
+  "privacy",
+];
 
 async function FaqStructuredData() {
   const t = await getTranslations("landing.faq.items");
@@ -51,21 +68,24 @@ export default function LandingPage() {
   return (
     <SmoothScrollProvider>
       <FaqStructuredData />
-    <div className="flex min-h-full flex-1 flex-col overflow-x-clip bg-white">
-      <LandingNav />
-      <main id="main" className="flex-1">
-        <Hero />
-        {/* Hero (intro) → Stakes (riesgo relatable) → marco (dominios). */}
-        <StakesSection />
-        <DomainsSection />
-        <AgenciesCloud />
-        <CycleSection />
-        <SupportSection />
-        <FaqSection />
-        <CtaBand />
-      </main>
-      <LandingFooter />
-    </div>
+      <div className="flex min-h-full flex-1 flex-col overflow-x-clip bg-white">
+        <LandingNav />
+        <main id="main" className="flex-1">
+          <Hero />
+          <ManifestoSection />
+          <ReportSection />
+          <RecognitionSection />
+          <DomainsSection />
+          <AgenciesCloud />
+          <LegalContextSection />
+          <CycleSection />
+          <ForkSection />
+          <FaqSection />
+          <CtaBand />
+        </main>
+        <LandingFooter />
+        <WhatsAppFab />
+      </div>
     </SmoothScrollProvider>
   );
 }
