@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     images: ["/og.png"],
   },
   // Verificación de propiedad en Google Search Console (método Etiqueta HTML).
-  verification: { google: "av-F--Loiwj_XTvckFb01BsdtLh-JhiKy1B96szkTeU" },
+  verification: { google: "vI1sc0Dk0GOQAAftycuJbVX03CQap0t3StFtAVBTxAY" },
 };
 
 /** JSON-LD de sitio: identifica la organización y el sitio ante buscadores. */
